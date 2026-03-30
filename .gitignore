@@ -1,0 +1,10 @@
+dist
+node_modules
+bun.lock
+
+# Session state (ephemeral)
+production/session-state/
+production/session-logs/
+
+# OS
+.DS_Store
