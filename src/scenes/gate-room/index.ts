@@ -7,6 +7,7 @@ import type { GameSceneModuleContext, GameSceneLifecycle } from "../../game/scen
 import { perfMetrics } from "../../game/app";
 import { ShipState, SHIP_STATE_CONFIG, type Section, type Subsystem } from "../../systems/ship-state";
 import { emit, scopedBus } from "../../systems/event-bus";
+import { initResources, getResource, addResource, consumeResource, hasResource, getAllResources } from "../../systems/resources";
 
 const assetUrlLoaders = import.meta.glob("./assets/**/*", {
 	import: "default",
@@ -1171,6 +1172,68 @@ function updateSubsystemVisual(sv: SubsystemVisual, sub: Subsystem): void {
 	}
 }
 
+// ─── Supply crates ───────────────────────────────────────────────────────────
+
+interface SupplyCrate {
+	mesh: THREE.Group;
+	position: THREE.Vector3;
+	contents: number;
+	looted: boolean;
+}
+
+function createSupplyCrate(scene: THREE.Scene, pos: THREE.Vector3, contents: number): SupplyCrate {
+	const group = new THREE.Group();
+	group.position.copy(pos);
+
+	// Crate body — brighter with emissive so visible in dark rooms
+	const crateMat = new THREE.MeshStandardMaterial({
+		color: 0x776644, emissive: 0x221100, emissiveIntensity: 1.0,
+		roughness: 0.85, metalness: 0.1
+	});
+	const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.5), crateMat);
+	body.position.y = 0.25;
+	group.add(body);
+
+	// Lid (slightly lighter)
+	const lidMat = new THREE.MeshStandardMaterial({
+		color: 0x887755, emissive: 0x221100, emissiveIntensity: 1.0,
+		roughness: 0.8, metalness: 0.1
+	});
+	const lid = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.08, 0.55), lidMat);
+	lid.position.y = 0.54;
+	group.add(lid);
+
+	// Glowing indicator strip on front — shows it's lootable
+	const glowMat = new THREE.MeshStandardMaterial({
+		color: 0xffaa22, emissive: 0xffaa22, emissiveIntensity: 0.6
+	});
+	const glow = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 0.02), glowMat);
+	glow.position.set(0, 0.35, 0.26);
+	group.add(glow);
+
+	scene.add(group);
+
+	return { mesh: group, position: pos, contents, looted: false };
+}
+
+function markCrateLooted(crate: SupplyCrate): void {
+	crate.looted = true;
+	// Dim the glow strip
+	const glow = crate.mesh.children[2] as THREE.Mesh;
+	if (glow) {
+		const mat = glow.material as THREE.MeshStandardMaterial;
+		mat.emissive.set(0x222211);
+		mat.emissiveIntensity = 0.1;
+	}
+	// Open the lid slightly
+	const lid = crate.mesh.children[1];
+	if (lid) {
+		lid.rotation.x = -0.4;
+		lid.position.z = -0.1;
+		lid.position.y = 0.58;
+	}
+}
+
 // ─── Interaction prompt ──────────────────────────────────────────────────────
 
 function createInteractionPrompt(): HTMLDivElement {
@@ -1198,12 +1261,15 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 
 	// ─── Build the gate room (existing prototype) ────────────────────────
 	buildRoom(scene);
+
+	// Floor is from the runtime JSON — kept dark. Visibility comes from
+	// player light, room lights, and the yellow runway strips.
 	const gate = buildStargate(scene);
 	const lights = buildLighting(scene, debugObjects);
 	gate.pointLights = lights;
 
 	// ─── Player-attached ambient light (Eli's subtle glow) ──────────────
-	const playerLight = new THREE.PointLight(0xccddff, 1.2, 10, 2);
+	const playerLight = new THREE.PointLight(0xccddff, 2.5, 15, 1.5);
 	playerLight.position.set(0, 2, 0);
 	if (player) {
 		player.object.add(playerLight);
@@ -1261,19 +1327,19 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const subsystemDefs: Array<{ sub: Subsystem; pos: THREE.Vector3; wall: "left" | "right" | "back" }> = [
 		{
 			sub: { id: "corridor-conduit-1", type: "conduit", sectionId: "corridor-a1",
-				condition: 0.25, repairCost: 5, functionalThreshold: 0.2 },
+				condition: 0.25, repairCost: 1, functionalThreshold: 0.2 },
 			pos: new THREE.Vector3(CORRIDOR_WIDTH_EXT / 2, 1.5, corridorCZ),
 			wall: "right"
 		},
 		{
 			sub: { id: "storage-lights", type: "lighting-panel", sectionId: "storage-bay",
-				condition: 0.1, repairCost: 3, functionalThreshold: 0.2 },
+				condition: 0.1, repairCost: 1, functionalThreshold: 0.2 },
 			pos: new THREE.Vector3(STORAGE_WIDTH / 2, 1.5, storageCZ + 1),
 			wall: "right"
 		},
 		{
 			sub: { id: "storage-console", type: "console", sectionId: "storage-bay",
-				condition: 0.35, repairCost: 5, functionalThreshold: 0.2 },
+				condition: 0.35, repairCost: 1, functionalThreshold: 0.2 },
 			pos: new THREE.Vector3(-STORAGE_WIDTH / 2, 1.2, storageCZ + 2),
 			wall: "left"
 		},
@@ -1286,6 +1352,15 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	}
 
 	shipState.distributePower();
+
+	// ─── Resources + Supply Crates ───────────────────────────────────────
+	initResources();
+
+	const crates: SupplyCrate[] = [
+		createSupplyCrate(scene, new THREE.Vector3(-2, 0, storageCZ - 1.5), 8),
+		createSupplyCrate(scene, new THREE.Vector3(-1, 0, storageCZ + 2.5), 6),
+		createSupplyCrate(scene, new THREE.Vector3(2.5, 0, storageCZ + 1), 8),
+	];
 
 	// ─── Room lighting (Ship State driven) ───────────────────────────────
 	const roomLights: RoomLighting[] = [
@@ -1327,6 +1402,9 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 
 	// ─── Interaction state ───────────────────────────────────────────────
 	let nearestSub: SubsystemVisual | null = null;
+	let nearestCrate: SupplyCrate | null = null;
+	type InteractTarget = "subsystem" | "crate" | null;
+	let interactTarget: InteractTarget = null;
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (e.code === "Backquote") {
@@ -1339,13 +1417,20 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			if (gate.state === "idle") startDial(gate);
 			else if (gate.state === "active") shutdownGate(gate);
 		}
-		if (e.code === "KeyE" && nearestSub && !menu.visible) {
-			const sub = shipState.getSubsystem(nearestSub.id);
-			if (sub && sub.condition < 1.0) {
-				const result = shipState.repairSubsystem(sub.id);
-				if (result.success) {
-					// Recalculate section power after repair
-					shipState.distributePower();
+		if (e.code === "KeyE" && !menu.visible) {
+			if (interactTarget === "crate" && nearestCrate && !nearestCrate.looted) {
+				// Loot the crate
+				addResource("ship-parts", nearestCrate.contents);
+				markCrateLooted(nearestCrate);
+			} else if (interactTarget === "subsystem" && nearestSub) {
+				const sub = shipState.getSubsystem(nearestSub.id);
+				if (sub && sub.condition < 1.0) {
+					const cost = sub.repairCost;
+					if (hasResource("ship-parts", cost)) {
+						consumeResource("ship-parts", cost);
+						shipState.repairSubsystem(sub.id);
+						shipState.distributePower();
+					}
 				}
 			}
 		}
@@ -1398,20 +1483,50 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 					emit("player:entered:section", { sectionId: newSection });
 				}
 
-				// Find nearest interactable subsystem
+				// Find nearest interactable (crates or subsystems)
 				nearestSub = null;
+				nearestCrate = null;
+				interactTarget = null;
 				let nearestDist = 2.5;
-				for (const sv of subsystemVisuals) {
-					const dist = sv.mesh.position.distanceTo(player.object.position);
-					if (dist < nearestDist) { nearestSub = sv; nearestDist = dist; }
+				const pp = player.object.position;
+
+				// Check crates first (higher priority)
+				for (const crate of crates) {
+					if (crate.looted) continue;
+					const dist = crate.position.distanceTo(pp);
+					if (dist < nearestDist) {
+						nearestCrate = crate;
+						nearestDist = dist;
+						interactTarget = "crate";
+					}
 				}
 
-				if (nearestSub) {
+				// Check subsystems
+				for (const sv of subsystemVisuals) {
+					const dist = sv.mesh.position.distanceTo(pp);
+					if (dist < nearestDist) {
+						nearestSub = sv;
+						nearestCrate = null;
+						nearestDist = dist;
+						interactTarget = "subsystem";
+					}
+				}
+
+				// Update prompt
+				const parts = getResource("ship-parts");
+				if (interactTarget === "crate" && nearestCrate) {
+					interactPrompt.style.display = "block";
+					interactPrompt.textContent = `[E] Open crate (+${nearestCrate.contents} Ship Parts)`;
+				} else if (interactTarget === "subsystem" && nearestSub) {
 					const sub = shipState.getSubsystem(nearestSub.id);
 					if (sub && sub.condition < 1.0) {
 						interactPrompt.style.display = "block";
 						const newCond = Math.min(1, sub.condition + SHIP_STATE_CONFIG.BASE_REPAIR_AMOUNT * SHIP_STATE_CONFIG.REPAIR_SKILL_MODIFIER);
-						interactPrompt.textContent = `[E] Repair ${sub.type} (${(sub.condition * 100).toFixed(0)}% \u2192 ${(newCond * 100).toFixed(0)}%)`;
+						if (parts >= sub.repairCost) {
+							interactPrompt.textContent = `[E] Repair ${sub.type} (${(sub.condition * 100).toFixed(0)}% \u2192 ${(newCond * 100).toFixed(0)}%) \u2014 Cost: ${sub.repairCost} Ship Parts (have ${parts})`;
+						} else {
+							interactPrompt.textContent = `Repair ${sub.type} \u2014 Need ${sub.repairCost} Ship Parts (have ${parts})`;
+						}
 					} else if (sub) {
 						interactPrompt.style.display = "block";
 						interactPrompt.textContent = `${sub.type} \u2014 Optimal`;
@@ -1441,6 +1556,11 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 						for (const sub of shipState.getSubsystemsInSection(sec.id)) {
 							lines.push(`  ${sub.id.padEnd(20)} ${sub.type.padEnd(14)} ${(sub.condition * 100).toFixed(0)}%`);
 						}
+					}
+					lines.push("", "=== RESOURCES ===");
+					const res = getAllResources();
+					for (const [key, val] of Object.entries(res)) {
+						lines.push(`  ${key.padEnd(14)} ${val}`);
 					}
 					shipDebugEl.textContent = lines.join("\n");
 				}
