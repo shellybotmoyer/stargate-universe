@@ -286,7 +286,7 @@ and uses the Timer system only for the deadline.
 | `EMERGENCY_BATTERY_DURATION` | 1800s (30 min) | 600-3600s | More time during power failure. Less urgent. | Tighter deadline. More pressure. |
 | `EXPIRED_TIMER_LINGER_SECONDS` | 2.0s | 0.5-5.0 | Expired timers queryable longer. | Quicker cleanup. |
 | `MAX_CONCURRENT_TIMERS` | 32 | 16-64 | More timers allowed. | Fewer — forces systems to be economical. |
-| `DEFAULT_TIME_SCALE` | 1.0 | 0.1-3.0 | Global timer speed. 1.0 = real-time. | Slow-mo baseline. |
+| `DEFAULT_TIME_SCALE` | 1.0 | 0.1-16.0 | Global timer speed. 1.0 = real-time. < 1 = drama dilation. > 1 = acceleration (up to MAX_ACCELERATION_SCALE). | Slow-mo baseline. |
 | `CRISIS_DILATION_SCALE` | 0.5 | 0.2-0.8 | How much crisis final moments slow down. Lower = more bullet time. | Less dilation. Final moments feel faster. |
 | `CRISIS_DILATION_THRESHOLD` | 30s | 10-60s | When auto-dilation kicks in. Higher = longer drama window. | Shorter drama window. |
 | `MAX_ACCELERATION_SCALE` | 16.0 | 4.0-32.0 | Max fast-forward speed. Higher = faster skip. | Slower max skip speed. |

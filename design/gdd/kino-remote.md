@@ -63,9 +63,11 @@ systems, making the ship feel real and responsive to your growing understanding.
      overlay appears showing urgent info (active timer, top scarcity warning,
      current objective). Gameplay continues — player can walk while glancing.
      Dismissed by releasing the key or after `QUICK_CHECK_TIMEOUT` seconds.
-   - **Full mode** (hold Kino Remote key): Full-screen Ancient UI opens. Game
-     pauses (all timers halt). Tabbed navigation between screens. Dismissed by
-     pressing the key again or pressing Escape.
+   - **Full mode** (hold Kino Remote key): Full-screen Ancient UI opens. The
+     system publishes `game:paused` on the Event Bus (freezing all timers via
+     Timer system's universal pause). Publishes `game:resumed` on close.
+     Tabbed navigation between screens. Dismissed by pressing the key again
+     or pressing Escape.
 
 2. **Screen catalog**: The Kino Remote has the following screens, each unlocked
    through progression:
@@ -218,8 +220,8 @@ power, Resource computes quantities, Timer computes remaining time).
 | Resource & Inventory | Hard | Resource quantities, scarcity warnings, story items (console connections) |
 | ggez Scene Mgmt | Soft | Renders as overlay on current scene |
 | Event Bus | Hard | Subscribes to state-change events for real-time updates |
-| Ship Exploration | Soft | Knowledge tier for label translation |
-| Timer & Pressure | Soft | Active timer list |
+| Ship Exploration | Hard | Knowledge tier for label translation (core feature — labels unreadable without it) |
+| Timer & Pressure | Hard | Active timer list for Timer screen and quick-check |
 
 **Downstream (depends on this system):**
 

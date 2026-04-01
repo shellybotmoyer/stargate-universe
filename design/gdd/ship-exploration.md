@@ -86,7 +86,13 @@ label.
      marks, hull repairs, rerouted conduits. Visual narrative, not interactive.
 
 3. **Ancient knowledge tier**: Data readability scales with a global
-   `ancient_knowledge_level` (0-5) that increases through story progression:
+   `ancient_knowledge_level` (0-5) that increases through story progression.
+   **This system formally owns the value** — it exposes `getKnowledgeLevel()`
+   and `setKnowledgeLevel(tier)` as its public API. For MVP, knowledge tier
+   is set via story flags (episode events call `setKnowledgeLevel`). The
+   Episode Narrative system (Vertical Slice) will eventually drive tier
+   progression, but until then, Ship Exploration is the canonical source.
+   Tiers:
    - **Tier 0** (start): Can read nothing. Glyphs everywhere.
    - **Tier 1** (early S1): Basic symbols — numbers, directions, warnings.
      Critical map labels (bridge, gate room) become readable.

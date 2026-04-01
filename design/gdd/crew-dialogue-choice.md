@@ -123,11 +123,13 @@ your decisions create YOUR version of events — with real consequences.
    - **EpisodeScripted**: The Episode system forces a specific dialogue at a
      specific moment in the story.
 
-7. **Dialogue camera**: When a full dialogue tree starts, the camera transitions
-   to a **dialogue mode** (defined in Camera System GDD): two-shot framing of Eli
-   and the speaker, with over-the-shoulder cuts between speakers. Game time pauses
-   during dialogue (timers halt). Player can still look around slightly but cannot
-   move.
+7. **Dialogue camera and pause**: When a full dialogue tree starts, the camera
+   transitions to a **dialogue mode** (defined in Camera System GDD): two-shot
+   framing of Eli and the speaker, with over-the-shoulder cuts between speakers.
+   The system publishes `game:paused` on the Event Bus when dialogue starts and
+   `game:resumed` when it ends — this is the canonical pause mechanism that
+   freezes all timers (via Timer system's universal pause). Player can still
+   look around slightly but cannot move.
 
 8. **Ambient barks**: Short contextual lines that don't interrupt gameplay:
    - Crew members have bark pools keyed to game state (resource levels, ship

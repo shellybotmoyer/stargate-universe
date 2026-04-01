@@ -250,13 +250,17 @@ No formula — purely data-driven per planet/episode. Default is 900s (15 min).
 ### FTL Cooldown Duration
 
 ```
-cooldown_seconds = BASE_FTL_COOLDOWN * (1 / ftl_drive_condition)
+cooldown_seconds = BASE_FTL_COOLDOWN * (1 / max(ftl_drive_condition, MIN_FTL_CONDITION))
 ```
 
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
 | `BASE_FTL_COOLDOWN` | float | 1800s (30 min) | config | Cooldown at 100% FTL condition |
-| `ftl_drive_condition` | float | 0.2-1.0 | Ship State | Lower condition = longer cooldown |
+| `ftl_drive_condition` | float | 0-1.0 | Ship State | FTL drive condition |
+| `MIN_FTL_CONDITION` | float | 0.1 | config | Floor to prevent divide-by-zero (at 0.1 = 10x cooldown) |
+
+**Example**: At 100% condition: 1800s (30 min). At 50%: 3600s (1 hr). At 10% (minimum): 18000s (5 hr).
+At 0% condition: clamped to 0.1, so 18000s — plus the Episode system should trigger a crisis narrative.
 
 ### Hazard Damage Rate
 
@@ -269,8 +273,11 @@ health_drain_per_second = hazard_severity * HAZARD_BASE_DAMAGE
 | `hazard_severity` | float | 0.1-1.0 | zone config | How dangerous this hazard zone is |
 | `HAZARD_BASE_DAMAGE` | float | 5-15 | config | Base health drain per second |
 
-Player has 100 "health" on planets. At 0, auto-retreat triggers (not death).
-Health regenerates outside hazard zones at `HEALTH_REGEN_RATE` (default 5 HP/s).
+**Planet health** is a local value owned by this system (not the Player Controller,
+which has no health state). It exists only while on a planet and resets to max on
+each new run. At 0, auto-retreat triggers (not death). Health regenerates outside
+hazard zones at `HEALTH_REGEN_RATE` (default 5 HP/s). Planet health is serialized
+as part of this system's save state (for mid-run save/load).
 
 ## Edge Cases
 
