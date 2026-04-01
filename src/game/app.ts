@@ -36,8 +36,24 @@ type ActiveScene = {
   runtimeScene: ThreeRuntimeSceneInstance;
 };
 
-const FIXED_STEP_SECONDS = 1 / 60;
-const MAX_PHYSICS_CATCH_UP_SECONDS = FIXED_STEP_SECONDS * 4;
+const DEFAULT_FIXED_STEP_SECONDS = 1 / 60;
+const MIN_FIXED_STEP_SECONDS = 1 / 20;   // lowest physics rate: 20 Hz
+const MAX_PHYSICS_CATCH_UP_STEPS = 4;
+const ADAPT_UP_THRESHOLD = 0.8;   // if frame budget used > 80%, slow physics
+const ADAPT_DOWN_THRESHOLD = 0.4; // if frame budget used < 40%, speed physics back up
+const ADAPT_RATE = 0.02;          // how fast the step adjusts per frame
+
+/** Performance metrics exposed for debug overlays */
+export const perfMetrics = {
+	fps: 0,
+	frameMs: 0,
+	physicsMs: 0,
+	physicsHz: 60,
+	physicsSteps: 0,
+	renderMs: 0,
+	drawCalls: 0,
+	triangles: 0,
+};
 
 export async function createGameApp(options: GameAppOptions) {
   options.root.innerHTML = `
@@ -66,24 +82,34 @@ export async function createGameApp(options: GameAppOptions) {
 
   const setStatus = (_message: string) => {};
 
+  let adaptiveStepSeconds = DEFAULT_FIXED_STEP_SECONDS;
+  let fpsFrames = 0;
+  let fpsTime = 0;
+
   const stepActiveScene = (deltaSeconds: number) => {
     if (!activeScene) {
       return;
     }
 
+    const maxCatchUp = adaptiveStepSeconds * MAX_PHYSICS_CATCH_UP_STEPS;
     activeScene.accumulatorSeconds = Math.min(
       activeScene.accumulatorSeconds + deltaSeconds,
-      MAX_PHYSICS_CATCH_UP_SECONDS
+      maxCatchUp
     );
 
-    while (activeScene.accumulatorSeconds >= FIXED_STEP_SECONDS) {
-      activeScene.player?.updateBeforeStep(FIXED_STEP_SECONDS);
-      activeScene.lifecycle.fixedUpdate?.(FIXED_STEP_SECONDS);
-      stepCrashcatPhysicsWorld(activeScene.physicsWorld, FIXED_STEP_SECONDS);
+    let steps = 0;
+    while (activeScene.accumulatorSeconds >= adaptiveStepSeconds) {
+      activeScene.player?.updateBeforeStep(adaptiveStepSeconds);
+      activeScene.lifecycle.fixedUpdate?.(adaptiveStepSeconds);
+      stepCrashcatPhysicsWorld(activeScene.physicsWorld, adaptiveStepSeconds);
       activeScene.runtimePhysics.syncVisuals();
-      activeScene.player?.updateAfterStep(FIXED_STEP_SECONDS);
-      activeScene.accumulatorSeconds -= FIXED_STEP_SECONDS;
+      activeScene.player?.updateAfterStep(adaptiveStepSeconds);
+      activeScene.accumulatorSeconds -= adaptiveStepSeconds;
+      steps++;
     }
+
+    perfMetrics.physicsSteps = steps;
+    perfMetrics.physicsHz = Math.round(1 / adaptiveStepSeconds);
   };
 
   const renderFrame = () => {
@@ -92,11 +118,50 @@ export async function createGameApp(options: GameAppOptions) {
     }
 
     requestAnimationFrame(renderFrame);
+    const frameStart = performance.now();
     const delta = Math.min(clock.getDelta(), 0.1);
+
+    // Physics step
+    const physicsStart = performance.now();
     stepActiveScene(delta);
+    perfMetrics.physicsMs = performance.now() - physicsStart;
+
     activeScene?.lifecycle.update?.(delta);
     activeScene?.gameplayRuntime.update(delta);
+
+    // Render
+    const renderStart = performance.now();
     renderer.render(scene, camera);
+    perfMetrics.renderMs = performance.now() - renderStart;
+
+    // Frame metrics
+    const frameMs = performance.now() - frameStart;
+    perfMetrics.frameMs = frameMs;
+    perfMetrics.drawCalls = renderer.info.render.calls;
+    perfMetrics.triangles = renderer.info.render.triangles;
+
+    // FPS counter (averaged over 1 second)
+    fpsFrames++;
+    fpsTime += delta;
+    if (fpsTime >= 1.0) {
+      perfMetrics.fps = Math.round(fpsFrames / fpsTime);
+      fpsFrames = 0;
+      fpsTime = 0;
+    }
+
+    // Adaptive physics: if frames are slow, reduce physics rate
+    const budgetUsed = frameMs / 16.67; // fraction of 60fps budget
+    if (budgetUsed > ADAPT_UP_THRESHOLD) {
+      adaptiveStepSeconds = Math.min(
+        adaptiveStepSeconds + ADAPT_RATE * adaptiveStepSeconds,
+        MIN_FIXED_STEP_SECONDS
+      );
+    } else if (budgetUsed < ADAPT_DOWN_THRESHOLD && adaptiveStepSeconds > DEFAULT_FIXED_STEP_SECONDS) {
+      adaptiveStepSeconds = Math.max(
+        adaptiveStepSeconds - ADAPT_RATE * adaptiveStepSeconds,
+        DEFAULT_FIXED_STEP_SECONDS
+      );
+    }
   };
 
   const disposeActiveScene = async () => {
@@ -195,7 +260,7 @@ export async function createGameApp(options: GameAppOptions) {
       scene.add(runtimeScene.root);
       if (player) {
         scene.add(player.object);
-        player.updateAfterStep(FIXED_STEP_SECONDS);
+        player.updateAfterStep(DEFAULT_FIXED_STEP_SECONDS);
       } else {
         frameCameraOnObject(camera, runtimeScene.root);
       }
