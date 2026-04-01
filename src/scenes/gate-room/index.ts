@@ -386,24 +386,46 @@ function buildLighting(scene: THREE.Scene, debugObjects: THREE.Object3D[]): THRE
 	scene.add(rightSide);
 	lights.push(rightSide);
 
-	// Gate floor fixtures — emissive only (no SpotLights for performance)
+	// 7-10. Floor spotlights aimed at gate faces — restored from working prototype
+	const gateY = GATE_CENTER.y;
+	const spotPositions = [
+		{ pos: [-2.5, 0.1, gateZ + 3.5], target: [-GATE_RADIUS * 0.5, gateY, gateZ + 0.15], zDir: -1 },
+		{ pos: [2.5, 0.1, gateZ + 3.5], target: [GATE_RADIUS * 0.5, gateY, gateZ + 0.15], zDir: -1 },
+		{ pos: [-2.5, 0.1, gateZ - 3.5], target: [-GATE_RADIUS * 0.5, gateY, gateZ - 0.15], zDir: 1 },
+		{ pos: [2.5, 0.1, gateZ - 3.5], target: [GATE_RADIUS * 0.5, gateY, gateZ - 0.15], zDir: 1 },
+	];
+
 	const housingMat = new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.6, metalness: 0.4 });
 	const lensMat = new THREE.MeshStandardMaterial({ color: 0xccddff, emissive: 0xbbddff, emissiveIntensity: 1.5 });
 
-	for (const zOffset of [3.5, -3.5]) {
-		for (const xSign of [-1, 1]) {
-			const fixtureGroup = new THREE.Group();
-			fixtureGroup.position.set(xSign * 2.5, 0.18, gateZ + zOffset);
-			const tiltDir = zOffset > 0 ? -1 : 1;
-			fixtureGroup.rotation.x = tiltDir * 0.65;
+	for (const sp of spotPositions) {
+		const spot = new THREE.SpotLight(0xbbddff, 30, 20, Math.PI / 5, 0.5, 1.0);
+		spot.position.set(sp.pos[0], sp.pos[1], sp.pos[2]);
+		spot.target.position.set(sp.target[0], sp.target[1], sp.target[2]);
+		scene.add(spot);
+		scene.add(spot.target);
 
-			const housing = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 0.6), housingMat);
-			fixtureGroup.add(housing);
-			const lens = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 0.05), lensMat);
-			lens.position.set(0, 0, tiltDir * -0.33);
-			fixtureGroup.add(lens);
-			scene.add(fixtureGroup);
-		}
+		const helper = new THREE.SpotLightHelper(spot, 0xffff00);
+		helper.visible = false;
+		scene.add(helper);
+		requestAnimationFrame(() => helper.update());
+		debugObjects.push(helper);
+
+		const fixtureGroup = new THREE.Group();
+		fixtureGroup.position.set(sp.pos[0], 0.18, sp.pos[2]);
+		const dx = sp.target[0] - sp.pos[0];
+		const dy = sp.target[1] - sp.pos[1];
+		const dz = sp.target[2] - sp.pos[2];
+		const horizontalDist = Math.sqrt(dx * dx + dz * dz);
+		const tiltAngle = Math.atan2(dy, horizontalDist);
+		fixtureGroup.rotation.x = sp.zDir * -tiltAngle;
+
+		const housing = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 0.6), housingMat);
+		fixtureGroup.add(housing);
+		const lens = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 0.05), lensMat);
+		lens.position.set(0, 0, sp.zDir * 0.33);
+		fixtureGroup.add(lens);
+		scene.add(fixtureGroup);
 	}
 
 	// 7-8. Corridor + Storage room lights (1 each — actual point lights so walls are visible)
