@@ -40,6 +40,12 @@ export interface PlayerController {
   setCameraMode(mode: CameraMode): void;
   /** Give the pointer back to the OS (e.g. when opening a menu). */
   releasePointerLock(): void;
+  /** Fixed-rate update (60 Hz). Apply movement forces before physics step. */
+  updateBeforeStep(deltaSeconds: number): void;
+  /** Fixed-rate update (60 Hz). Sync visuals to physics after step. */
+  updateAfterStep(deltaSeconds: number): void;
+  /** Variable-rate update. Consume mouse input and drive camera. */
+  updateCamera(deltaSeconds: number): void;
   dispose(): void;
 }
 
@@ -54,6 +60,11 @@ export type PlayerConfig = {
    * Defaults to the first spawn found in the scene.
    */
   spawnEntityId?: string;
+  /**
+   * Pick a specific vrm-character entity by id for the player model.
+   * When set, the player uses a VRM model instead of the capsule.
+   */
+  vrmEntityId?: string;
 };
 
 // ------------------------------------------------------------------

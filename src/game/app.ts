@@ -40,7 +40,9 @@ import type {
   GameSceneLoaderContext,
   PlayerController
 } from "./scene";
-import { StarterPlayerController } from "./player";
+import { StarterPlayerController, VrmPlayerController } from "./player";
+import { VrmCharacterManager, findPlayerVrmEntity, createVrmAnimatorBridge } from "../systems/vrm";
+import type { RuntimeAnimationBundle } from "./loaders/animation-sources";
 
 // ------------------------------------------------------------------
 // Types
@@ -55,7 +57,7 @@ type SceneBundle = {
   gameplayRuntime: GameplayRuntime;
   id: string;
   lifecycle: GameSceneLifecycle;
-  player: StarterPlayerController | null;
+  player: PlayerController | null;
   physicsWorld: CrashcatPhysicsWorld;
   runtimePhysics: RuntimePhysicsSession;
   runtimeScene: ThreeRuntimeSceneInstance;
@@ -226,7 +228,7 @@ export async function createGameApp(options: GameAppOptions) {
         systems
       });
 
-      const player = buildStarterPlayer({
+      const player = await buildPlayer({
         camera,
         definition,
         gameplayRuntime,
@@ -368,14 +370,14 @@ function resolveSceneSystems(
   return mergeGameplaySystems(defaults, sceneSystems);
 }
 
-function buildStarterPlayer(options: {
+async function buildPlayer(options: {
   camera: THREE.PerspectiveCamera;
   definition: GameSceneDefinition;
   gameplayRuntime: GameplayRuntime;
   input: InputManager;
   physicsWorld: CrashcatPhysicsWorld;
   runtimeScene: ThreeRuntimeSceneInstance;
-}): StarterPlayerController | null {
+}): Promise<StarterPlayerController | VrmPlayerController | null> {
   if (options.definition.player === false) {
     return null;
   }
@@ -394,6 +396,57 @@ function buildStarterPlayer(options: {
     playerConfig.cameraMode ?? options.runtimeScene.scene.settings.player.cameraMode;
   const cameraController = createCameraController(mode, options.camera);
 
+  // Check for a VRM character entity marked as player
+  const vrmPlayerData = findPlayerVrmEntity(options.runtimeScene);
+
+  if (vrmPlayerData && vrmPlayerData.vrmUrl) {
+    const characterManager = new VrmCharacterManager(options.camera);
+    const characterInstance = characterManager.addCharacter({
+      id: vrmPlayerData.characterId,
+      vrmUrl: vrmPlayerData.vrmUrl,
+      isPlayer: true,
+      priority: 0,
+    });
+
+    // Optionally set up animation bridge if a bundle is specified
+    let animatorBridge;
+
+    if (vrmPlayerData.animationBundle) {
+      try {
+        const { animations } = await import("virtual:web-hammer-animation-registry");
+        const bundleDef = animations[vrmPlayerData.animationBundle];
+
+        if (bundleDef) {
+          const bundle = await bundleDef.source.load();
+
+          // Wait for VRM to finish loading before building the bridge
+          if (characterInstance.vrm) {
+            animatorBridge = await createVrmAnimatorBridge(characterInstance.vrm, bundle);
+          }
+        }
+      } catch (error) {
+        console.warn("[buildPlayer] Failed to load animation bundle:", error);
+      }
+    }
+
+    return new VrmPlayerController({
+      camera: cameraController,
+      gameplayRuntime: options.gameplayRuntime,
+      input: options.input,
+      sceneSettings: options.runtimeScene.scene.settings,
+      spawn: {
+        position: spawnEntity.transform.position,
+        rotationY: spawnEntity.transform.rotation.y,
+      },
+      threeCamera: options.camera,
+      world: options.physicsWorld,
+      characterManager,
+      characterInstance,
+      animatorBridge,
+    });
+  }
+
+  // Fallback: standard capsule player
   return new StarterPlayerController({
     camera: cameraController,
     gameplayRuntime: options.gameplayRuntime,
@@ -401,10 +454,10 @@ function buildStarterPlayer(options: {
     sceneSettings: options.runtimeScene.scene.settings,
     spawn: {
       position: spawnEntity.transform.position,
-      rotationY: spawnEntity.transform.rotation.y
+      rotationY: spawnEntity.transform.rotation.y,
     },
     threeCamera: options.camera,
-    world: options.physicsWorld
+    world: options.physicsWorld,
   });
 }
 
