@@ -83,6 +83,7 @@ export class VrmCharacterManager {
 		root.name = `vrm-character-${options.id}`;
 
 		const fallbackMesh = createFallbackCapsule();
+		fallbackMesh.visible = false; // Hidden until load fails — prevents capsule flash
 		root.add(fallbackMesh);
 
 		const instance: VrmCharacterInstance = {

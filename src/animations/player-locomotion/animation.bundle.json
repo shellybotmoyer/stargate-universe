@@ -1,0 +1,35 @@
+{
+  "format": "ggez.animation.bundle",
+  "version": 1,
+  "name": "player-locomotion",
+  "artifact": "graph.animation.json",
+  "characterAsset": null,
+  "clips": [
+    {
+      "id": "idle",
+      "name": "Idle",
+      "duration": -1,
+      "source": "mixamo",
+      "asset": "assets/idle.fbx"
+    },
+    {
+      "id": "breathing-idle",
+      "name": "Breathing Idle",
+      "duration": -1,
+      "source": "mixamo",
+      "asset": "assets/breathing-idle.fbx"
+    },
+    {
+      "id": "walking",
+      "name": "Walking",
+      "duration": -1,
+      "source": "mixamo",
+      "asset": "assets/walking.fbx"
+    }
+  ],
+  "clipAssets": {
+    "Idle": "assets/idle.fbx",
+    "Breathing Idle": "assets/breathing-idle.fbx",
+    "Walking": "assets/walking.fbx"
+  }
+}

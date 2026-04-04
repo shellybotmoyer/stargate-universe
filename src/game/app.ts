@@ -41,8 +41,7 @@ import type {
   PlayerController
 } from "./scene";
 import { StarterPlayerController, VrmPlayerController } from "./player";
-import { VrmCharacterManager, findPlayerVrmEntity, createVrmAnimatorBridge } from "../systems/vrm";
-import type { RuntimeAnimationBundle } from "./loaders/animation-sources";
+import { VrmCharacterManager, findPlayerVrmEntity, createVrmAnimatorBridge, loadVrm } from "../systems/vrm";
 
 // ------------------------------------------------------------------
 // Types
@@ -401,6 +400,12 @@ async function buildPlayer(options: {
 
   if (vrmPlayerData && vrmPlayerData.vrmUrl) {
     const characterManager = new VrmCharacterManager(options.camera);
+
+    // Await VRM load directly so the model is ready before the scene appears.
+    // This prevents the capsule flash — the VRM is loaded before the player is
+    // added to the scene.
+    const vrmResult = await loadVrm(vrmPlayerData.vrmUrl, 0);
+
     const characterInstance = characterManager.addCharacter({
       id: vrmPlayerData.characterId,
       vrmUrl: vrmPlayerData.vrmUrl,
@@ -408,7 +413,7 @@ async function buildPlayer(options: {
       priority: 0,
     });
 
-    // Optionally set up animation bridge if a bundle is specified
+    // Build animation bridge if a bundle is specified
     let animatorBridge;
 
     if (vrmPlayerData.animationBundle) {
@@ -419,7 +424,8 @@ async function buildPlayer(options: {
         if (bundleDef) {
           const bundle = await bundleDef.source.load();
 
-          // Wait for VRM to finish loading before building the bridge
+          // VRM is guaranteed loaded now (we awaited loadVrm above, and
+          // addCharacter will find it in cache)
           if (characterInstance.vrm) {
             animatorBridge = await createVrmAnimatorBridge(characterInstance.vrm, bundle);
           }

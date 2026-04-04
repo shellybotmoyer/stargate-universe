@@ -17,7 +17,7 @@
       "id": "entity:vrm-character:player",
       "name": "Player Character",
       "properties": {
-        "animationBundle": "",
+        "animationBundle": "player-locomotion",
         "characterId": "eli-wallace",
         "isPlayer": true,
         "vrmUrl": "assets/characters/eli.vrm"
