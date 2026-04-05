@@ -21,7 +21,7 @@ const ROOM_HEIGHT = 8;
 const GATE_RADIUS = 2.8;
 const GATE_TUBE = 0.22;
 const GATE_CENTER = new THREE.Vector3(0, GATE_RADIUS + GATE_TUBE - 0.3, 0); // centered in room
-const CHEVRON_COUNT = 9;
+const CHEVRON_COUNT = 7; // Standard dial is 7 chevrons; 8-9 only for special events
 
 // SGU color palette
 const COLOR_ANCIENT_METAL = 0x2a2a3a;
@@ -537,7 +537,7 @@ function updateHUD(gate: GateRuntime): void {
 
 // ─── Gate activation logic ───────────────────────────────────────────────────
 
-const DIAL_TIME_PER_CHEVRON = 0.6;
+const DIAL_TIME_PER_CHEVRON = 1.0; // 1 second per chevron for dramatic pacing
 const KAWOOSH_DURATION = 1.2;
 const SHUTDOWN_DURATION = 0.8;
 
