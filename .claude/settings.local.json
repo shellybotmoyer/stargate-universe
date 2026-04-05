@@ -11,7 +11,17 @@
       "Bash(curl -s http://127.0.0.1:4300/)",
       "Bash(curl -s http://localhost:5173/api/editor-sync/status)",
       "Bash(curl -s http://localhost:8080/)",
-      "Bash(python3 -c \"import os; print\\(os.path.relpath\\(''/Users/cmoyer/Projects/personal/trident'', ''/Users/cmoyer/Projects/personal/stargate-universe''\\)\\)\")"
+      "Bash(python3 -c \"import os; print\\(os.path.relpath\\(''/Users/cmoyer/Projects/personal/trident'', ''/Users/cmoyer/Projects/personal/stargate-universe''\\)\\)\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3 -c \"import tempfile; print\\(tempfile.gettempdir\\(\\)\\)\")",
+      "Read(//private/var/folders/**)",
+      "Read(//private/tmp/**)",
+      "Bash(curl -s http://127.0.0.1:8080/api/scenes)",
+      "Bash(find /tmp/sg-sprint1/src/scenes -name destiny-corridor -o -name *corridor*)",
+      "Bash(python3:*)"
     ]
   }
 }
