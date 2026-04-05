@@ -1,0 +1,959 @@
+{
+  "format": "whmap",
+  "version": 1,
+  "scene": {
+    "assets": [],
+    "entities": [
+      {
+        "id": "entity:player-spawn",
+        "type": "player-spawn",
+        "name": "Player Spawn",
+        "transform": {
+          "position": { "x": 0, "y": 0.5, "z": 12 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "properties": {
+          "enabled": true,
+          "team": "player"
+        }
+      },
+      {
+        "id": "entity:player-character",
+        "type": "vrm-character",
+        "name": "Player Character",
+        "transform": {
+          "position": { "x": 0, "y": 0.5, "z": 12 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "properties": {
+          "isPlayer": true,
+          "characterId": "eli-wallace",
+          "vrmUrl": "assets/characters/eli.vrm",
+          "animationBundle": "player-locomotion"
+        }
+      }
+    ],
+    "layers": [
+      {
+        "id": "layer:default",
+        "name": "Default",
+        "visible": true,
+        "locked": false
+      }
+    ],
+    "materials": [
+      {
+        "id": "material:ancient:floor",
+        "name": "Ancient Metal Floor",
+        "color": "#1a1a2e",
+        "metalness": 0.05,
+        "roughness": 0.95
+      },
+      {
+        "id": "material:ancient:wall",
+        "name": "Ancient Metal Wall",
+        "color": "#2a2a3a",
+        "metalness": 0.05,
+        "roughness": 0.95
+      },
+      {
+        "id": "material:ancient:ceiling",
+        "name": "Ancient Ceiling",
+        "color": "#141425",
+        "metalness": 0.05,
+        "roughness": 0.9
+      },
+      {
+        "id": "material:ancient:accent",
+        "name": "Blue Emissive Accent",
+        "color": "#2244aa",
+        "metalness": 0.3,
+        "roughness": 0.5,
+        "emissive": "#2244aa",
+        "emissiveIntensity": 0.6
+      },
+      {
+        "id": "material:ancient:guide-strip",
+        "name": "Amber Guide Strip",
+        "color": "#ff8800",
+        "metalness": 0.2,
+        "roughness": 0.4,
+        "emissive": "#ff8800",
+        "emissiveIntensity": 0.4
+      }
+    ],
+    "nodes": [
+      {
+        "id": "node:floor",
+        "name": "Floor",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 0, "y": -0.5, "z": 0 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:floor",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 26, "y": 1, "z": 40 }
+        }
+      },
+      {
+        "id": "node:ceiling",
+        "name": "Ceiling",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 0, "y": 8.25, "z": 0 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:ceiling",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 26, "y": 0.5, "z": 40 }
+        }
+      },
+      {
+        "id": "node:back-wall",
+        "name": "Back Wall",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 0, "y": 4, "z": -20 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 26, "y": 8, "z": 0.5 }
+        }
+      },
+      {
+        "id": "node:front-wall",
+        "name": "Front Wall",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 0, "y": 4, "z": 20 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 26, "y": 8, "z": 0.5 }
+        }
+      },
+      {
+        "id": "node:east-wall-north",
+        "name": "East Wall North",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 13, "y": 4, "z": -12 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.5, "y": 8, "z": 16 }
+        }
+      },
+      {
+        "id": "node:east-wall-south",
+        "name": "East Wall South",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 13, "y": 4, "z": 13 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.5, "y": 8, "z": 14 }
+        }
+      },
+      {
+        "id": "node:west-wall-north",
+        "name": "West Wall North",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -13, "y": 4, "z": -12 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.5, "y": 8, "z": 16 }
+        }
+      },
+      {
+        "id": "node:west-wall-south",
+        "name": "West Wall South",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -13, "y": 4, "z": 13 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.5, "y": 8, "z": 14 }
+        }
+      },
+      {
+        "id": "node:gate-platform",
+        "name": "Gate Platform",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 0, "y": 0.4, "z": -16 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:floor",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 16, "y": 0.8, "z": 8 }
+        }
+      },
+      {
+        "id": "node:frame-top-beam",
+        "name": "Frame Top Beam",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 0, "y": 7, "z": -19.5 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 12, "y": 1, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:frame-left-column",
+        "name": "Frame Left Column",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -6, "y": 3.5, "z": -19.5 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 1, "y": 7, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:frame-right-column",
+        "name": "Frame Right Column",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 6, "y": 3.5, "z": -19.5 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 1, "y": 7, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:east-arch-1",
+        "name": "East Arch Support 1",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 12.5, "y": 4, "z": -12 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:west-arch-1",
+        "name": "West Arch Support 1",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -12.5, "y": 4, "z": -12 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:east-arch-2",
+        "name": "East Arch Support 2",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 12.5, "y": 4, "z": -8 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:west-arch-2",
+        "name": "West Arch Support 2",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -12.5, "y": 4, "z": -8 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:east-arch-3",
+        "name": "East Arch Support 3",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 12.5, "y": 4, "z": -4 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:west-arch-3",
+        "name": "West Arch Support 3",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -12.5, "y": 4, "z": -4 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:east-arch-4",
+        "name": "East Arch Support 4",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 12.5, "y": 4, "z": 0 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:west-arch-4",
+        "name": "West Arch Support 4",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -12.5, "y": 4, "z": 0 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:east-arch-5",
+        "name": "East Arch Support 5",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 12.5, "y": 4, "z": 4 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:west-arch-5",
+        "name": "West Arch Support 5",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -12.5, "y": 4, "z": 4 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:wall",
+          "physics": {
+            "angularDamping": 0,
+            "bodyType": "fixed",
+            "canSleep": true,
+            "ccd": false,
+            "colliderShape": "cuboid",
+            "contactSkin": 0,
+            "density": 1,
+            "enabled": true,
+            "friction": 0.8,
+            "gravityScale": 1,
+            "linearDamping": 0,
+            "lockRotations": false,
+            "lockTranslations": false,
+            "mass": 1,
+            "restitution": 0.05,
+            "sensor": false
+          },
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.6, "y": 8, "z": 0.6 }
+        }
+      },
+      {
+        "id": "node:accent-panel-left",
+        "name": "Accent Panel Left",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -9, "y": 5, "z": -19.7 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:accent",
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 3, "y": 0.15, "z": 0.1 }
+        }
+      },
+      {
+        "id": "node:accent-panel-right",
+        "name": "Accent Panel Right",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 9, "y": 5, "z": -19.7 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:accent",
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 3, "y": 0.15, "z": 0.1 }
+        }
+      },
+      {
+        "id": "node:guide-strip-left",
+        "name": "Guide Strip Left",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": -3, "y": 0.01, "z": -5 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:guide-strip",
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.15, "y": 0.02, "z": 30 }
+        }
+      },
+      {
+        "id": "node:guide-strip-right",
+        "name": "Guide Strip Right",
+        "kind": "primitive",
+        "transform": {
+          "pivot": { "x": 0, "y": 0, "z": 0 },
+          "position": { "x": 3, "y": 0.01, "z": -5 },
+          "rotation": { "x": 0, "y": 0, "z": 0 },
+          "scale": { "x": 1, "y": 1, "z": 1 }
+        },
+        "data": {
+          "materialId": "material:ancient:guide-strip",
+          "role": "brush",
+          "shape": "cube",
+          "size": { "x": 0.15, "y": 0.02, "z": 30 }
+        }
+      }
+    ],
+    "settings": {
+      "player": {
+        "cameraMode": "third-person",
+        "canCrouch": true,
+        "canInteract": true,
+        "canJump": true,
+        "canRun": true,
+        "crouchHeight": 1.2,
+        "height": 1.8,
+        "interactKey": "KeyE",
+        "jumpHeight": 1,
+        "movementSpeed": 4.5,
+        "runningSpeed": 7
+      },
+      "world": {
+        "ambientColor": "#1a1a3a",
+        "ambientIntensity": 0.2,
+        "fogColor": "#050510",
+        "fogFar": 50,
+        "fogNear": 25,
+        "gravity": { "x": 0, "y": -9.81, "z": 0 },
+        "physicsEnabled": true,
+        "skybox": {
+          "enabled": false
+        },
+        "lod": {
+          "enabled": false
+        }
+      }
+    },
+    "textures": []
+  }
+}
