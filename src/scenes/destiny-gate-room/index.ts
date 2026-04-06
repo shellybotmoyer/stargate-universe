@@ -1269,15 +1269,17 @@ async function mount(context: GameSceneContext): Promise<GameSceneLifecycle> {
 	const debugObjects: THREE.Object3D[] = [];
 	let debugMode = false;
 
-	// Room geometry is now in scene.runtime.json (floor, walls, ceiling,
-	// arches, corridor, storage). Only dynamic objects are built here.
-	// buildRoom(scene); // DISABLED — geometry from runtime JSON
+	// ─── Static geometry is in scene.runtime.json ──────────────────────
+	// Room walls, floor, ceiling, arches, corridor, storage, lights, and
+	// accent strips are all in the runtime JSON. Only DYNAMIC objects
+	// (stargate, supply crates, subsystem visuals) are built here.
+	// buildRoom(scene);        // DISABLED — in runtime JSON
+	// buildLighting(scene);    // DISABLED — lights in runtime JSON
+	// buildCorridor(scene);    // DISABLED — in runtime JSON
+	// buildStorageRoom(scene); // DISABLED — walls in runtime JSON (crates built below)
 
-	// Floor is from the runtime JSON — kept dark. Visibility comes from
-	// player light, room lights, and the yellow runway strips.
 	const gate = await buildStargate(scene);
-	const lights = buildLighting(scene, debugObjects);
-	gate.pointLights = lights;
+	gate.pointLights = []; // Lights are in runtime JSON now
 
 	// ─── Player-attached ambient light (Eli's subtle glow) ──────────────
 	const playerLight = new THREE.PointLight(0xccddff, 2.5, 15, 1.5);
@@ -1286,12 +1288,11 @@ async function mount(context: GameSceneContext): Promise<GameSceneLifecycle> {
 		player.object.add(playerLight);
 	}
 
-	// Register gate room walls for camera pull-in collision
+	// Camera pull-in: no programmatic walls to track anymore
 	occludableMeshes.length = 0;
-	for (const w of wallMeshes) occludableMeshes.push(w);
 	smoothedCamDistance = -1;
 
-	// ─── Corridor/storage point lights (created here for direct reference) ─
+	// ─── Dynamic corridor/storage lights (intensity varies with ship power) ─
 	const corrLightZ = ROOM_DEPTH / 2 + CORRIDOR_LENGTH / 2;
 	const storLightZ = ROOM_DEPTH / 2 + CORRIDOR_LENGTH + STORAGE_DEPTH / 2;
 
@@ -1302,10 +1303,6 @@ async function mount(context: GameSceneContext): Promise<GameSceneLifecycle> {
 	const storagePointLight = new THREE.PointLight(0xddccaa, 0.3, 20, 1.5);
 	storagePointLight.position.set(0, EXT_ROOM_HEIGHT - 0.5, storLightZ);
 	scene.add(storagePointLight);
-
-	// ─── Build corridor + storage room extending from gate room ──────────
-	buildCorridor(scene);
-	buildStorageRoom(scene);
 
 	const corridorCZ = CORRIDOR_Z_START + CORRIDOR_LENGTH / 2;
 	const storageCZ = CORRIDOR_Z_START + CORRIDOR_LENGTH + STORAGE_DEPTH / 2;
