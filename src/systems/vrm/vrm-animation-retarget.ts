@@ -210,10 +210,22 @@ export async function loadMixamoAnimation(
 				)
 			);
 		} else if (track instanceof VectorKeyframeTrack) {
-			// Retarget position: scale by hip height ratio
+			// Retarget position: scale by hip height ratio.
+			// Also strip root motion (XZ translation on hips) — we use physics
+			// for movement, so the animation should only contribute Y bounce.
+			const isHipsPosition = vrmBoneName === "hips" && propertyName === "position";
 			const values = new Float32Array(track.values.length);
-			for (let i = 0; i < track.values.length; i++) {
-				values[i] = track.values[i] * hipsPositionScale;
+			for (let i = 0; i < track.values.length; i += 3) {
+				if (isHipsPosition) {
+					// Zero out XZ (root motion), keep Y (bounce) scaled
+					values[i] = 0;                                   // x = 0
+					values[i + 1] = track.values[i + 1] * hipsPositionScale; // y = scaled
+					values[i + 2] = 0;                               // z = 0
+				} else {
+					values[i] = track.values[i] * hipsPositionScale;
+					values[i + 1] = track.values[i + 1] * hipsPositionScale;
+					values[i + 2] = track.values[i + 2] * hipsPositionScale;
+				}
 			}
 
 			// VRM 0.x coordinate flip — negate X and Z
