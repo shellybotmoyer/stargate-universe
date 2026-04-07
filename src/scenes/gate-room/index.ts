@@ -1591,7 +1591,7 @@ export const gateRoomScene = defineGameScene({
 	}),
 	title: "Gate Room",
 	player: {
-		vrmUrl: "/characters/avatar-sample-b.vrm",
+		vrmUrl: "/characters/avatar-sample-a.vrm",
 	},
 	mount
 });
