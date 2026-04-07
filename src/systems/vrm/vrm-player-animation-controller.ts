@@ -140,7 +140,7 @@ export class VrmPlayerAnimationController {
 		this.loading = true;
 
 		const clipNames = ["idle", "walk", "run", "jump", "strafe-left", "strafe-right"] as const;
-		const extensions = ["vrma", "fbx", "glb"];
+		const extensions = ["fbx", "glb", "vrma"];
 
 		const results = await Promise.allSettled(
 			clipNames.map(async (name) => {
@@ -232,7 +232,7 @@ export class VrmPlayerAnimationController {
 
 	/** Load idle variant clips asynchronously. Failures are silently ignored. */
 	private async loadIdleVariants(basePath: string): Promise<void> {
-		const extensions = ["vrma", "fbx", "glb"];
+		const extensions = ["fbx", "glb", "vrma"];
 
 		for (const variantName of IDLE_VARIANTS) {
 			for (const ext of extensions) {
