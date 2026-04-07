@@ -21,6 +21,10 @@ import {
 import { resolveAssetUrl } from "../asset-resolver";
 import { loadAnimation } from "./vrm-animation-retarget";
 
+function randomRange(min: number, max: number): number {
+	return min + Math.random() * (max - min);
+}
+
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 /** Parameters passed from the player controller each frame. */
@@ -57,6 +61,23 @@ const JUMP_FADE_OUT = 0.25;
 /** Weight smoothing factor — higher = snappier, lower = smoother. */
 const WEIGHT_SMOOTHING = 8.0;
 
+/** Minimum seconds between idle variant cycles. */
+const IDLE_VARIANT_MIN_INTERVAL = 8.0;
+
+/** Maximum seconds between idle variant cycles. */
+const IDLE_VARIANT_MAX_INTERVAL = 20.0;
+
+/** Crossfade duration for idle variant transitions. */
+const IDLE_VARIANT_FADE = 0.5;
+
+/** Idle variant filenames (loaded from R2 alongside core clips). */
+const IDLE_VARIANTS = [
+	"idle-looking-behind",
+	"idle-standing",
+	"idle-happy",
+	"idle-standing-02",
+] as const;
+
 // ─── Controller ────────────────────────────────────────────────────────────────
 
 export class VrmPlayerAnimationController {
@@ -69,6 +90,15 @@ export class VrmPlayerAnimationController {
 	private jumpAction: AnimationAction | undefined;
 	private strafeLeftAction: AnimationAction | undefined;
 	private strafeRightAction: AnimationAction | undefined;
+
+	/** Pool of idle variant actions for cycling. */
+	private idleVariants: AnimationAction[] = [];
+	/** Currently playing idle variant (or undefined = default idle). */
+	private activeIdleVariant: AnimationAction | undefined;
+	/** Countdown until next idle variant switch. */
+	private idleVariantTimer = 0;
+	/** Whether we're currently in idle (for variant cycling). */
+	private isIdling = false;
 
 	private state: AnimState = "locomotion";
 	private loaded = false;
@@ -183,9 +213,38 @@ export class VrmPlayerAnimationController {
 
 		this.loaded = true;
 		this.loading = false;
+		this.resetIdleVariantTimer();
 
 		const loadedCount = results.filter((r) => r.status === "fulfilled").length;
 		console.info(`[VrmPlayerAnimController] Loaded ${loadedCount}/${clipNames.length} animation clips`);
+
+		// Load idle variants in the background (non-blocking, optional)
+		this.loadIdleVariants(basePath);
+	}
+
+	/** Load idle variant clips asynchronously. Failures are silently ignored. */
+	private async loadIdleVariants(basePath: string): Promise<void> {
+		const extensions = ["vrma", "fbx", "glb"];
+
+		for (const variantName of IDLE_VARIANTS) {
+			for (const ext of extensions) {
+				try {
+					const url = resolveAssetUrl(`${basePath}/${variantName}.${ext}`);
+					const clip = await loadAnimation(url, this.vrm, variantName);
+					const action = this.mixer.clipAction(clip);
+					action.setLoop(LoopRepeat, Infinity);
+					// Don't play yet — will crossfade in when cycled
+					this.idleVariants.push(action);
+					break; // Found this variant, move to next
+				} catch {
+					// Try next extension
+				}
+			}
+		}
+
+		if (this.idleVariants.length > 0) {
+			console.info(`[VrmPlayerAnimController] Loaded ${this.idleVariants.length} idle variants`);
+		}
 	}
 
 	/**
@@ -197,6 +256,21 @@ export class VrmPlayerAnimationController {
 
 		if (this.state === "locomotion") {
 			this.updateLocomotionWeights(delta, params);
+
+			// Track idle state for variant cycling
+			const nowIdling = params.speed < IDLE_THRESHOLD;
+			if (nowIdling && this.isIdling) {
+				this.updateIdleVariantCycle(delta);
+			} else if (nowIdling && !this.isIdling) {
+				// Just entered idle — reset timer and return to default idle
+				this.isIdling = true;
+				this.resetIdleVariantTimer();
+				this.returnToDefaultIdle();
+			} else if (!nowIdling && this.isIdling) {
+				// Left idle — return to default idle immediately
+				this.isIdling = false;
+				this.returnToDefaultIdle();
+			}
 
 			// Check for jump trigger
 			if (params.jumpTriggered && this.jumpAction) {
@@ -315,5 +389,55 @@ export class VrmPlayerAnimationController {
 		this.runAction?.setEffectiveWeight(this.runWeight);
 		this.strafeLeftAction?.setEffectiveWeight(this.strafeLeftWeight);
 		this.strafeRightAction?.setEffectiveWeight(this.strafeRightWeight);
+	}
+
+	// ─── Idle Variant Cycling ──────────────────────────────────────────────────
+
+	private resetIdleVariantTimer(): void {
+		this.idleVariantTimer = randomRange(IDLE_VARIANT_MIN_INTERVAL, IDLE_VARIANT_MAX_INTERVAL);
+	}
+
+	private updateIdleVariantCycle(delta: number): void {
+		if (this.idleVariants.length === 0) return;
+
+		this.idleVariantTimer -= delta;
+		if (this.idleVariantTimer > 0) return;
+
+		// Time to switch!
+		this.resetIdleVariantTimer();
+
+		if (this.activeIdleVariant) {
+			// Currently playing a variant — return to default idle
+			this.returnToDefaultIdle();
+		} else {
+			// Currently on default idle — pick a random variant
+			this.playRandomIdleVariant();
+		}
+	}
+
+	private playRandomIdleVariant(): void {
+		if (this.idleVariants.length === 0) return;
+
+		const variant = this.idleVariants[Math.floor(Math.random() * this.idleVariants.length)];
+		if (!variant) return;
+
+		// Crossfade default idle out, variant in
+		this.idleAction?.fadeOut(IDLE_VARIANT_FADE);
+		variant.reset().fadeIn(IDLE_VARIANT_FADE).play();
+		variant.setEffectiveWeight(1);
+
+		this.activeIdleVariant = variant;
+	}
+
+	private returnToDefaultIdle(): void {
+		if (this.activeIdleVariant) {
+			this.activeIdleVariant.fadeOut(IDLE_VARIANT_FADE);
+			this.activeIdleVariant = undefined;
+		}
+
+		if (this.idleAction) {
+			this.idleAction.reset().fadeIn(IDLE_VARIANT_FADE).play();
+			this.idleAction.setEffectiveWeight(this.idleWeight);
+		}
 	}
 }
