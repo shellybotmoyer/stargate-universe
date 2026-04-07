@@ -58,6 +58,9 @@ const JUMP_FADE_IN = 0.15;
 /** Crossfade duration from jump back to locomotion (seconds). */
 const JUMP_FADE_OUT = 0.25;
 
+/** How much locomotion blends through during a jump (0 = none, 1 = full). */
+const JUMP_LOCOMOTION_BLEND = 0.5;
+
 /** Weight smoothing factor — higher = snappier, lower = smoother. */
 const WEIGHT_SMOOTHING = 8.0;
 
@@ -262,9 +265,11 @@ export class VrmPlayerAnimationController {
 	update(delta: number, params: PlayerAnimationParams): void {
 		if (!this.loaded) return;
 
-		if (this.state === "locomotion") {
-			this.updateLocomotionWeights(delta, params);
+		// Always update locomotion weights — during jump they blend at reduced strength
+		const locoScale = this.state === "jump" ? JUMP_LOCOMOTION_BLEND : 1;
+		this.updateLocomotionWeights(delta, params, locoScale);
 
+		if (this.state === "locomotion") {
 			// Track idle state for variant cycling
 			const nowIdling = params.speed < IDLE_THRESHOLD;
 			if (nowIdling && this.isIdling) {
@@ -302,7 +307,7 @@ export class VrmPlayerAnimationController {
 
 	// ─── Internal ──────────────────────────────────────────────────────────────
 
-	private updateLocomotionWeights(delta: number, params: PlayerAnimationParams): void {
+	private updateLocomotionWeights(delta: number, params: PlayerAnimationParams, scale = 1): void {
 		const { speed, walkSpeed, runSpeed, strafeInput, forwardInput } = params;
 		const smoothing = 1 - Math.exp(-WEIGHT_SMOOTHING * delta);
 
@@ -344,6 +349,13 @@ export class VrmPlayerAnimationController {
 			targetRun = 1;
 		}
 
+		// Apply scale (reduced during jump so locomotion shows through at partial weight)
+		targetIdle *= scale;
+		targetWalk *= scale;
+		targetRun *= scale;
+		targetStrafeLeft *= scale;
+		targetStrafeRight *= scale;
+
 		// Smooth toward targets
 		this.idleWeight += (targetIdle - this.idleWeight) * smoothing;
 		this.walkWeight += (targetWalk - this.walkWeight) * smoothing;
@@ -364,12 +376,8 @@ export class VrmPlayerAnimationController {
 
 		this.state = "jump";
 
-		// Fade out locomotion
-		this.idleAction?.fadeOut(JUMP_FADE_IN);
-		this.walkAction?.fadeOut(JUMP_FADE_IN);
-		this.runAction?.fadeOut(JUMP_FADE_IN);
-		this.strafeLeftAction?.fadeOut(JUMP_FADE_IN);
-		this.strafeRightAction?.fadeOut(JUMP_FADE_IN);
+		// Don't fade out locomotion — updateLocomotionWeights will scale them
+		// down via JUMP_LOCOMOTION_BLEND, keeping directional movement visible.
 
 		// Play jump from start
 		this.jumpAction.reset();
@@ -381,22 +389,9 @@ export class VrmPlayerAnimationController {
 	private returnToLocomotion(): void {
 		this.state = "locomotion";
 
-		// Fade jump out
+		// Fade jump out — locomotion weights will ramp back to full (scale=1)
+		// naturally on the next updateLocomotionWeights call
 		this.jumpAction?.fadeOut(JUMP_FADE_OUT);
-
-		// Fade locomotion back in
-		this.idleAction?.reset().fadeIn(JUMP_FADE_OUT).play();
-		this.walkAction?.reset().fadeIn(JUMP_FADE_OUT).play();
-		this.runAction?.reset().fadeIn(JUMP_FADE_OUT).play();
-		this.strafeLeftAction?.reset().fadeIn(JUMP_FADE_OUT).play();
-		this.strafeRightAction?.reset().fadeIn(JUMP_FADE_OUT).play();
-
-		// Reset weights to current targets (will be smoothed next frame)
-		this.idleAction?.setEffectiveWeight(this.idleWeight);
-		this.walkAction?.setEffectiveWeight(this.walkWeight);
-		this.runAction?.setEffectiveWeight(this.runWeight);
-		this.strafeLeftAction?.setEffectiveWeight(this.strafeLeftWeight);
-		this.strafeRightAction?.setEffectiveWeight(this.strafeRightWeight);
 	}
 
 	// ─── Idle Variant Cycling ──────────────────────────────────────────────────
