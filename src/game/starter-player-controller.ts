@@ -25,6 +25,17 @@ import {
   Vector3
 } from "three";
 
+import {
+  addCharacter,
+  getCharacter,
+  removeCharacter,
+  setActiveCamera,
+  setFirstPersonMode,
+  updateVrmCharacters,
+  VrmPlayerAnimationController,
+  type VrmCharacterInstance,
+} from "../systems/vrm";
+
 type StarterPlayerSpawn = {
   position: Vec3;
   rotationY: number;
@@ -37,6 +48,8 @@ type StarterPlayerControllerOptions = {
   gameplayRuntime: GameplayRuntime;
   sceneSettings: Pick<SceneSettings, "player" | "world">;
   spawn: StarterPlayerSpawn;
+  /** Optional path to a VRM model file for the player character. */
+  vrmUrl?: string;
   world: CrashcatPhysicsWorld;
 };
 
@@ -69,6 +82,10 @@ export class StarterPlayerController {
   private readonly standingHeight: number;
   private readonly supportVelocity = new Vector3();
   private readonly visual: Mesh;
+  private animController: VrmPlayerAnimationController | undefined;
+  private forwardInput = 0;
+  private strafeInput = 0;
+  private vrmCharacter: VrmCharacterInstance | undefined;
   private readonly world: CrashcatPhysicsWorld;
   private yaw = 0;
 
@@ -127,6 +144,11 @@ export class StarterPlayerController {
     this.object.add(this.visual);
     this.object.position.set(spawnPosition.x, spawnPosition.y, spawnPosition.z);
 
+    // VRM character model (replaces capsule visual when loaded)
+    if (options.vrmUrl) {
+      this.initVrmCharacter(options.vrmUrl);
+    }
+
     this.domElement.addEventListener("click", this.handleCanvasClick);
     window.addEventListener("blur", this.handleWindowBlur);
     window.addEventListener("keydown", this.handleKeyDown);
@@ -143,6 +165,16 @@ export class StarterPlayerController {
     window.removeEventListener("mousemove", this.handleMouseMove);
     this.gameplayRuntime.removeActor("player");
     rigidBody.remove(this.world, this.body);
+
+    if (this.animController) {
+      this.animController.dispose();
+      this.animController = undefined;
+    }
+
+    if (this.vrmCharacter) {
+      removeCharacter("player");
+      this.vrmCharacter = undefined;
+    }
   }
 
   releasePointerLock() {
@@ -153,15 +185,60 @@ export class StarterPlayerController {
     this.pointerLocked = false;
   }
 
+  /** Get the VRM character instance (if VRM loading was initiated). */
+  getVrmCharacter(): VrmCharacterInstance | undefined {
+    return this.vrmCharacter;
+  }
+
   setCameraMode(cameraMode: SceneSettings["player"]["cameraMode"]) {
     this.cameraMode = cameraMode;
+
+    // Update first-person head hiding when camera mode changes
+    if (this.vrmCharacter?.vrm) {
+      setFirstPersonMode(cameraMode === "fps", this.camera);
+    }
   }
 
   updateAfterStep(deltaSeconds: number) {
     const translation = this.body.position;
     this.object.position.set(translation[0], translation[1], translation[2]);
     this.visual.rotation.set(0, this.yaw, 0);
-    this.visual.visible = this.cameraMode !== "fps";
+
+    // VRM character: rotate the VRM root to face movement direction
+    if (this.vrmCharacter?.vrm) {
+      // VRM models face +Z; the controller's forward is -Z. Add π to align.
+      this.vrmCharacter.root.rotation.set(0, this.yaw + Math.PI, 0);
+      // Hide capsule when VRM is loaded
+      this.visual.visible = false;
+      // Handle first-person head hiding
+      setFirstPersonMode(this.cameraMode === "fps", this.camera);
+
+      // Lazy-init animation controller once VRM is loaded
+      if (!this.animController) {
+        this.animController = new VrmPlayerAnimationController(this.vrmCharacter.vrm);
+        this.animController.loadClips("/animations/player");
+      }
+
+      // Update animations BEFORE vrm.update() so spring bones run on animated pose
+      if (this.animController) {
+        const velocity = this.body.motionProperties.linearVelocity;
+        const horizontalSpeed = Math.sqrt(velocity[0] ** 2 + velocity[2] ** 2);
+        this.animController.update(deltaSeconds, {
+          speed: horizontalSpeed,
+          walkSpeed: this.sceneSettings.player.movementSpeed,
+          runSpeed: this.sceneSettings.player.runningSpeed,
+          isGrounded: this.lastGrounded,
+          jumpTriggered: this.jumpGroundLockRemaining > 0,
+          strafeInput: this.strafeInput,
+          forwardInput: this.forwardInput,
+        });
+      }
+
+      // Update VRM systems (spring bones, expressions, LOD)
+      updateVrmCharacters(deltaSeconds, 60);
+    } else {
+      this.visual.visible = this.cameraMode !== "fps";
+    }
 
     const eyePosition = new Vector3(
       translation[0],
@@ -216,10 +293,15 @@ export class StarterPlayerController {
     }
 
     const right = scratchRight.set(-forward.z, 0, forward.x).normalize();
+
+    // Store raw input axes for the animation system
+    this.strafeInput = this.axis("KeyD", "ArrowRight") - this.axis("KeyA", "ArrowLeft");
+    this.forwardInput = this.axis("KeyW", "ArrowUp") - this.axis("KeyS", "ArrowDown");
+
     const moveDirection = scratchMoveDirection
       .set(0, 0, 0)
-      .addScaledVector(right, this.axis("KeyD", "ArrowRight") - this.axis("KeyA", "ArrowLeft"))
-      .addScaledVector(forward, this.axis("KeyW", "ArrowUp") - this.axis("KeyS", "ArrowDown"));
+      .addScaledVector(right, this.strafeInput)
+      .addScaledVector(forward, this.forwardInput);
 
     if (moveDirection.lengthSq() > 0) {
       moveDirection.normalize().multiplyScalar(speed);
@@ -261,6 +343,21 @@ export class StarterPlayerController {
     }
 
     this.lastGrounded = grounded;
+  }
+
+  private initVrmCharacter(vrmUrl: string): void {
+    setActiveCamera(this.camera);
+    this.vrmCharacter = addCharacter({
+      id: "player",
+      vrmUrl,
+      isPlayer: true,
+      priority: 0,
+    });
+    // Offset VRM root down so feet align with the bottom of the physics capsule.
+    // The controller's object.position is at capsule center; VRM feet are at Y=0.
+    this.vrmCharacter.root.position.y = -this.footOffset;
+    // Attach VRM root to the controller's scene group
+    this.object.add(this.vrmCharacter.root);
   }
 
   private axis(primary: string, secondary: string) {
