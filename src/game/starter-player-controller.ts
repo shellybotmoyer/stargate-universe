@@ -204,7 +204,8 @@ export class StarterPlayerController {
 
     // VRM character: rotate the VRM root to face movement direction
     if (this.vrmCharacter?.vrm) {
-      this.vrmCharacter.root.rotation.set(0, this.yaw, 0);
+      // VRM models face +Z; the controller's forward is -Z. Add π to align.
+      this.vrmCharacter.root.rotation.set(0, this.yaw + Math.PI, 0);
       // Hide capsule when VRM is loaded
       this.visual.visible = false;
       // Handle first-person head hiding
