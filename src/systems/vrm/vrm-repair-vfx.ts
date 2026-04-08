@@ -1,30 +1,21 @@
 /**
- * Repair VFX — procedural wrench tool + spark particles.
+ * Repair VFX — procedural wrench tool + mesh-based spark particles.
  *
- * Attaches a wrench mesh to the player's right hand bone during repair,
- * and emits orange/yellow spark particles from the tool tip.
+ * Uses small emissive Mesh spheres instead of Points (which don't render
+ * properly on the WebGPU renderer — size is always 1px).
  *
- * Usage:
- *   const vfx = new RepairVfx(vrm);
- *   vfx.start();   // attach tool + begin sparks
- *   vfx.update(dt); // call each frame while repairing
- *   vfx.stop();    // detach tool + fade sparks
- *   vfx.dispose(); // clean up GPU resources
+ * @see https://github.com/mrdoob/three.js/issues/30612
  */
 import type { VRM } from "@pixiv/three-vrm";
 import {
-	AdditiveBlending,
-	BufferAttribute,
-	BufferGeometry,
 	BoxGeometry,
 	Color,
 	CylinderGeometry,
 	Group,
 	Mesh,
+	MeshBasicMaterial,
 	MeshStandardMaterial,
 	Object3D,
-	Points,
-	PointsMaterial,
 	Scene,
 	SphereGeometry,
 	Vector3,
@@ -32,27 +23,16 @@ import {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-/** Maximum concurrent spark particles. */
-const MAX_SPARKS = 40;
-
-/** Sparks emitted per second. */
-const SPARK_RATE = 30;
-
-/** Spark lifetime range in seconds. */
+const MAX_SPARKS = 30;
+const SPARK_RATE = 25;
 const SPARK_LIFE_MIN = 0.3;
 const SPARK_LIFE_MAX = 0.8;
-
-/** Spark initial speed range. */
 const SPARK_SPEED_MIN = 3.0;
 const SPARK_SPEED_MAX = 7.0;
-
-/** Gravity applied to sparks (m/s²). */
 const SPARK_GRAVITY = 6.0;
+const SPARK_RADIUS = 0.02;
 
-/** Spark base size. */
-const SPARK_SIZE = 0.12;
-
-// ─── Spark particle state ─────────────────────────────────────────────────────
+// ─── Spark particle ───────────────────────────────────────────────────────────
 
 type SparkParticle = {
 	alive: boolean;
@@ -60,7 +40,14 @@ type SparkParticle = {
 	lifetime: number;
 	position: Vector3;
 	velocity: Vector3;
+	mesh: Mesh;
 };
+
+// Shared geometry + materials for all spark meshes
+const sparkGeometry = new SphereGeometry(SPARK_RADIUS, 4, 4);
+const sparkHotMat = new MeshBasicMaterial({ color: 0xffaa00 });
+const sparkCoolMat = new MeshBasicMaterial({ color: 0xff4400 });
+const tmpColor = new Color();
 
 // ─── RepairVfx ────────────────────────────────────────────────────────────────
 
@@ -69,59 +56,39 @@ export class RepairVfx {
 	private readonly worldScene: Scene;
 	private readonly handBone: Object3D | null;
 	private readonly toolGroup: Group;
-	private readonly sparksGeometry: BufferGeometry;
-	private readonly sparksPoints: Points;
+	private readonly sparkContainer: Group;
 	private readonly sparks: SparkParticle[] = [];
-	private readonly sparkPositions: Float32Array;
-	private readonly sparkColors: Float32Array;
-	private readonly sparkSizes: Float32Array;
 
 	private active = false;
 	private sparkAccumulator = 0;
+	private debugTimer = 0;
 
 	constructor(vrm: VRM, worldScene: Scene) {
 		this.vrm = vrm;
 		this.worldScene = worldScene;
 		this.handBone = vrm.humanoid?.getNormalizedBoneNode("rightHand") ?? null;
 
-		// ── Procedural wrench ─────────────────────────────────────────────────
 		this.toolGroup = this.createWrench();
+		this.sparkContainer = new Group();
+		this.sparkContainer.name = "repair-sparks";
 
-		// ── Spark particle system ─────────────────────────────────────────────
-		this.sparkPositions = new Float32Array(MAX_SPARKS * 3);
-		this.sparkColors = new Float32Array(MAX_SPARKS * 3);
-		this.sparkSizes = new Float32Array(MAX_SPARKS);
-
-		this.sparksGeometry = new BufferGeometry();
-		this.sparksGeometry.setAttribute("position", new BufferAttribute(this.sparkPositions, 3));
-		this.sparksGeometry.setAttribute("color", new BufferAttribute(this.sparkColors, 3));
-		this.sparksGeometry.setAttribute("size", new BufferAttribute(this.sparkSizes, 1));
-
-		const sparksMaterial = new PointsMaterial({
-			size: SPARK_SIZE,
-			vertexColors: true,
-			blending: AdditiveBlending,
-			transparent: true,
-			depthWrite: false,
-			sizeAttenuation: true,
-		});
-
-		this.sparksPoints = new Points(this.sparksGeometry, sparksMaterial);
-		this.sparksPoints.frustumCulled = false;
-
-		// Pre-allocate particle pool
+		// Pre-allocate spark mesh pool
 		for (let i = 0; i < MAX_SPARKS; i++) {
+			const mesh = new Mesh(sparkGeometry, sparkHotMat.clone());
+			mesh.visible = false;
+			this.sparkContainer.add(mesh);
+
 			this.sparks.push({
 				alive: false,
 				age: 0,
 				lifetime: 0,
 				position: new Vector3(),
 				velocity: new Vector3(),
+				mesh,
 			});
 		}
 	}
 
-	/** Attach tool to hand and start emitting sparks. */
 	start(): void {
 		if (this.active) return;
 		this.active = true;
@@ -131,12 +98,10 @@ export class RepairVfx {
 			this.handBone.add(this.toolGroup);
 		}
 
-		// Add sparks to the world scene (not VRM root) so they're in true world space
-		this.worldScene.add(this.sparksPoints);
-		console.info("[RepairVfx] Started — handBone:", !!this.handBone, "sparks added to world scene");
+		this.worldScene.add(this.sparkContainer);
+		console.info("[RepairVfx] Started — handBone:", !!this.handBone);
 	}
 
-	/** Detach tool and stop emitting (existing sparks fade out). */
 	stop(): void {
 		if (!this.active) return;
 		this.active = false;
@@ -145,19 +110,14 @@ export class RepairVfx {
 			this.handBone.remove(this.toolGroup);
 		}
 
-		// Kill all sparks immediately
 		for (const spark of this.sparks) {
 			spark.alive = false;
+			spark.mesh.visible = false;
 		}
-		this.syncGeometry();
 
-		this.worldScene.remove(this.sparksPoints);
-		console.info("[RepairVfx] Stopped");
+		this.worldScene.remove(this.sparkContainer);
 	}
 
-	private debugTimer = 0;
-
-	/** Update spark particles. Call each frame while repair is active or sparks remain. */
 	update(delta: number): void {
 		if (!this.active && !this.hasAliveSparks()) return;
 
@@ -165,14 +125,13 @@ export class RepairVfx {
 		if (this.debugTimer > 2) {
 			this.debugTimer = 0;
 			const aliveCount = this.sparks.filter((s) => s.alive).length;
-			console.info(`[RepairVfx] active=${this.active}, alive=${aliveCount}, accumulator=${this.sparkAccumulator.toFixed(3)}`);
+			console.info(`[RepairVfx] alive=${aliveCount}`);
 		}
 
 		// Emit new sparks
 		if (this.active) {
 			this.sparkAccumulator += delta;
 			const interval = 1 / SPARK_RATE;
-
 			while (this.sparkAccumulator >= interval) {
 				this.sparkAccumulator -= interval;
 				this.emitSpark();
@@ -186,24 +145,29 @@ export class RepairVfx {
 			spark.age += delta;
 			if (spark.age >= spark.lifetime) {
 				spark.alive = false;
+				spark.mesh.visible = false;
 				continue;
 			}
 
-			// Apply gravity
 			spark.velocity.y -= SPARK_GRAVITY * delta;
-
-			// Integrate position
 			spark.position.addScaledVector(spark.velocity, delta);
-		}
+			spark.mesh.position.copy(spark.position);
 
-		this.syncGeometry();
+			// Fade color from hot orange to cool red and shrink
+			const t = spark.age / spark.lifetime;
+			tmpColor.setRGB(1, 0.67 * (1 - t), 0.1 * (1 - t));
+			(spark.mesh.material as MeshBasicMaterial).color.copy(tmpColor);
+
+			const scale = 1 - t * 0.7;
+			spark.mesh.scale.setScalar(scale);
+		}
 	}
 
-	/** Clean up all GPU resources. */
 	dispose(): void {
 		this.stop();
-		this.sparksGeometry.dispose();
-		(this.sparksPoints.material as PointsMaterial).dispose();
+		for (const spark of this.sparks) {
+			(spark.mesh.material as MeshBasicMaterial).dispose();
+		}
 		this.disposeToolGroup();
 	}
 
@@ -217,17 +181,14 @@ export class RepairVfx {
 			roughness: 0.3,
 		});
 
-		// Handle — thin cylinder
 		const handle = new Mesh(new CylinderGeometry(0.008, 0.008, 0.14, 6), metalMaterial);
 		handle.position.set(0, 0.07, 0);
 		group.add(handle);
 
-		// Head — wider box at the top
 		const head = new Mesh(new BoxGeometry(0.035, 0.025, 0.012), metalMaterial);
 		head.position.set(0, 0.15, 0);
 		group.add(head);
 
-		// Jaw opening — small indent (two small boxes forming a U shape)
 		const jawLeft = new Mesh(new BoxGeometry(0.008, 0.03, 0.012), metalMaterial);
 		jawLeft.position.set(-0.014, 0.17, 0);
 		group.add(jawLeft);
@@ -236,14 +197,12 @@ export class RepairVfx {
 		jawRight.position.set(0.014, 0.17, 0);
 		group.add(jawRight);
 
-		// Grip accent — slightly wider section at handle base
 		const grip = new Mesh(new CylinderGeometry(0.01, 0.01, 0.04, 6),
 			new MeshStandardMaterial({ color: 0x333333, roughness: 0.8 })
 		);
 		grip.position.set(0, 0.02, 0);
 		group.add(grip);
 
-		// Point light indicator — small emissive sphere at the tool tip
 		const tipGlow = new Mesh(
 			new SphereGeometry(0.006, 6, 6),
 			new MeshStandardMaterial({
@@ -255,7 +214,6 @@ export class RepairVfx {
 		tipGlow.position.set(0, 0.185, 0);
 		group.add(tipGlow);
 
-		// Orient wrench to sit naturally in hand — offset forward from wrist to palm
 		group.position.set(0, 0, 0.10);
 		group.rotation.set(0, 0, -Math.PI * 0.15);
 		group.scale.setScalar(1.2);
@@ -264,11 +222,10 @@ export class RepairVfx {
 	}
 
 	private emitSpark(): void {
-		// Find a dead particle to reuse
 		const spark = this.sparks.find((s) => !s.alive);
 		if (!spark) return;
 
-		// Get wall contact point — past the wrench tip where it meets the surface
+		// Get wall contact point — past the wrench tip
 		const tipWorld = new Vector3(0, 0.22, 0);
 		this.toolGroup.localToWorld(tipWorld);
 
@@ -277,49 +234,17 @@ export class RepairVfx {
 		spark.lifetime = SPARK_LIFE_MIN + Math.random() * (SPARK_LIFE_MAX - SPARK_LIFE_MIN);
 		spark.position.copy(tipWorld);
 
-		// Spray outward from wall with strong lateral spread
 		const speed = SPARK_SPEED_MIN + Math.random() * (SPARK_SPEED_MAX - SPARK_SPEED_MIN);
 		spark.velocity.set(
 			(Math.random() - 0.5) * 3,
 			Math.random() * 1.5 - 0.3,
 			(Math.random() - 0.5) * 3,
 		).normalize().multiplyScalar(speed);
-	}
 
-	private syncGeometry(): void {
-		const hotColor = new Color(0xffaa00);
-		const coolColor = new Color(0xff4400);
-		const tmpColor = new Color();
-
-		for (let i = 0; i < MAX_SPARKS; i++) {
-			const spark = this.sparks[i];
-			const i3 = i * 3;
-
-			if (!spark.alive) {
-				this.sparkPositions[i3] = 0;
-				this.sparkPositions[i3 + 1] = -1000; // hide offscreen
-				this.sparkPositions[i3 + 2] = 0;
-				this.sparkSizes[i] = 0;
-				continue;
-			}
-
-			this.sparkPositions[i3] = spark.position.x;
-			this.sparkPositions[i3 + 1] = spark.position.y;
-			this.sparkPositions[i3 + 2] = spark.position.z;
-
-			// Fade size and color over lifetime
-			const t = spark.age / spark.lifetime;
-			this.sparkSizes[i] = SPARK_SIZE * (1 - t * 0.6);
-
-			tmpColor.copy(hotColor).lerp(coolColor, t);
-			this.sparkColors[i3] = tmpColor.r;
-			this.sparkColors[i3 + 1] = tmpColor.g;
-			this.sparkColors[i3 + 2] = tmpColor.b;
-		}
-
-		this.sparksGeometry.attributes.position.needsUpdate = true;
-		this.sparksGeometry.attributes.color.needsUpdate = true;
-		this.sparksGeometry.attributes.size.needsUpdate = true;
+		spark.mesh.visible = true;
+		spark.mesh.position.copy(spark.position);
+		spark.mesh.scale.setScalar(1);
+		(spark.mesh.material as MeshBasicMaterial).color.set(0xffaa00);
 	}
 
 	private hasAliveSparks(): boolean {
@@ -330,7 +255,7 @@ export class RepairVfx {
 		this.toolGroup.traverse((child) => {
 			if (child instanceof Mesh) {
 				child.geometry.dispose();
-				if (child.material instanceof MeshStandardMaterial) {
+				if (child.material instanceof MeshStandardMaterial || child.material instanceof MeshBasicMaterial) {
 					child.material.dispose();
 				}
 			}
