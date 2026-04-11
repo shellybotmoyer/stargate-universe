@@ -106,6 +106,13 @@ type GameEvents = {
 	"game:resumed": Record<string, never>;
 };
 
+/** Save / Load events */
+type SaveEvents = {
+	"save:completed": { slotId: string };
+	"save:loaded": { slotId: string };
+	"save:failed": { slotId: string; error: string };
+};
+
 /** All events combined — the master type map for mitt */
 export type GameEventMap =
 	ShipEvents &
@@ -118,7 +125,8 @@ export type GameEventMap =
 	PlayerEvents &
 	EpisodeEvents &
 	PlanetEvents &
-	GameEvents;
+	GameEvents &
+	SaveEvents;
 
 /** Event name union type */
 export type GameEventName = keyof GameEventMap;

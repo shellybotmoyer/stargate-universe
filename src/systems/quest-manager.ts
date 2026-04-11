@@ -11,6 +11,7 @@
 import { emit, on } from './event-bus.js';
 import type { QuestDefinition, QuestLog, QuestState } from '../types/quest.js';
 import { createQuestLog, isQuestComplete } from '../types/quest.js';
+import type { QuestSaveData, QuestStateSave } from '../types/save.js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,11 @@ export type QuestManager = {
 	getQuestLog: () => QuestLog;
 	isActive: (questId: string) => boolean;
 	isCompleted: (questId: string) => boolean;
+	/** Return a JSON-serializable snapshot of all quest progress. */
+	serialize: () => QuestSaveData;
+	/** Restore quest progress from a previously serialized snapshot.
+	 *  Quest definitions must already be registered before calling this. */
+	deserialize: (data: QuestSaveData) => void;
 	dispose: () => void;
 };
 
@@ -109,6 +115,61 @@ export const createQuestManager = (): QuestManager => {
 		}
 	}));
 
+	// ─── Serialization ────────────────────────────────────────────────────────
+
+	const serializeQuestState = (state: QuestState): QuestStateSave => ({
+		questId: state.definition.id,
+		status: state.status,
+		objectives: state.objectives.map(o => ({
+			id: o.id,
+			current: o.current,
+			completed: o.completed,
+			visible: o.visible,
+		})),
+		startedAt: state.startedAt,
+		completedAt: state.completedAt,
+	});
+
+	const serialize = (): QuestSaveData => ({
+		version: 1,
+		active: [...questLog.active.values()].map(serializeQuestState),
+		completed: [...questLog.completed.values()].map(serializeQuestState),
+		failed: [...questLog.failed.values()].map(serializeQuestState),
+	});
+
+	const deserialize = (data: QuestSaveData): void => {
+		questLog.active.clear();
+		questLog.completed.clear();
+		questLog.failed.clear();
+
+		const restoreInto = (saves: QuestStateSave[], target: Map<string, QuestState>): void => {
+			for (const saved of saves) {
+				const definition = definitions.get(saved.questId);
+				if (!definition) {
+					console.warn(`[quest] Deserialize: no definition for "${saved.questId}" — skipped`);
+					continue;
+				}
+				// Merge saved progress back onto a fresh copy of the definition's objectives
+				const objectives = definition.objectives.map(orig => {
+					const savedObj = saved.objectives.find(o => o.id === orig.id);
+					return savedObj ? { ...orig, ...savedObj } : { ...orig };
+				});
+				const state: QuestState = {
+					definition,
+					status: saved.status,
+					objectives,
+					startedAt: saved.startedAt,
+					completedAt: saved.completedAt,
+				};
+				target.set(saved.questId, state);
+			}
+		};
+
+		restoreInto(data.active, questLog.active);
+		restoreInto(data.completed, questLog.completed);
+		restoreInto(data.failed, questLog.failed);
+	};
+
 	return {
 		registerDefinition,
 		startQuest,
@@ -117,6 +178,8 @@ export const createQuestManager = (): QuestManager => {
 		getQuestLog: () => questLog,
 		isActive: (questId) => questLog.active.has(questId),
 		isCompleted: (questId) => questLog.completed.has(questId),
+		serialize,
+		deserialize,
 		dispose: () => {
 			for (const unsub of unsubscribers) unsub();
 			unsubscribers.length = 0;
