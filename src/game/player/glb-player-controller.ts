@@ -375,7 +375,7 @@ export class GlbPlayerController implements PlayerController {
 
 			// Check for embedded animations in the character model
 			if (gltf.animations.length > 0) {
-				console.info(
+				console.log(
 					`[GlbPlayerController] Found ${gltf.animations.length} embedded animation(s):`,
 					gltf.animations.map((a) => a.name),
 				);
@@ -390,7 +390,7 @@ export class GlbPlayerController implements PlayerController {
 						const walkClip = walkGltf.animations[0];
 						this.walkAction = this.mixer.clipAction(walkClip, modelScene);
 						this.walkAction.setLoop(2200, Infinity); // LoopRepeat
-						console.info(`[GlbPlayerController] Walk animation loaded: "${walkClip.name}" (${walkClip.duration.toFixed(2)}s)`);
+						console.log(`[GlbPlayerController] Walk animation loaded: "${walkClip.name}" (${walkClip.duration.toFixed(2)}s)`);
 					}
 				} catch (error) {
 					console.warn("[GlbPlayerController] Failed to load walk animation:", error);
@@ -401,7 +401,7 @@ export class GlbPlayerController implements PlayerController {
 				this.walkAction.setLoop(2200, Infinity);
 			}
 
-			console.info(`[GlbPlayerController] Model loaded from ${modelUrl}`);
+			console.log(`[GlbPlayerController] Model loaded from ${modelUrl}`);
 		} catch (error) {
 			console.error("[GlbPlayerController] Failed to load model:", error);
 		}

@@ -267,9 +267,9 @@ async function buildStargate(scene: THREE.Scene): Promise<GateRuntime> {
 
 		scene.add(gateModel);
 		outerRing = gateModel;
-		console.info("[GateRoom] Loaded stargate GLB model");
+		console.log("[GateRoom] Loaded stargate GLB model");
 	} catch (error) {
-		console.warn("[GateRoom] Failed to load stargate GLB, using fallback ring:", error);
+		console.error("[GateRoom] Failed to load stargate GLB, using fallback ring:", error);
 		// Fallback: simple torus
 		const fallbackMat = new THREE.MeshStandardMaterial({
 			color: COLOR_ANCIENT_METAL, roughness: 0.3, metalness: 0.85
