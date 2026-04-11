@@ -33,21 +33,21 @@ export type VrmEntitySystemResult = {
 	dispose(): void;
 };
 
-// ─── System ─────────────────────────────────────────────────────────────────
+	// ─── System ─────────────────────────────────────────────────────────────────
 
-/**
- * Process all "vrm-character" entities in the scene.
- * Non-player entities are immediately spawned as NPC characters.
- *
- * @returns Handles for spawned NPCs and a dispose function.
- */
-export function createVrmEntitySystem(options: VrmEntitySystemOptions): VrmEntitySystemResult {
-	const { characterManager, runtimeScene, scene, resolveAssetUrl } = options;
-	const npcInstances: VrmCharacterInstance[] = [];
-	const npcRoots: Group[] = [];
+	/**
+	 * Process all "vrm-character" entities in the scene.
+	 * Non-player entities are immediately spawned as NPC characters.
+	 *
+	 * @returns Handles for spawned NPCs and a dispose function.
+	 */
+	export function createVrmEntitySystem(options: VrmEntitySystemOptions): VrmEntitySystemResult {
+		const { characterManager, runtimeScene, scene, resolveAssetUrl } = options;
+		const npcInstances: VrmCharacterInstance[] = [];
+		const npcRoots: Group[] = [];
 
-	for (const entity of runtimeScene.entities) {
-		if (entity.type !== "vrm-character") continue;
+		for (const entity of runtimeScene.entities) {
+			if ((entity.type as string) !== "vrm-character") continue;
 
 		const isPlayer = entity.properties["isPlayer"] === true;
 
@@ -110,11 +110,11 @@ export function createVrmEntitySystem(options: VrmEntitySystemOptions): VrmEntit
  * Find the player VRM entity from a scene's entities list.
  * Returns entity data for use by VrmPlayerController setup.
  */
-export function findPlayerVrmEntity(
+	export function findPlayerVrmEntity(
 	runtimeScene: ThreeRuntimeSceneInstance,
 ): { vrmUrl: string; animationBundle: string; characterId: string } | undefined {
 	for (const entity of runtimeScene.entities) {
-		if (entity.type !== "vrm-character") continue;
+		if ((entity.type as string) !== "vrm-character") continue;
 		if (entity.properties["isPlayer"] !== true) continue;
 
 		const vrmUrl = entity.properties["vrmUrl"] as string | undefined;
