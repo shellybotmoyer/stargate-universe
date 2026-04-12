@@ -74,6 +74,12 @@ export async function createGameApp(options: GameAppOptions) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
+  // WebGPU uses physically-based light units (candela/lux).
+  // ACESFilmic tone mapping + exposure compensates so legacy intensity values
+  // look correct without rewriting every scene's light intensities.
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 3.0;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
   shell.append(renderer.domElement);
 
   const scene = new THREE.Scene();

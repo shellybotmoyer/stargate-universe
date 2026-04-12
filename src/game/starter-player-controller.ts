@@ -96,6 +96,13 @@ export class StarterPlayerController {
   private readonly world: CrashcatPhysicsWorld;
   private yaw = 0;
 
+  // ── External (gamepad) input override ──────────────────────────────────────
+  /** External forward/strafe axes [-1, 1]. Blended with keyboard via max-magnitude. */
+  private _extForward = 0;
+  private _extStrafe = 0;
+  /** When true, counts as sprint regardless of Shift key. */
+  private _extSprint = false;
+
   constructor(options: StarterPlayerControllerOptions) {
     this.camera = options.camera;
     this.cameraMode = options.cameraMode;
@@ -221,6 +228,31 @@ export class StarterPlayerController {
     }
   }
 
+  /**
+   * Apply a yaw/pitch delta from an external source (e.g. right gamepad stick).
+   * Pitch is clamped to the same limits as mouse look.
+   */
+  applyOrbitDelta(deltaYaw: number, deltaPitch: number): void {
+    this.yaw -= deltaYaw;
+    const pitchMin = this.cameraMode === "fps" ? -1.35 : -1.25;
+    const pitchMax = this.cameraMode === "fps" ? 1.35 : this.cameraMode === "top-down" ? -0.12 : 0.4;
+    this.pitch = MathUtils.clamp(this.pitch - deltaPitch, pitchMin, pitchMax);
+  }
+
+  /**
+   * Set external movement axes (e.g. left gamepad stick) in [-1, 1].
+   * These are blended with keyboard input: the axis with higher magnitude wins.
+   */
+  setExternalMoveInput(forward: number, strafe: number): void {
+    this._extForward = MathUtils.clamp(forward, -1, 1);
+    this._extStrafe = MathUtils.clamp(strafe, -1, 1);
+  }
+
+  /** Override sprint state from an external source (e.g. B/Circle button). */
+  setSprintOverride(active: boolean): void {
+    this._extSprint = active;
+  }
+
   setCameraMode(cameraMode: SceneSettings["player"]["cameraMode"]) {
     this.cameraMode = cameraMode;
 
@@ -330,9 +362,12 @@ export class StarterPlayerController {
 
     const right = scratchRight.set(-forward.z, 0, forward.x).normalize();
 
-    // Store raw input axes for the animation system
-    this.strafeInput = this.axis("KeyD", "ArrowRight") - this.axis("KeyA", "ArrowLeft");
-    this.forwardInput = this.axis("KeyW", "ArrowUp") - this.axis("KeyS", "ArrowDown");
+    // Store raw input axes for the animation system — blend keyboard with external (gamepad)
+    const kbStrafe = this.axis("KeyD", "ArrowRight") - this.axis("KeyA", "ArrowLeft");
+    const kbForward = this.axis("KeyW", "ArrowUp") - this.axis("KeyS", "ArrowDown");
+    // Pick whichever source has higher magnitude on each axis
+    this.strafeInput = Math.abs(this._extStrafe) > Math.abs(kbStrafe) ? this._extStrafe : kbStrafe;
+    this.forwardInput = Math.abs(this._extForward) > Math.abs(kbForward) ? this._extForward : kbForward;
 
     const moveDirection = scratchMoveDirection
       .set(0, 0, 0)
@@ -401,7 +436,7 @@ export class StarterPlayerController {
   }
 
   private isRunning() {
-    return this.keyState.has("ShiftLeft") || this.keyState.has("ShiftRight");
+    return this._extSprint || this.keyState.has("ShiftLeft") || this.keyState.has("ShiftRight");
   }
 
   private resolveGroundHit(translation: CrashcatRigidBody["position"]) {

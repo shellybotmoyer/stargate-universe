@@ -20,6 +20,14 @@ import { setSceneManagers } from "./context";
 import { initResources, getResource, addResource, consumeResource, hasResource, getAllResources } from "../../systems/resources";
 import { isLimeCollected, setLimeCollected } from "../../systems/scene-transition-state";
 import { createHud, createDialoguePanel } from "@kopertop/vibe-game-engine";
+import {
+	NeuralLocomotionController,
+	encodeInput,
+	SEQ_LENGTH,
+	SEQ_WINDOW,
+	BONE_COUNT,
+	type SequenceOutput,
+} from "@kopertop/vibe-game-engine";
 import { createHorizontalCompass } from "../../ui/horizontal-compass";
 import { box } from "crashcat";
 import {
@@ -1439,6 +1447,31 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		player.object.add(playerLight);
 	}
 
+	// ── Neural Locomotion Controller ──────────────────────────────────────
+	// Load Network.bin/manifest and use it to compute root-motion offsets at
+	// 10 Hz, lerp-applied each frame for weighted movement feel.
+	// TODO: full skeletal integration once VRM bone tracking is available.
+	const loco = new NeuralLocomotionController();
+	void loco.load(
+		"/assets/ai/Network.bin",
+		"/assets/ai/Network.manifest.json",
+	).catch((err: unknown) => {
+		console.warn("[NeuralLoco] weight load failed — root motion disabled:", err);
+	});
+
+	// Prediction state: 10 Hz accumulator + cached sequence
+	const PREDICTION_HZ = 10;
+	const PREDICTION_INTERVAL = 1 / PREDICTION_HZ;
+	let locoAccum = 0;
+	let lastSeq: SequenceOutput | null = null;
+	/** Smoothed XZ root-motion offset applied to player each frame (lerped from network output). */
+	const locoOffset = new THREE.Vector3();
+	/** Scratch arrays reused each prediction tick to avoid allocation. */
+	const _zeroVec69  = new Float32Array(BONE_COUNT * 3);
+	const _futurePos  = new Float32Array(SEQ_LENGTH * 2);
+	const _futureFwd  = new Float32Array(SEQ_LENGTH * 2);
+	const _futureVel  = new Float32Array(SEQ_LENGTH * 2);
+
 	// Register gate room walls for camera pull-in collision
 	occludableMeshes.length = 0;
 	for (const w of wallMeshes) occludableMeshes.push(w);
@@ -1755,6 +1788,12 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		}
 	};
 
+	/** Gamepad A/Cross button — track previous state for leading-edge detection. */
+	let _gpAWasPressed = false;
+	/** Previous-frame player position used to derive velocity for loco input. */
+	const _prevPlayerPos = new THREE.Vector3();
+	if (player) _prevPlayerPos.copy(player.object.position);
+
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (e.code === "Backquote") {
 			const now = performance.now();
@@ -1824,6 +1863,138 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	return {
 		update(delta: number) {
 			playtimeMs += delta * 1000;
+
+			// ─── Gamepad polling ─────────────────────────────────────────
+			// Poll every frame; keyboard is fallback (handled by StarterPlayerController's
+			// own keyState). We inject gamepad axes via the public external-input API.
+			const gamepads = navigator.getGamepads();
+			let gpConnected = false;
+			for (const gp of gamepads) {
+				if (!gp || !gp.connected) continue;
+				gpConnected = true;
+
+				// Left stick: axes[0]=LX, axes[1]=LY (standard mapping)
+				const DEAD = 0.12;
+				const lx = Math.abs(gp.axes[0] ?? 0) > DEAD ? (gp.axes[0] ?? 0) : 0;
+				const ly = Math.abs(gp.axes[1] ?? 0) > DEAD ? (gp.axes[1] ?? 0) : 0;
+				// Right stick: axes[2]=RX, axes[3]=RY
+				const rx = Math.abs(gp.axes[2] ?? 0) > DEAD ? (gp.axes[2] ?? 0) : 0;
+				const ry = Math.abs(gp.axes[3] ?? 0) > DEAD ? (gp.axes[3] ?? 0) : 0;
+
+				if (player) {
+					// Left stick → movement (forward = -LY, strafe = LX)
+					player.setExternalMoveInput(-ly, lx);
+					// Right stick → camera orbit (scale to match mouse sensitivity)
+					if (rx !== 0 || ry !== 0) {
+						player.applyOrbitDelta(rx * delta * 2.2, ry * delta * 1.8);
+					}
+					// B/Circle (button 1) → sprint
+					player.setSprintOverride(!!(gp.buttons[1]?.pressed));
+				}
+
+				// A/Cross (button 0) → interact (same as KeyE, fire on leading edge only)
+				const aPressed = !!(gp.buttons[0]?.pressed);
+				if (aPressed && !_gpAWasPressed && !menu.visible) {
+					// Synthesise the same logic as handleKeyDown "KeyE"
+					if (interactTarget === "gate" && gate.state === "active") {
+						questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "gate-to-planet");
+						void context.gotoScene("desert-planet");
+					} else if (interactTarget === "crate" && nearestCrate && !nearestCrate.looted) {
+						addResource("ship-parts", nearestCrate.contents);
+						markCrateLooted(nearestCrate);
+					} else if (interactTarget === "subsystem" && nearestSub && !repairingSubsystemId) {
+						const sub = shipState.getSubsystem(nearestSub.id);
+						if (sub && sub.condition < 1.0 && hasResource("ship-parts", sub.repairCost)) {
+							const repairPerSegment = SHIP_STATE_CONFIG.BASE_REPAIR_AMOUNT * SHIP_STATE_CONFIG.REPAIR_SKILL_MODIFIER;
+							const remaining = 1.0 - sub.condition;
+							const segs = Math.ceil(remaining / repairPerSegment);
+							repairingSubsystemId = sub.id;
+							repairTotalSegments = segs;
+							repairCompletedSegments = 0;
+							repairSegmentElapsed = 0;
+							player?.setRepairing(true);
+							repairBar.init(segs, nearestSub.mesh.position);
+						}
+					} else if (interactTarget === "npc" && nearestNpc && !nearestNpc.inDialogue) {
+						emit("player:interact", { targetId: nearestNpc.definition.id, action: "talk" });
+					} else if (interactTarget === "scrubber-entrance") {
+						void context.gotoScene("scrubber-room");
+					}
+				}
+				_gpAWasPressed = aPressed;
+
+				// Only process first connected gamepad
+				break;
+			}
+			// Clear external inputs if no gamepad is connected
+			if (!gpConnected && player) {
+				player.setExternalMoveInput(0, 0);
+				player.setSprintOverride(false);
+			}
+
+			// ─── Neural locomotion (10 Hz predict, 60 fps lerp) ──────────────
+			if (player && loco.isLoaded) {
+				locoAccum += delta;
+				if (locoAccum >= PREDICTION_INTERVAL) {
+					locoAccum -= PREDICTION_INTERVAL;
+
+					// Build trajectory from current velocity/facing — bone arrays are zero
+					// (no skeletal mesh yet; root motion still emerges from trajectory input).
+					// TODO: populate bone arrays from VRM skeleton when available.
+					const vel = player.object.position.clone()
+						.sub(_prevPlayerPos)
+						.divideScalar(delta);
+					const vx = vel.x, vz = vel.z;
+					const spd = Math.sqrt(vx * vx + vz * vz);
+					// Facing from camera yaw (camera looks -Z at yaw=0)
+					const fwdX = -Math.sin(camera.rotation.y);
+					const fwdZ = -Math.cos(camera.rotation.y);
+
+					for (let i = 0; i < SEQ_LENGTH; i++) {
+						const t = (i / (SEQ_LENGTH - 1)) * SEQ_WINDOW;
+						_futurePos[i * 2]     = vx * t;
+						_futurePos[i * 2 + 1] = vz * t;
+						_futureFwd[i * 2]     = fwdX;
+						_futureFwd[i * 2 + 1] = fwdZ;
+						_futureVel[i * 2]     = vx;
+						_futureVel[i * 2 + 1] = vz;
+					}
+
+					try {
+						const encoded = encodeInput({
+							bonePositions:         _zeroVec69,
+							boneForwardAxes:       _zeroVec69,
+							boneUpAxes:            _zeroVec69,
+							boneVelocities:        _zeroVec69,
+							futureRootPositionsXZ: _futurePos,
+							futureRootForwardsXZ:  _futureFwd,
+							futureRootVelocitiesXZ: _futureVel,
+							guidancePositions:     _zeroVec69,
+						});
+						lastSeq = loco.predict(encoded);
+					} catch {
+						// prediction errors are non-fatal — skip this tick
+					}
+				}
+
+				// Lerp-apply root motion at 60 fps: sample the cached sequence at
+				// the interpolated phase and blend into player position.
+				if (lastSeq) {
+					const phase = Math.min(locoAccum / PREDICTION_INTERVAL, 1.0);
+					const pose = loco.sampleAt(lastSeq, phase * SEQ_WINDOW);
+					const [dx, , dz] = pose.rootDelta;  // skip Y-rotation (no skeleton yet)
+					// Scale down: the raw delta is for 1/60 s of a biped; treat it as
+					// a nudge weight rather than full displacement.
+					const LOCO_SCALE = 0.06;
+					locoOffset.set(dx * LOCO_SCALE, 0, dz * LOCO_SCALE);
+					// Smooth lerp toward target offset so it doesn't stutter
+					const LERP_K = 1 - Math.exp(-delta * 12);
+					player.object.position.addScaledVector(locoOffset, LERP_K);
+				}
+
+				_prevPlayerPos.copy(player.object.position);
+			}
+
 			npcManager.update(delta);
 			updateGate(gate, delta);
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
