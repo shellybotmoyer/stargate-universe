@@ -18,6 +18,7 @@ import { registerAirCrisis, QUEST_ID as AIR_CRISIS_QUEST_ID } from "../../quests
 import type { NpcInstance } from "../../types/npc";
 import { setSceneManagers } from "./context";
 import { initResources, getResource, addResource, consumeResource, hasResource, getAllResources } from "../../systems/resources";
+import { isLimeCollected } from "../../systems/scene-transition-state";
 import { createHud, createCompass, createDialoguePanel } from "@kopertop/vibe-game-engine";
 import type { DialoguePanelEventBus } from "@kopertop/vibe-game-engine";
 
@@ -1612,6 +1613,25 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const compass = createCompass({ position: 'top-right', style: 'sci-fi' });
 	compassHud.mount(compass);
 
+	// Lime delivery banner — shown when player returns from the desert planet
+	// with calcium deposits and needs to reach the CO₂ scrubber room.
+	let limeBanner: HTMLDivElement | null = null;
+	if (isLimeCollected()) {
+		limeBanner = document.createElement("div");
+		Object.assign(limeBanner.style, {
+			position: "fixed", top: "50px", left: "50%",
+			transform: "translateX(-50%)", color: "#ffee88",
+			fontFamily: "'Courier New', monospace", fontSize: "13px",
+			background: "rgba(0,0,0,0.8)", padding: "6px 16px",
+			borderRadius: "3px", border: "1px solid #ffee8866",
+			pointerEvents: "none", userSelect: "none", zIndex: "998",
+			textShadow: "0 0 6px #ffee8844",
+		});
+		limeBanner.textContent =
+			"\u25ba Take the lime to the CO\u2082 scrubber room \u2014 Deck 3, Section 7";
+		document.body.appendChild(limeBanner);
+	}
+
 	// Wire the dialogue panel — adapter bridges SGU's typed bus to the engine's
 	// generic DialoguePanelEventBus interface via safe any-casts at the boundary.
 	const dialogueBus: DialoguePanelEventBus = {
@@ -1661,7 +1681,11 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	let nearestCrate: SupplyCrate | null = null;
 	let nearestNpc: NpcInstance | null = null;
 	let nearGate = false;
-	type InteractTarget = "subsystem" | "crate" | "npc" | "gate" | null;
+	let nearScrubberEntrance = false;
+	// Scrubber entrance trigger — front-left corridor mouth (visible when carrying lime)
+	const SCRUBBER_ENTRANCE_POS = new THREE.Vector3(0, 0, ROOM_DEPTH / 2 - 3);
+	const SCRUBBER_ENTRANCE_RADIUS = 3.0;
+	type InteractTarget = "subsystem" | "crate" | "npc" | "gate" | "scrubber-entrance" | null;
 	let interactTarget: InteractTarget = null;
 	let repairingSubsystemId: string | null = null;
 	/** Total segments needed to fully repair this subsystem. */
@@ -1727,6 +1751,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 				}
 			} else if (interactTarget === "npc" && nearestNpc && !nearestNpc.inDialogue) {
 				emit("player:interact", { targetId: nearestNpc.definition.id, action: "talk" });
+			} else if (interactTarget === "scrubber-entrance") {
+				void context.gotoScene("scrubber-room");
 			}
 		}
 	};
@@ -1848,6 +1874,20 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 					}
 				}
 
+				// Scrubber entrance — only visible when player is carrying lime
+				nearScrubberEntrance = false;
+				if (isLimeCollected()) {
+					const entranceDist = pp.distanceTo(SCRUBBER_ENTRANCE_POS);
+					if (entranceDist < SCRUBBER_ENTRANCE_RADIUS && entranceDist < nearestDist) {
+						nearScrubberEntrance = true;
+						nearestSub = null;
+						nearestCrate = null;
+						nearestNpc = null;
+						nearestDist = entranceDist;
+						interactTarget = "scrubber-entrance";
+					}
+				}
+
 				// Cancel repair if player moved away from target
 				if (repairingSubsystemId && !nearestSub) {
 					cancelRepair();
@@ -1912,6 +1952,9 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 				} else if (interactTarget === "gate") {
 					interactPrompt.style.display = "block";
 					interactPrompt.textContent = "[E] Step through the Stargate";
+				} else if (interactTarget === "scrubber-entrance") {
+					interactPrompt.style.display = "block";
+					interactPrompt.textContent = "[E] Take the lime to the CO\u2082 scrubber room \u2014 Deck 3, Section 7";
 				} else {
 					interactPrompt.style.display = "none";
 				}
@@ -1950,6 +1993,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		dispose() {
 			window.removeEventListener("keydown", handleKeyDown);
 			window.removeEventListener("keyup", handleKeyUp);
+			limeBanner?.remove();
 			cancelRepair();
 			repairBar.dispose();
 			cleanupFullscreen();

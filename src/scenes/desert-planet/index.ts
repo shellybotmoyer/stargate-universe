@@ -24,6 +24,7 @@ import { emit, scopedBus } from "../../systems/event-bus";
 import { createQuestManager } from "../../systems/quest-manager";
 import { registerAirCrisis, QUEST_ID as AIR_CRISIS_QUEST_ID } from "../../quests/air-crisis";
 import { createHud, createCompass, createDialoguePanel } from "@kopertop/vibe-game-engine";
+import { setLimeCollected } from "../../systems/scene-transition-state";
 
 const assetUrlLoaders = import.meta.glob("./assets/**/*", {
 	import: "default",
@@ -445,7 +446,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 				});
 				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "find-lime");
 			} else if (nearGate) {
-				// Return to Destiny
+				// Return to Destiny — mark lime as carried for gate-room to read
+				setLimeCollected(collectedCount >= totalDeposits);
 				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "return-to-destiny");
 				void context.gotoScene("gate-room");
 			}
