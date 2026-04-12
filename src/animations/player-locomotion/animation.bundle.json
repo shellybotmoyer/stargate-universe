@@ -3,6 +3,7 @@
   "version": 1,
   "name": "player-locomotion",
   "artifact": "graph.animation.json",
+  "characterAsset": null,
   "clips": [
     {
       "id": "idle",
