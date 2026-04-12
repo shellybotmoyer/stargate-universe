@@ -1,7 +1,12 @@
 import "./style.css";
 import { createGameApp } from "./game/app";
 import { initialSceneId, scenes } from "./scenes";
-import { on } from "./systems/event-bus";
+import { on, emit } from "./systems/event-bus";
+
+// ─── Test hooks ───────────────────────────────────────────────────────────────
+// Expose the global emit function so Playwright tests can inject game events
+// via: await page.evaluate((ev, d) => window.__sguEmit(ev, d), event, data)
+(window as any).__sguEmit = emit;
 
 const root = document.querySelector<HTMLDivElement>("#app");
 
@@ -47,8 +52,17 @@ const unsubscribe = on("character:model:loaded", () => {
 // Fallback: dismiss after 10s even if VRM fails to load
 setTimeout(dismissLoading, 10000);
 
+// ─── Scene URL routing ────────────────────────────────────────────────────────
+// ?scene=<id> lets Playwright navigate directly to any scene without playing
+// through the prior scenes. Example: /?scene=desert-planet&webgl=1
+const urlScene = new URLSearchParams(window.location.search).get("scene");
+const startSceneId =
+	urlScene !== null && (scenes as Record<string, unknown>)[urlScene] !== undefined
+		? urlScene
+		: initialSceneId;
+
 const app = await createGameApp({
-	initialSceneId,
+	initialSceneId: startSceneId,
 	root,
 	scenes
 });

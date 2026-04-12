@@ -66,7 +66,10 @@ export async function createGameApp(options: GameAppOptions) {
     throw new Error("Failed to initialize game shell.");
   }
 
-  const renderer = new WebGPURenderer({ antialias: true });
+  // Allow ?webgl query param to force the WebGL backend — used by Playwright
+  // visual tests running in headless Chromium where WebGPU is unavailable.
+  const forceWebGL = new URLSearchParams(window.location.search).has("webgl");
+  const renderer = new WebGPURenderer({ antialias: true, forceWebGL });
   await renderer.init();
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);

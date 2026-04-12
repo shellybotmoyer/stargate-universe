@@ -1764,6 +1764,12 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	window.addEventListener("keydown", handleKeyDown);
 	window.addEventListener("keyup", handleKeyUp);
 
+	// ─── Test hooks ──────────────────────────────────────────────────────
+	// Signal to Playwright that this scene's 3-D setup is complete and
+	// DOM/event handlers are live.  Bus exposed so tests can inject events.
+	(window as any).__sceneReady = true;
+	(window as any).__sguBus = bus;
+
 	let debugFrame = 0;
 
 	return {

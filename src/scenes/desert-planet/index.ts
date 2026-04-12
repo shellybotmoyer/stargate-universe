@@ -455,6 +455,10 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	};
 	window.addEventListener("keydown", handleKeyDown);
 
+	// ─── Test hooks ──────────────────────────────────────────────────────
+	(window as any).__sceneReady = true;
+	(window as any).__sguBus = bus;
+
 	return {
 		update(delta: number) {
 			gateElapsed += delta;
