@@ -270,17 +270,21 @@ async function main() {
 						speed: 1,
 						loop: true,
 					})),
-					// blend1d node
-					{
-						type: "blend1d" as const,
-						parameterIndex: 0, // "speed"
-						children: loaded.map((entry, i) => ({
-							nodeIndex: i,
-							threshold: entry.id === "idle" ? 0 :
-								entry.id === "breathing-idle" ? 0.3 :
-								2.0, // walking
-						})),
-					},
+								// blend1d node - controls locomotion blending based on speed parameter
+								// Thresholds define when each animation becomes dominant:
+								//   0.0: Idle (breathing-idle starts contributing at 0.3)
+								//   0.3: Breathing Idle (full contribution, walking starts at 2.0)
+								//   2.0: Walking (full contribution above this speed)
+								{
+									type: "blend1d" as const,
+									parameterIndex: 0, // "speed" parameter from animation graph
+									children: loaded.map((entry, i) => ({
+										nodeIndex: i,
+										threshold: entry.id === "idle" ? 0.0 :
+												   entry.id === "breathing-idle" ? 0.3 :
+												   2.0, // walking
+									})),
+								},
 				],
 			},
 		],
