@@ -64,6 +64,20 @@ type SceneBundle = {
 
 // ------------------------------------------------------------------
 
+/**
+ * createGameApp
+ * 
+ * Bootstraps the renderer, shared scene graph, input, and game loop, then
+ * manages the lifecycle of individual game scenes. Key design decisions:
+ * 
+ *  - InputManager is created once and shared across all scenes.
+ *  - GameLoop drives fixed-step physics and variable-rate camera/render.
+ *  - Camera and player controller are decoupled — swap camera mode at runtime
+ *    via player.setCameraMode() without rebuilding the player.
+ *  - setStatus() renders a visible overlay so users know what's loading.
+ *  - Scene transitions are guarded by a load token so stale async results
+ *    from navigating away mid-load never contaminate the live scene.
+ */
 export async function createGameApp(options: GameAppOptions) {
   // DOM shell
   options.root.innerHTML = `
