@@ -57,7 +57,7 @@ export type VrmEntitySystemResult = {
 		const vrmUrl = entity.properties["vrmUrl"] as string | undefined;
 
 		if (!vrmUrl) {
-			console.warn(`[VrmEntitySystem] Entity "${entity.id}" has no vrmUrl property, skipping`);
+console.warn(`[VrmEntitySystem] Entity \"${entity.id}\" missing required vrmUrl property. Expected format: entity.properties.vrmUrl = \"path/to/model.vrm\"`);
 			continue;
 		}
 
