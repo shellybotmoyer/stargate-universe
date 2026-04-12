@@ -33,6 +33,7 @@ import type { ShipState } from './ship-state.js';
 import type { QuestManager } from './quest-manager.js';
 import type { DialogueManager } from './dialogue-manager.js';
 import { deserialize as deserializeResources, serialize as serializeResources } from './resources.js';
+import { isLimeCollected, setLimeCollected } from './scene-transition-state.js';
 import {
 	AUTOSAVE_SLOT_ID,
 	SAVE_VERSION,
@@ -151,6 +152,7 @@ export const createSaveManager = (options: SaveManagerOptions): SaveManager => {
 				questState: questManager.serialize(),
 				dialogueState: dialogueManager.serialize(),
 				unlockedScenes: [...ctx.unlockedScenes],
+				limeCollected: isLimeCollected(),
 			};
 
 			writeSlotData(slotId, data);
@@ -196,6 +198,8 @@ export const createSaveManager = (options: SaveManagerOptions): SaveManager => {
 			deserializeResources(data.resources as unknown as Record<string, unknown>);
 			questManager.deserialize(data.questState);
 			dialogueManager.deserialize(data.dialogueState);
+			// Restore scene-transition flags (BUG-001: lime flag was lost on reload)
+			setLimeCollected(data.limeCollected ?? false);
 
 			emit('save:loaded', { slotId });
 			console.log(`[SaveManager] Loaded slot "${slotId}" (scene: ${data.currentSceneId})`);

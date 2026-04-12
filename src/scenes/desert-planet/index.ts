@@ -446,8 +446,16 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 				});
 				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "find-lime");
 			} else if (nearGate) {
-				// Return to Destiny — mark lime as carried for gate-room to read
-				setLimeCollected(collectedCount >= totalDeposits);
+				// Guard: block return until all deposits are collected.
+				// Without this the player lands in gate-room with isLimeCollected()===false,
+				// the scrubber entrance never appears, and they are soft-locked (BUG-002).
+				if (collectedCount < totalDeposits) {
+					interactPrompt.style.display = "block";
+					interactPrompt.textContent =
+						`You need all ${totalDeposits} calcium deposits before returning. (${collectedCount}/${totalDeposits})`;
+					return;
+				}
+				setLimeCollected(true);
 				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "return-to-destiny");
 				void context.gotoScene("gate-room");
 			}
@@ -532,6 +540,19 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			compassHud.dispose();
 			questManager.dispose();
 			bus.cleanup();
+			// BUG-003: dispose all GPU geometry + material objects to prevent VRAM leaks.
+			// Traversing the scene is safer than maintaining a manual list because it
+			// catches everything added via helper functions (buildRocks, buildStargate, etc.).
+			scene.traverse((obj) => {
+				if (obj instanceof THREE.Mesh) {
+					obj.geometry.dispose();
+					if (Array.isArray(obj.material)) {
+						obj.material.forEach((m) => m.dispose());
+					} else {
+						(obj.material as THREE.Material).dispose();
+					}
+				}
+			});
 		},
 	};
 }

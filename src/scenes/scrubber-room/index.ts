@@ -233,8 +233,10 @@ function buildRepairPanel(scene: THREE.Scene, pos: THREE.Vector3): RepairPanel {
 // ─── Lighting ─────────────────────────────────────────────────────────────────
 
 function buildLighting(scene: THREE.Scene): THREE.PointLight[] {
-	// Very dim red/orange ambient — emergency power only
+	// Very dim red/orange ambient — emergency power only.
+	// Two layers: a base fill so surfaces are readable, plus a coloured emergency tint.
 	scene.add(new THREE.AmbientLight(0x110000, 0.4));
+	scene.add(new THREE.AmbientLight(0x200000, 0.2));
 
 	// Sporadic overhead emergency strip lights
 	const positions: [number, number, number][] = [
@@ -246,7 +248,9 @@ function buildLighting(scene: THREE.Scene): THREE.PointLight[] {
 	const lights: THREE.PointLight[] = [];
 	const housingMat = new THREE.MeshStandardMaterial({ color: 0x220000, roughness: 0.5 });
 	for (const [x, y, z] of positions) {
-		const light = new THREE.PointLight(COLOR_EMERGENCY_RED, 1.2, 9, 1.8);
+		// Intensity 6.0 base — the update loop scales this per-frame with a flicker factor.
+		// Previous value of 1.2 made the room too dark to see the scrubbers clearly.
+		const light = new THREE.PointLight(COLOR_EMERGENCY_RED, 6.0, 9, 1.8);
 		light.position.set(x, y, z);
 		scene.add(light);
 		lights.push(light);
@@ -456,12 +460,13 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			compassHud.update(camera as any, delta);
 
-			// Emergency lights — flicker on failing power; dim to ambient after repair
+			// Emergency lights — flicker on failing power; dim to ambient after repair.
+			// Scale factor raised to 6.0 (was 1.2) so the room is visually readable.
 			for (const light of emergencyLights) {
 				const flicker =
 					0.8 + Math.sin(elapsed * 8.3 + light.position.x) * 0.2
 					+ Math.sin(elapsed * 13.7 + light.position.z) * 0.1;
-				light.intensity = repaired ? flicker * 0.25 : flicker * 1.2;
+				light.intensity = repaired ? flicker * 0.25 : flicker * 6.0;
 			}
 
 			// Scrubber status light pulse
@@ -505,6 +510,17 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			compassHud.dispose();
 			questManager.dispose();
 			bus.cleanup();
+			// BUG-003: dispose all GPU geometry + material objects to prevent VRAM leaks.
+			scene.traverse((obj) => {
+				if (obj instanceof THREE.Mesh) {
+					obj.geometry.dispose();
+					if (Array.isArray(obj.material)) {
+						obj.material.forEach((m) => m.dispose());
+					} else {
+						(obj.material as THREE.Material).dispose();
+					}
+				}
+			});
 		},
 	};
 }

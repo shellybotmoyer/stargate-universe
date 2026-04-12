@@ -87,6 +87,8 @@ export type SaveData = {
 	questState: QuestSaveData;
 	dialogueState: DialogueSaveData;
 	unlockedScenes: string[];
+	/** Whether the player is currently carrying lime from the desert planet. */
+	limeCollected?: boolean;
 };
 
 // ─── Migration ────────────────────────────────────────────────────────────────

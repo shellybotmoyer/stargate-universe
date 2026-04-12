@@ -72,20 +72,25 @@ test.describe("Gate Room", () => {
 
 	test("2 – dialogue panel opens when Rush is spoken to", async ({ page }) => {
 		await gotoScene(page, "gate-room");
+		// Use the REAL dialogue tree ID ("dr-rush") and the REAL start node ID ("greeting").
+		// Previously used "dr-rush-air-crisis" / "co2-intro" — IDs that don't exist anywhere
+		// in the codebase, giving false green on a completely broken dialogue system (BUG-004).
 		await emitBus(page, "crew:dialogue:started", {
 			speakerId: "dr-rush",
-			dialogueId: "dr-rush-air-crisis",
+			dialogueId: "dr-rush",
 		});
 		await emitBus(page, "crew:dialogue:node", {
 			speakerId: "dr-rush",
-			dialogueId: "dr-rush-air-crisis",
-			nodeId: "co2-intro",
-			speaker: "Dr. Nicholas Rush",
-			text: "The CO₂ scrubbers are failing. We have hours, not days.",
+			dialogueId: "dr-rush",
+			nodeId: "greeting",
+			speaker: "Dr. Rush",
+			text: "Wallace. Good — I need someone who can move fast. The CO\u2082 scrubbers are failing.",
 			options: [
-				{ id: "ask-what-we-need", label: "What do we need?" },
-				{ id: "ask-how-long",     label: "How long do we have?" },
-				{ id: "commit-to-gate",   label: "I'll go through the gate." },
+				{ id: "ask-what-needed", label: "What exactly do we need? Lime like the fruit?" },
+				{ id: "ask-timeline",    label: "Twelve hours. How certain are you?" },
+				{ id: "ask-planet",      label: "What about the planet we just passed?" },
+				{ id: "commit-to-gate",  label: "Tell me what I need to know. I'll go through the gate." },
+				{ id: "farewell-early",  label: "I need a moment to think." },
 			],
 		});
 		await page.waitForTimeout(300);
@@ -94,20 +99,21 @@ test.describe("Gate Room", () => {
 
 	test("3 – dialogue shows 3 response branches", async ({ page }) => {
 		await gotoScene(page, "gate-room");
+		// Real IDs: dialogueId = "dr-rush", nodeId = "greeting" (BUG-004 fix)
 		await emitBus(page, "crew:dialogue:started", {
 			speakerId: "dr-rush",
-			dialogueId: "dr-rush-air-crisis",
+			dialogueId: "dr-rush",
 		});
 		await emitBus(page, "crew:dialogue:node", {
 			speakerId: "dr-rush",
-			dialogueId: "dr-rush-air-crisis",
-			nodeId: "co2-intro",
-			speaker: "Dr. Nicholas Rush",
-			text: "The CO₂ scrubbers are failing.",
+			dialogueId: "dr-rush",
+			nodeId: "greeting",
+			speaker: "Dr. Rush",
+			text: "The CO\u2082 scrubbers are failing.",
 			options: [
-				{ id: "ask-what-we-need", label: "What do we need?" },
-				{ id: "ask-how-long",     label: "How long do we have?" },
-				{ id: "commit-to-gate",   label: "I'll go through the gate." },
+				{ id: "ask-what-needed", label: "What exactly do we need?" },
+				{ id: "ask-timeline",    label: "Twelve hours. How certain are you?" },
+				{ id: "commit-to-gate",  label: "I'll go through the gate." },
 			],
 		});
 		await page.waitForTimeout(300);
@@ -122,31 +128,16 @@ test.describe("Gate Room", () => {
 	});
 
 	test("5 – lime banner shown after returning from desert planet", async ({ page }) => {
-		await page.goto(`/?scene=gate-room&webgl=1`);
-		await page.waitForFunction(() => (window as any).__sguEmit !== undefined, {
-			timeout: 15_000,
-		});
-		// Inject the lime banner directly — setLimeCollected isn't exposed on window
-		// so we simulate the post-desert-planet state via DOM injection.
-		await page.evaluate(() => {
-			const banner = document.createElement("div");
-			banner.id = "test-lime-banner";
-			Object.assign(banner.style, {
-				position: "fixed", top: "50px", left: "50%",
-				transform: "translateX(-50%)", color: "#ffee88",
-				fontFamily: "'Courier New', monospace", fontSize: "13px",
-				background: "rgba(0,0,0,0.8)", padding: "6px 16px",
-				borderRadius: "3px", border: "1px solid #ffee8866", zIndex: "998",
-			});
-			banner.textContent =
-				"\u25ba Take the lime to the CO\u2082 scrubber room \u2014 Deck 3, Section 7";
-			document.body.appendChild(banner);
-		});
+		// Navigate with ?lime=1 so gate-room's mount() calls setLimeCollected(true)
+		// before creating the banner. This tests the REAL banner element created by
+		// the game — the old test injected fake DOM and proved nothing (BUG-004 fix).
+		await page.goto(`/?scene=gate-room&lime=1&webgl=1`);
 		await page.waitForFunction(() => (window as any).__sceneReady === true, {
 			timeout: 30_000,
 		});
 		await page.waitForTimeout(400);
-		await expect(page.locator("#test-lime-banner")).toBeVisible();
+		// Assert the real game banner (id added to gate-room mount alongside this fix)
+		await expect(page.locator("#lime-delivery-banner")).toBeVisible();
 		await screenshot(page, "05-gate-room-lime-banner");
 	});
 });

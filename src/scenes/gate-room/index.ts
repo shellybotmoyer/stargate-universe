@@ -18,7 +18,7 @@ import { registerAirCrisis, QUEST_ID as AIR_CRISIS_QUEST_ID } from "../../quests
 import type { NpcInstance } from "../../types/npc";
 import { setSceneManagers } from "./context";
 import { initResources, getResource, addResource, consumeResource, hasResource, getAllResources } from "../../systems/resources";
-import { isLimeCollected } from "../../systems/scene-transition-state";
+import { isLimeCollected, setLimeCollected } from "../../systems/scene-transition-state";
 import { createHud, createCompass, createDialoguePanel } from "@kopertop/vibe-game-engine";
 import type { DialoguePanelEventBus } from "@kopertop/vibe-game-engine";
 
@@ -364,6 +364,11 @@ function buildLighting(scene: THREE.Scene, debugObjects: THREE.Object3D[]): THRE
 	const lights: THREE.PointLight[] = [];
 	const gateZ = GATE_CENTER.z;
 
+	// Low-level ambient fill — prevents pitch-black corners without burning point light budget.
+	// Intensity 0.3 is enough to reveal surface normals without washing out the moody SGU look.
+	const ambientLight = new THREE.AmbientLight(0x0a0a20, 0.3);
+	scene.add(ambientLight);
+
 	// 1. Single overhead directional-style light for general visibility
 	const overheadLight = new THREE.PointLight(0xffeedd, 1.2, 40, 1.5);
 	overheadLight.position.set(0, 7.5, 2);
@@ -422,7 +427,9 @@ function buildLighting(scene: THREE.Scene, debugObjects: THREE.Object3D[]): THRE
 		const helper = new THREE.SpotLightHelper(spot, 0xffff00);
 		helper.visible = false;
 		scene.add(helper);
-		requestAnimationFrame(() => helper.update());
+		// BUG-006: call update() synchronously — the old RAF fired on a potentially
+		// disposed scene if a rapid scene transition happened before the frame ran.
+		helper.update();
 		debugObjects.push(helper);
 
 		const fixtureGroup = new THREE.Group();
@@ -1613,11 +1620,19 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const compass = createCompass({ position: 'top-right', style: 'sci-fi' });
 	compassHud.mount(compass);
 
+	// Dev / test support: ?lime=1 URL param pre-sets the lime carry state so that
+	// tests can load gate-room with the banner visible without going through the
+	// full desert-planet flow. Safe in production — the param is simply ignored.
+	if (new URLSearchParams(window.location.search).has('lime')) {
+		setLimeCollected(true);
+	}
+
 	// Lime delivery banner — shown when player returns from the desert planet
 	// with calcium deposits and needs to reach the CO₂ scrubber room.
 	let limeBanner: HTMLDivElement | null = null;
 	if (isLimeCollected()) {
 		limeBanner = document.createElement("div");
+		limeBanner.id = "lime-delivery-banner";
 		Object.assign(limeBanner.style, {
 			position: "fixed", top: "50px", left: "50%",
 			transform: "translateX(-50%)", color: "#ffee88",
@@ -2028,6 +2043,24 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			shipState.dispose();
 			bus.cleanup();
 			wallMeshes.length = 0;
+			// BUG-003: dispose all GPU geometry + material objects created during mount()
+			// to prevent VRAM accumulation across gate-room → desert-planet round trips.
+			// The traversal covers everything added via buildRoom, buildStargate,
+			// buildLighting, buildCorridor, buildStorageRoom, and inline mount() code.
+			scene.traverse((obj) => {
+				if (obj instanceof THREE.Mesh) {
+					obj.geometry.dispose();
+					if (Array.isArray(obj.material)) {
+						obj.material.forEach((m) => m.dispose());
+					} else {
+						(obj.material as THREE.Material).dispose();
+					}
+				}
+			});
+			// Also dispose the module-level shared materials (created once at import time,
+			// never otherwise freed — ARCH-003 debt). They are cheap to recreate on remount.
+			extWallMat.dispose();
+			extCeilingMat.dispose();
 		}
 	};
 }

@@ -112,8 +112,12 @@ export const createDialogueManager = (): DialogueManager => {
 			text: nextNode.text,
 			options: getVisibleOptions(nextNode, session.state).map(o => ({ id: o.id, label: o.label })),
 		});
-		// Auto-end on terminal nodes (no options)
-		if (nextNode.options.length === 0) { endDialogue(); return null; }
+		// Auto-end on terminal nodes — check visible options, not raw options array.
+		// If every option has a condition() that returns false, the node is effectively
+		// terminal even though options.length > 0. Without this guard the dialogue panel
+		// shows speaker text with no buttons and no way to dismiss (hard UI freeze).
+		const visibleOpts = getVisibleOptions(nextNode, session.state);
+		if (nextNode.options.length === 0 || visibleOpts.length === 0) { endDialogue(); return null; }
 		return nextNode;
 	};
 
