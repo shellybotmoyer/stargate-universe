@@ -1,3 +1,15 @@
+/**
+ * Destiny Gate Room - The Stargate control room aboard the Destiny spacecraft.
+ * 
+ * This scene represents the iconic gate room from Stargate Universe, featuring:
+ * - A functional Stargate that can dial, activate, and establish wormholes
+ * - Ancient architecture with detailed wall textures and structural elements
+ * - Interactive consoles and ship systems interfaces
+ * - Ambient lighting and atmospheric effects
+ * 
+ * The gate room serves as the primary hub for interstellar travel and
+ * ship system management in the Destiny universe.
+ */
 import * as THREE from "three";
 import {
 	createColocatedRuntimeSceneSource,
