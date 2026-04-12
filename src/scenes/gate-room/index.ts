@@ -14,6 +14,7 @@ import { createSaveManager } from "../../systems/save-manager";
 import { drRushNpc } from "../../npcs/dr-rush";
 import { drRushDialogue } from "../../dialogues/dr-rush";
 import { registerDestinyPowerCrisis } from "../../quests/destiny-power-crisis";
+import { registerAirCrisis, QUEST_ID as AIR_CRISIS_QUEST_ID } from "../../quests/air-crisis";
 import type { NpcInstance } from "../../types/npc";
 import { setSceneManagers } from "./context";
 import { initResources, getResource, addResource, consumeResource, hasResource, getAllResources } from "../../systems/resources";
@@ -1367,6 +1368,33 @@ function createInteractionPrompt(): HTMLDivElement {
 	return el;
 }
 
+// ─── CO2 HUD readout ─────────────────────────────────────────────────────────
+
+function createCO2Display(): HTMLDivElement {
+	const el = document.createElement("div");
+	el.id = "co2-display";
+	Object.assign(el.style, {
+		position: "fixed",
+		top: "12px",
+		left: "12px",
+		color: "#ff6644",
+		fontFamily: "'Courier New', monospace",
+		fontSize: "13px",
+		lineHeight: "1.6",
+		background: "rgba(0, 0, 0, 0.65)",
+		padding: "6px 12px",
+		borderRadius: "3px",
+		pointerEvents: "none",
+		userSelect: "none",
+		zIndex: "998",
+		textShadow: "0 0 8px #ff664466",
+		whiteSpace: "pre",
+	});
+	el.textContent = "CO\u2082: 0.8%\n\u26a0 Scrubbers: CRITICAL";
+	document.body.appendChild(el);
+	return el;
+}
+
 // ─── Scene mount ─────────────────────────────────────────────────────────────
 
 async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycle> {
@@ -1480,6 +1508,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	npcManager.registerNpc(drRushNpc);
 	dialogueManager.registerTree(drRushDialogue);
 	registerDestinyPowerCrisis(questManager);
+	registerAirCrisis(questManager);
+	questManager.startQuest(AIR_CRISIS_QUEST_ID);
 
 	// ─── Dr. Rush placeholder visual ─────────────────────────────────────
 	// TODO: replace with Rush's VRM model once NPC VRM loading is wired up.
@@ -1502,7 +1532,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	rushDot.position.set(rushPos.x, rushPos.y + 2.0, rushPos.z);
 	scene.add(rushDot);
 
-	// When Rush ends a dialogue session that accepted the quest, start it.
+	// When Rush ends a dialogue session that accepted the power quest, start it.
 	// startQuest() is idempotent so it's safe to call on every conversation end.
 	bus.on("crew:dialogue:ended", ({ speakerId }) => {
 		if (speakerId === "dr-rush") {
@@ -1510,6 +1540,21 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			if (saved.acceptedQuests.includes("destiny-power-crisis")) {
 				questManager.startQuest("destiny-power-crisis");
 			}
+		}
+	});
+
+	// Advance speak-to-rush when player commits to going through the gate.
+	// The dialogue fires crew:choice:made with responseId 'commit-to-gate'
+	// on any of the "I'll go" options in the CO2 crisis tree.
+	bus.on("crew:choice:made", ({ responseId }) => {
+		const commitIds = new Set([
+			"commit-to-gate",
+			"from-lime-to-commit",
+			"from-timeline-commit",
+			"from-scanning-commit",
+		]);
+		if (commitIds.has(responseId)) {
+			questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "speak-to-rush");
 		}
 	});
 
@@ -1582,6 +1627,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const menu = createEscapeMenu(renderer.domElement);
 	const cleanupFullscreen = setupFullscreen(renderer.domElement, menu);
 	const interactPrompt = createInteractionPrompt();
+	const co2Display = createCO2Display();
 	const repairBar = createRepairProgressBar3D();
 	scene.add(repairBar.group);
 
@@ -1614,7 +1660,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	let nearestSub: SubsystemVisual | null = null;
 	let nearestCrate: SupplyCrate | null = null;
 	let nearestNpc: NpcInstance | null = null;
-	type InteractTarget = "subsystem" | "crate" | "npc" | null;
+	let nearGate = false;
+	type InteractTarget = "subsystem" | "crate" | "npc" | "gate" | null;
 	let interactTarget: InteractTarget = null;
 	let repairingSubsystemId: string | null = null;
 	/** Total segments needed to fully repair this subsystem. */
@@ -1643,11 +1690,20 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			return;
 		}
 		if (e.code === "KeyG" && !menu.visible) {
-			if (gate.state === "idle") startDial(gate);
-			else if (gate.state === "active") shutdownGate(gate);
+			if (gate.state === "idle") {
+				startDial(gate);
+				// Advance locate-planet objective when player dials the gate
+				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "locate-planet");
+			} else if (gate.state === "active") {
+				shutdownGate(gate);
+			}
 		}
 		if (e.code === "KeyE" && !e.repeat && !menu.visible) {
-			if (interactTarget === "crate" && nearestCrate && !nearestCrate.looted) {
+			if (interactTarget === "gate" && gate.state === "active") {
+				// Step through the stargate — advance gate-to-planet and transition scene
+				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "gate-to-planet");
+				void context.gotoScene("desert-planet");
+			} else if (interactTarget === "crate" && nearestCrate && !nearestCrate.looted) {
 				// Loot the crate (instant)
 				addResource("ship-parts", nearestCrate.contents);
 				markCrateLooted(nearestCrate);
@@ -1776,6 +1832,22 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 					}
 				}
 
+				// Check gate entrance — only when wormhole is active
+				nearGate = false;
+				const gateXZDist = Math.sqrt(
+					(pp.x - GATE_CENTER.x) ** 2 + (pp.z - GATE_CENTER.z) ** 2
+				);
+				if (gate.state === "active" && gateXZDist < 2.0) {
+					nearGate = true;
+					if (gateXZDist < nearestDist) {
+						nearestSub = null;
+						nearestCrate = null;
+						nearestNpc = null;
+						nearestDist = gateXZDist;
+						interactTarget = "gate";
+					}
+				}
+
 				// Cancel repair if player moved away from target
 				if (repairingSubsystemId && !nearestSub) {
 					cancelRepair();
@@ -1837,6 +1909,9 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 				} else if (interactTarget === "npc" && nearestNpc) {
 					interactPrompt.style.display = "block";
 					interactPrompt.textContent = `[E] Talk to ${nearestNpc.definition.name}`;
+				} else if (interactTarget === "gate") {
+					interactPrompt.style.display = "block";
+					interactPrompt.textContent = "[E] Step through the Stargate";
 				} else {
 					interactPrompt.style.display = "none";
 				}
@@ -1885,6 +1960,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			debug.element.remove();
 			shipDebugEl.remove();
 			interactPrompt.remove();
+			co2Display.remove();
 			menu.dispose();
 			// Rush placeholder cleanup
 			scene.remove(rushMesh);
