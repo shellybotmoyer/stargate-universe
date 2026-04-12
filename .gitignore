@@ -8,3 +8,6 @@ production/session-logs/
 
 # OS
 .DS_Store
+
+# Wrangler state
+.wrangler/
