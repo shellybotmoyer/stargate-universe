@@ -1596,23 +1596,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			scene.add(mesh);
 		});
 
-	// ─── Player character visual ──────────────────────────────────────────
-	// VRM/GLB model attached to the physics body so it follows player movement.
-	let playerCharacter: CharacterLoadResult | undefined;
-	if (player) {
-		void loadVRMCharacter("/assets/characters/eli-wallace/eli-wallace.vrm")
-			.then((char) => {
-				playerCharacter = char;
-				// Re-parent under player.object so it moves with the physics body.
-				// Offset Y so the model stands at the capsule's floor level.
-				char.root.position.set(0, -0.9, 0);
-				player.object.add(char.root);
-				console.log("[GateRoom] Player character loaded (", char.format, ")");
-			})
-			.catch((err: unknown) => {
-				console.warn("[GateRoom] Player VRM load failed — no visual overlay", err);
-			});
-	}
+	// Player VRM loaded via scene definition player.vrmUrl (StarterPlayerController handles it)
 
 	// ── Opening cinematic mode ───────────────────────────────────────────────
 	// Activated when the user clicks NEW GAME on the start screen.
@@ -2049,8 +2033,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			npcManager.update(delta);
 			// ─── VRM/GLB character physics + animation ──────────────────────
 			if (rushCharacter) rushCharacter.update(delta);
-			if (playerCharacter) playerCharacter.update(delta);
-			updateGate(gate, delta);
+						updateGate(gate, delta);
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			if (cinematicController) cinematicController.update(delta);
 			compassHud.update(camera as any, delta);
@@ -2289,8 +2272,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			menu.dispose();
 			// Rush and player character cleanup
 			rushCharacter?.dispose();
-			playerCharacter?.dispose();
-			scene.remove(rushDot);
+						scene.remove(rushDot);
 			rushDotGeo.dispose();
 			rushDotMat.dispose();
 
@@ -2339,6 +2321,6 @@ export const gateRoomScene = defineGameScene({
 		manifestLoader: () => import("./scene.runtime.json?raw").then((module) => module.default)
 	}),
 	title: "Gate Room",
-	player: {},
+	player: { vrmUrl: "/assets/characters/eli-wallace/eli-wallace.vrm" },
 	mount
 });
