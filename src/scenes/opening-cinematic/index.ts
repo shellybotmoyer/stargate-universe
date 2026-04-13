@@ -877,10 +877,13 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const subtitles = createSubtitleSystem();
 	const ui        = createCinematicUI();
 
-	// ── Start screen — wait for New Game ─────────────────────────────────────
-	const startScreen = createStartScreen();
-	await startScreen.waitForNewGame();
-	startScreen.dispose();
+	// ── Start screen — skip entirely when cinematicTime URL param is present ────
+	const _ctParam = new URLSearchParams(window.location.search).get("cinematicTime");
+	if (!_ctParam) {
+		const startScreen = createStartScreen();
+		await startScreen.waitForNewGame();
+		startScreen.dispose();
+	}
 
 	// ── Cinematic state ───────────────────────────────────────────────────────
 	const urlParams   = new URLSearchParams(window.location.search);
@@ -925,6 +928,31 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		0.85,
 		new THREE.Vector3(-0.6, 0, -7.0),
 	);
+
+	// ── Fast-forward initial state when jumping mid-cinematic ──────────────────
+	if (elapsedTime > 0) {
+		if (elapsedTime >= 4) {
+			gateEntrance.innerRingMat.emissiveIntensity = 1.4;
+			gateEntrance.innerRing.rotation.z = elapsedTime * 1.5;
+		}
+		if (elapsedTime >= 5.1 && elapsedTime < 22) {
+			gateEntrance.eventHorizon.visible = true;
+			gateEntrance.horizonMat.opacity = 0.88;
+			gateEntrance.gateLight.intensity = 260;
+		}
+		if (elapsedTime >= 7) {
+			arrivalCorridor.group.visible = true;
+			scottNpc.group.visible = true;
+			scottNpc.group.position.set(0, 0, 0.5 - Math.min(2.5, (elapsedTime - 7) * 1.1));
+			scottPos.copy(scottNpc.group.position);
+		}
+		if (elapsedTime >= 12) scottNpc.group.visible = false;
+		if (elapsedTime >= 19) {
+			rushNpc.group.visible = true;
+			rushNpc.group.position.set(0, 0, 0.6 - Math.min(5, (elapsedTime - 19) * 1.8));
+			rushPos.copy(rushNpc.group.position);
+		}
+	}
 
 	// ── Camera setup ──────────────────────────────────────────────────────────
 	camera.fov  = 65;
