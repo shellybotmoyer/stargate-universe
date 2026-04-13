@@ -1665,6 +1665,15 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	});
 	bus.on("crew:dialogue:ended", () => {
 		if (player && !cinematicController) player.inputEnabled = true;
+		currentDialogueOptionIds.length = 0;
+	});
+
+	// Track the currently-visible option IDs so gamepad A/B/X/Y and
+	// keyboard 1-4 can advance the dialogue without needing the mouse.
+	const currentDialogueOptionIds: string[] = [];
+	bus.on("crew:dialogue:node", ({ options }) => {
+		currentDialogueOptionIds.length = 0;
+		for (const o of options) currentDialogueOptionIds.push(o.id);
 	});
 
 	bus.on("crew:dialogue:ended", ({ speakerId }) => {
@@ -1802,7 +1811,12 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		emit: (event, data?)  => emit(event as any, data as any),
 	};
-	const dialoguePanel = createDialoguePanel(dialogueBus, { style: 'sci-fi' });
+	const dialoguePanel = createDialoguePanel(dialogueBus, {
+		style: 'sci-fi',
+		// Map the first four options to A/B/X/Y gamepad buttons +
+		// keys 1-4 on the keyboard. Extra options render without a chip.
+		optionHints: ['A', 'B', 'X', 'Y'],
+	});
 	compassHud.mount(dialoguePanel);
 	const debug = createDebugOverlay();
 	debug.element.style.display = "none";
@@ -1993,8 +2007,24 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 				player.setSprintOverride(false);
 			}
 
+			// Dialogue shortcuts — gamepad A/B/X/Y and keyboard 1-4 pick
+			// the 1st/2nd/3rd/4th visible option while the dialogue panel
+			// is open. Consume the edge so Action.Jump/MenuConfirm on A
+			// don't also fire during dialogue.
+			if (currentDialogueOptionIds.length > 0) {
+				const pick = input.isActionJustPressed(SguAction.Dialogue0) ? 0
+					: input.isActionJustPressed(SguAction.Dialogue1) ? 1
+					: input.isActionJustPressed(SguAction.Dialogue2) ? 2
+					: input.isActionJustPressed(SguAction.Dialogue3) ? 3
+					: -1;
+				if (pick >= 0 && pick < currentDialogueOptionIds.length) {
+					emit("player:dialogue:choice", { responseId: currentDialogueOptionIds[pick] });
+				}
+			}
+
 			// Interact (KeyE / Gamepad A) — single fire on leading edge.
-			if (input.isActionJustPressed(Action.Interact)) {
+			// Skipped while a dialogue is open so A doesn't double-fire.
+			if (input.isActionJustPressed(Action.Interact) && currentDialogueOptionIds.length === 0) {
 				tryInteract();
 			}
 			if (input.isActionJustReleased(Action.Interact)) {

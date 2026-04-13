@@ -119,30 +119,76 @@ export class StarterPlayerController {
     }
   }
 
-  // ── Prone state ───────────────────────────────────────────────────────────
-  // Used for post-cinematic wake-up: player spawns lying on their back,
-  // any movement attempt stands them up. Implemented as a rotation on
-  // the VRM root (no animation required — swap for a Mixamo "get up"
-  // clip once uploaded to R2).
-  private _prone = false;
+  // ── Prone / stand-up state ────────────────────────────────────────────────
+  // Three-phase wake-up driven by the Mixamo "Getting Up" clip:
+  //   'prone'    — getting-up anim paused at frame 0 (supine pose);
+  //                mixer runs but the anim is frozen
+  //   'standing' — getting-up anim playing forward (slow = 0.6x) toward
+  //                its final standing pose; movement still locked
+  //   'none'     — normal gameplay, idle anim has taken over
+  private _pronePhase: "prone" | "standing" | "none" = "none";
+  private _proneStartedAt = 0;   // performance.now() when setProne(true) fired
+  private readonly PRONE_MIN_HOLD_MS = 2500;   // hold flat for this long before reacting to input
+  /** Speed multiplier when we finally play the getting-up clip forward. */
+  private readonly STAND_SPEED = 0.6;
 
-  get isProne(): boolean { return this._prone; }
+  get isProne(): boolean { return this._pronePhase !== "none"; }
 
   /**
-   * Put the player in a prone (supine) pose by rotating the VRM root
-   * back 90°. Does nothing if no VRM is loaded yet — call again later
-   * when VRM is available. Disables movement until `setProne(false)`.
+   * Begin the prone wake-up sequence. Cues the Mixamo "Getting Up"
+   * clip paused at frame 0 so the player model is posed supine.
+   * Movement is blocked until the standing clip finishes.
+   *
+   * If the clip isn't loaded (e.g. R2 fetch failed), the controller
+   * falls back to a simple rotation hack so the player still reads
+   * as "on their back".
    */
   setProne(prone: boolean): void {
-    this._prone = prone;
-    if (this.vrmCharacter?.vrm) {
-      // Rotate on X so the character lies on their back with head toward -Z.
-      // The +Math.PI offset in updateAfterStep() keeps the character
-      // facing the camera, so we add here rather than overwrite.
-      this.vrmCharacter.root.rotation.x = prone ? -Math.PI / 2 : 0;
+    if (prone) {
+      this._pronePhase = "prone";
+      this._proneStartedAt = performance.now();
+      const anim = this.animController;
+      const cued = anim?.startGettingUp() ?? false;
+      if (!cued && this.vrmCharacter?.vrm) {
+        // Fallback when the clip isn't available — manual supine rotation.
+        this.vrmCharacter.root.rotation.x = -Math.PI / 2;
+        anim?.setPaused(true);
+      }
+      this.keyState.clear();
+    } else {
+      this._pronePhase = "none";
+      if (this.vrmCharacter?.vrm) {
+        this.vrmCharacter.root.rotation.x = 0;
+      }
+      this.animController?.setPaused(false);
     }
-    // Block all movement inputs while prone — but allow mouse look.
-    if (prone) this.keyState.clear();
+  }
+
+  /** Advance the wake-up state machine. Called from updateAfterStep. */
+  private updateProne(): void {
+    if (this._pronePhase === "prone") {
+      const now = performance.now();
+      // Hold on the ground for at least PRONE_MIN_HOLD_MS for drama —
+      // the cinematic just ended, Scott's dialogue is about to start.
+      if (now - this._proneStartedAt < this.PRONE_MIN_HOLD_MS) return;
+      if (this.hasMovementIntent()) {
+        this._pronePhase = "standing";
+        const anim = this.animController;
+        if (anim) {
+          void anim.finishGettingUp(this.STAND_SPEED).then(() => {
+            this._pronePhase = "none";
+            if (this.vrmCharacter?.vrm) this.vrmCharacter.root.rotation.x = 0;
+          });
+        } else if (this.vrmCharacter?.vrm) {
+          // No animController — just reset rotation instantly.
+          this.vrmCharacter.root.rotation.x = 0;
+          this._pronePhase = "none";
+        }
+      }
+    }
+    // 'standing' phase is driven by the animation's own timing; nothing
+    // to do per-frame — the Promise from finishGettingUp resolves via
+    // the mixer's "finished" event.
   }
 
   /** Detect movement intent — used to auto-stand up from prone. */
@@ -343,13 +389,21 @@ export class StarterPlayerController {
   updateAfterStep(deltaSeconds: number) {
     const translation = this.body.position;
     this.object.position.set(translation[0], translation[1], translation[2]);
+    // Advance the wake-up state machine (prone / standing / none).
+    this.updateProne();
     // Use meshYaw so the character faces movement direction, not camera direction
     this.visual.rotation.set(0, this.meshYaw, 0);
 
-    // VRM character: rotate the VRM root to face movement direction
+    // VRM character: rotate the VRM root to face movement direction.
+    // While prone, the getting-up animation owns the X rotation — only
+    // set the Y yaw so we don't trample the supine pose.
     if (this.vrmCharacter?.vrm) {
-      // VRM models face +Z; the controller's forward is -Z. Add π to align.
-      this.vrmCharacter.root.rotation.set(0, this.meshYaw + Math.PI, 0);
+      const root = this.vrmCharacter.root;
+      root.rotation.y = this.meshYaw + Math.PI;
+      if (this._pronePhase === "none") {
+        root.rotation.x = 0;
+        root.rotation.z = 0;
+      }
       // Hide capsule when VRM is loaded
       this.visual.visible = false;
       // Handle first-person head hiding
@@ -460,16 +514,12 @@ export class StarterPlayerController {
     this.strafeInput = Math.abs(this._extStrafe) > Math.abs(kbStrafe) ? this._extStrafe : kbStrafe;
     this.forwardInput = Math.abs(this._extForward) > Math.abs(kbForward) ? this._extForward : kbForward;
 
-    // Prone state: any movement intent triggers a stand-up. Once stood,
-    // the rest of the frame proceeds normally. While prone, zero the
-    // movement axes so the character doesn't slide on the floor.
-    if (this._prone) {
-      if (this.hasMovementIntent()) {
-        this.setProne(false);
-      } else {
-        this.strafeInput = 0;
-        this.forwardInput = 0;
-      }
+    // Prone / standing — zero movement axes so the character doesn't
+    // slide on the floor during the wake-up animation. The phase
+    // machine in updateProne() handles the transition out.
+    if (this._pronePhase !== "none") {
+      this.strafeInput = 0;
+      this.forwardInput = 0;
     }
 
     const moveDirection = scratchMoveDirection

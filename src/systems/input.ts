@@ -37,6 +37,11 @@ export const SguAction = {
 	ManualSave: 101,
 	/** Backquote — toggle debug overlay (caller handles double-tap debounce). */
 	DebugToggle: 102,
+	/** Dialogue options 1-4 — mapped to gamepad A/B/X/Y + keys 1/2/3/4. */
+	Dialogue0: 110,
+	Dialogue1: 111,
+	Dialogue2: 112,
+	Dialogue3: 113,
 } as const;
 
 const SGU_KEY_BINDINGS: Record<string, number> = {
@@ -44,12 +49,26 @@ const SGU_KEY_BINDINGS: Record<string, number> = {
 	KeyG:      SguAction.DialGate,
 	F5:        SguAction.ManualSave,
 	Backquote: SguAction.DebugToggle,
+	// Number keys 1-4 double as dialogue option shortcuts. Keep the engine
+	// default bindings for MenuConfirm/Back on Enter/Escape — dialogue
+	// shortcuts are additional, not replacements.
+	Digit1:    SguAction.Dialogue0,
+	Digit2:    SguAction.Dialogue1,
+	Digit3:    SguAction.Dialogue2,
+	Digit4:    SguAction.Dialogue3,
 };
 
 const SGU_GAMEPAD_BINDINGS: Partial<Record<number, number[]>> = {
+	// Start from engine defaults but explicitly remap A/B/X/Y so dialogue
+	// works without fighting the engine's MenuConfirm/MenuBack/Interact/Jump
+	// on those same buttons. Scenes read SguAction.Dialogue0..3 when a
+	// dialogue panel is open; otherwise those buttons still fire their
+	// engine-default actions via the entries below.
 	...(DEFAULT_GAMEPAD_BINDINGS as Record<number, number[]>),
-	// Y/Triangle → dial the gate (same button used for "special" in our HUD).
-	[GamepadButton.Y]: [SguAction.DialGate],
+	[GamepadButton.A]: [Action.Jump, Action.MenuConfirm, SguAction.Dialogue0],
+	[GamepadButton.B]: [Action.MenuBack,                  SguAction.Dialogue1],
+	[GamepadButton.X]: [Action.Interact,                  SguAction.Dialogue2],
+	[GamepadButton.Y]: [SguAction.DialGate,               SguAction.Dialogue3],
 };
 
 let instance: InputManager | undefined;
