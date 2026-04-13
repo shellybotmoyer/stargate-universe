@@ -11,3 +11,11 @@ production/session-logs/
 
 # Wrangler state
 .wrangler/
+
+# Claude State
+.claude/worktrees/
+
+# Tests
+gameplay-capture/
+test-results/
+test-reports/
