@@ -13,6 +13,7 @@ import {
 	defineGameScene,
 } from "../../game/runtime-scene-sources";
 import type { GameSceneModuleContext, GameSceneLifecycle } from "../../game/scene-types";
+import { AudioManager } from "../../systems/audio";
 
 const assetUrlLoaders = import.meta.glob("./assets/**/*", {
 	import: "default",
@@ -146,13 +147,17 @@ const createStartUI = (
 			btn.style.background   = "rgba(68, 136, 255, 0.18)";
 			btn.style.color        = "#ffffff";
 			btn.style.borderColor  = "rgba(68, 136, 255, 0.7)";
+			void AudioManager.getInstance().play("hover");
 		});
 		btn.addEventListener("mouseleave", () => {
 			btn.style.background   = "rgba(68, 136, 255, 0.07)";
 			btn.style.color        = "#88bbff";
 			btn.style.borderColor  = "rgba(68, 136, 255, 0.35)";
 		});
-		btn.addEventListener("click", onClick);
+		btn.addEventListener("click", () => {
+			void AudioManager.getInstance().play("select");
+			onClick();
+		});
 		return btn;
 	};
 
@@ -206,6 +211,11 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 
 	const ui = createStartUI(go("opening-cinematic"), go("gate-room"));
 
+	// Looping menu music — quiet behind the UI so it sets tone without
+	// competing with SFX. Most browsers block autoplay until the first user
+	// gesture, so an initial synthetic click suppression is tolerated.
+	void AudioManager.getInstance().play("sgu-soundtrack");
+
 	let elapsed = 0;
 	let disposed = false;
 
@@ -220,6 +230,9 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 
 		dispose(): void {
 			disposed = true;
+			// Stop menu music when we leave the start screen — the opening
+			// cinematic takes over with its own theme.
+			AudioManager.getInstance().stop("sgu-soundtrack");
 			ui.dispose();
 			scene.remove(stars);
 			stars.geometry.dispose();

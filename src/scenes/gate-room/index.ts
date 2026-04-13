@@ -1604,21 +1604,85 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	// ── Opening cinematic mode ───────────────────────────────────────────────
 	// Activated when the user clicks NEW GAME on the start screen.
 	let cinematicController: GateRoomCinematicController | undefined;
-	if (sessionStorage.getItem("sgu-new-game")) {
+	const isCinematicBoot = Boolean(sessionStorage.getItem("sgu-new-game"));
+	if (isCinematicBoot) {
 		sessionStorage.removeItem("sgu-new-game");
 		// Disable player input during cinematic
 		if (player) player.inputEnabled = false;
+
+		// Hide the persistent gameplay NPCs until the cinematic ends —
+		// the cinematic spawns its own thrown actors and we don't want the
+		// static Rush NPC visible during the overhead shot or kawoosh.
+		rushDot.visible = false;
+		const rushVisibilityGate = () => {
+			if (rushCharacter) rushCharacter.root.visible = false;
+		};
+		rushVisibilityGate();
+
 		cinematicController = new GateRoomCinematicController(
 			scene,
 			camera as import("three").PerspectiveCamera,
 			() => {
-				// Beat 9 complete — hand control back to player
+				// Cinematic complete — restore gameplay NPCs and hand control back.
 				if (player) player.inputEnabled = true;
+				if (rushCharacter) rushCharacter.root.visible = true;
+				rushDot.visible = true;
 				cinematicController = undefined;
+				// Kick off the opening quest — Scott crouches in front of Eli.
+				void triggerOpeningDialogue();
 			},
 			player?.object ?? undefined,
 		);
+
+		// If Rush loads AFTER the cinematic starts, keep him hidden until the
+		// cinematic completes. `rushCharacter` is assigned by the promise
+		// resolved below — wire a poll to apply the gate.
+		const rushHidePoll = setInterval(() => {
+			if (rushCharacter && cinematicController) {
+				rushCharacter.root.visible = false;
+				clearInterval(rushHidePoll);
+			} else if (!cinematicController) {
+				clearInterval(rushHidePoll);
+			}
+		}, 100);
 	}
+
+	// Opening dialogue — "Eli... Eli, can you hear me?" — plays right after the
+	// cinematic. Scott appears in front of the player; player clicks through a
+	// short intro that ends by pointing them at Dr. Rush to investigate.
+	const triggerOpeningDialogue = async () => {
+		// Lazy-load so the dialogue module isn't imported unless we need it
+		// (keeps the CONTINUE path free of extra cost).
+		const [{ scottOpeningDialogue }, { scottOpeningNpc }] = await Promise.all([
+			import("../../dialogues/scott-opening"),
+			import("../../npcs/scott-opening"),
+		]);
+		dialogueManager.registerTree(scottOpeningDialogue);
+		npcManager.registerNpc(scottOpeningNpc);
+
+		// Spawn a Scott character right in front of the player for the scene.
+		try {
+			const scott = await loadVRMCharacter("/assets/characters/matthew-scott/matthew-scott.vrm");
+			const pp = player?.object.position ?? new THREE.Vector3(0, 0, 0);
+			scott.root.position.set(pp.x + 0.3, 0, pp.z - 1.8);
+			scott.root.rotation.y = Math.PI; // face the player
+			scene.add(scott.root);
+			// Dispose Scott when gate-room disposes
+			gateRoomExtraDisposables.push(() => {
+				scene.remove(scott.root);
+				scott.dispose?.();
+			});
+		} catch (err) {
+			console.warn("[GateRoom] Scott VRM load failed for opening dialogue:", err);
+		}
+
+		// Start the dialogue (no prior player-input needed).
+		dialogueManager.startDialogue("scott-opening");
+	};
+
+	// Disposables for ephemeral resources spawned after the cinematic
+	// (like the Scott opening NPC). Flushed from the scene dispose() below.
+	const gateRoomExtraDisposables: Array<() => void> = [];
 
 	// When Rush ends a dialogue session that accepted the power quest, start it.
 	// startQuest() is idempotent so it's safe to call on every conversation end.
@@ -2270,6 +2334,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			rushDotGeo.dispose();
 			rushDotMat.dispose();
 
+			for (const cleanup of gateRoomExtraDisposables) cleanup();
+			gateRoomExtraDisposables.length = 0;
 			dialogueManager.dispose();
 			npcManager.dispose();
 			questManager.dispose();

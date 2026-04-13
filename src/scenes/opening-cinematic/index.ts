@@ -16,6 +16,7 @@ import {
 	defineGameScene,
 } from "../../game/runtime-scene-sources";
 import type { GameSceneModuleContext, GameSceneLifecycle } from "../../game/scene-types";
+import { AudioManager } from "../../systems/audio";
 
 const assetUrlLoaders = import.meta.glob("./assets/**/*", {
 	import: "default",
@@ -256,6 +257,11 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const credits = createCreditOverlay();
 	const skipHint = createSkipHint();
 
+	// One-shot DRAMATIC theme — sgu-theme-song is a one-shot (non-looping)
+	// in the catalog, reserved for cinematics only.
+	const audio = AudioManager.getInstance();
+	void audio.play("sgu-theme-song");
+
 	let elapsed = 0;
 	let disposed = false;
 	let finished = false;
@@ -324,6 +330,9 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		dispose(): void {
 			disposed = true;
 			window.removeEventListener("keydown", handleKey);
+			// Let the theme finish naturally if it's short; stop it here
+			// otherwise so the gate-room doesn't start with music bleed-over.
+			audio.stop("sgu-theme-song");
 			credits.dispose();
 			skipHint.dispose();
 			scene.remove(keyLight);

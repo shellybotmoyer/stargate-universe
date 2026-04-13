@@ -53,7 +53,10 @@ function applyEasing(t: number, mode: Beat["easing"]): number {
 // Gate center in world space (matches gate-room buildStargate placement)
 const GATE_CENTER = new THREE.Vector3(0, 3.2, 0);
 const GATE_BACK   = new THREE.Vector3(0, 3.2, 0.5);  // just behind the horizon
-const OVERHEAD    = new THREE.Vector3(0, 14, -4);
+// High overhead — the gate room is 26×40, so position high enough to frame
+// the whole space including the corridor behind the gate. No motion,
+// no shake during this beat; just a calm wide view of the massive hall.
+const OVERHEAD    = new THREE.Vector3(0, 55, -6);
 
 const BEATS: Beat[] = [
 	// Beat 1 — dormant gate, slow push toward ring
@@ -88,13 +91,15 @@ const BEATS: Beat[] = [
 		lookAt:  new THREE.Vector3(0, 2, 0),
 		easing:  "linear",
 	},
-	// Beat 5 — overhead wide shot, NPCs sprawled
+	// Beat 5 — STATIC overhead wide shot of the gate room.
+	// camFrom === camTo so there's no motion. Dampen=true kills residual
+	// shake from the Beat 4 landing. lookAt is the center of the room floor.
 	{
 		start: 16, end: 20,
 		camFrom: OVERHEAD.clone(),
-		camTo:   OVERHEAD.clone().add(new THREE.Vector3(0, -1, 0)),
-		lookAt:  new THREE.Vector3(0, 0, -4),
-		easing:  "smooth",
+		camTo:   OVERHEAD.clone(),
+		lookAt:  new THREE.Vector3(0, 0, 0),
+		easing:  "linear",
 	},
 	// Beat 6 — Rush lands clean, walks off
 	{
@@ -112,25 +117,17 @@ const BEATS: Beat[] = [
 		lookAt:  GATE_BACK,
 		easing:  "linear",
 	},
-	// Beat 8 — Young last through at high speed, gate flickers shut
+	// Beat 8 — Young last through at high speed, gate flickers shut, fade out
 	{
-		start: 26, end: 31,
+		start: 26, end: 30,
 		camFrom: new THREE.Vector3(0, 1.4, -4),
 		camTo:   new THREE.Vector3(0, 1.4, -10),
 		lookAt:  new THREE.Vector3(0, 1.2, -16),
 		easing:  "ease-in",
 	},
-	// Beat 9 — ground level push up near Eli, Scott crouches in
-	{
-		start: 31, end: 36,
-		camFrom: new THREE.Vector3(0.4, 0.15, -2.5),
-		camTo:   new THREE.Vector3(0.4, 0.9,  -2.5),
-		lookAt:  new THREE.Vector3(0.4, 1.0,  -5),
-		easing:  "ease-out",
-	},
 ];
 
-const TOTAL_DURATION = 36;
+const TOTAL_DURATION = 30;
 
 // ─── Named thrown actor (VRM crew) ────────────────────────────────────────────
 
@@ -728,6 +725,14 @@ export class GateRoomCinematicController {
 
 		const pos = new THREE.Vector3().lerpVectors(beat.camFrom, beat.camTo, t);
 
+		// Force-kill shake during the static overhead beat so residual
+		// landing shake doesn't wobble the zoomed-out hall view.
+		const OVERHEAD_BEAT_START = 16;
+		const OVERHEAD_BEAT_END = 20;
+		if (elapsed >= OVERHEAD_BEAT_START && elapsed < OVERHEAD_BEAT_END) {
+			this.shakeIntensity = 0;
+		}
+
 		// Camera shake
 		if (this.shakeIntensity > 0.001) {
 			this.shakeOffset.set(
@@ -771,16 +776,10 @@ export class GateRoomCinematicController {
 			this.subtitleShown.add("young-down");
 			this.subtitle.show("Get Young — he's not moving!", 2);
 		}
-		// Beat 9: Scott checks on Eli
-		if (elapsed >= 31 && elapsed < 33 && !this.subtitleShown.has("eli-scott")) {
-			this.subtitleShown.add("eli-scott");
-			this.subtitle.show("Eli... Eli, can you hear me?", 2);
-		}
-		// Beat 9 close: Eli wakes
-		if (elapsed >= 34 && elapsed < 37 && !this.subtitleShown.has("eli-wake")) {
-			this.subtitleShown.add("eli-wake");
-			this.subtitle.show("Eli — where the hell are we?", 4);
-		}
+		// The "Eli... Eli, can you hear me?" moment is intentionally NOT a
+		// cinematic subtitle — Scott crouching in front of the player and
+		// saying this line is the opening of the first quest, triggered as
+		// a real dialogue after the cinematic completes (see gate-room mount).
 	}
 
 	// ── Beat-triggered crew visibility ────────────────────────────────────────

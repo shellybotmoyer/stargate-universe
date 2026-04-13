@@ -11,12 +11,23 @@
 const R2_PUBLIC_URL = (import.meta.env.VITE_R2_PUBLIC_URL as string | undefined) ?? "";
 
 /**
+ * Paths that live under `public/` locally and should NEVER be rewritten to
+ * R2 in development, even when VITE_R2_PUBLIC_URL is set. The bucket may
+ * not mirror these yet (see BUG-001 — VRM 404s were caused by R2 rewrite
+ * in dev). Anything not in this list (e.g. `/audio/...` music/SFX) falls
+ * through to R2 in both dev and prod.
+ */
+const LOCAL_DEV_PREFIXES = [
+	"/assets/", // characters, animations, scene assets
+];
+
+/**
  * Resolve an asset path to a full URL.
  *
  * - Absolute URLs (https://, //) are passed through unchanged.
- * - In development, paths are served by Vite from `public/` — NEVER rewrite
- *   to R2 in dev even if VITE_R2_PUBLIC_URL happens to be set, because the
- *   bucket may not mirror local assets yet (BUG-001: VRM 404s traced here).
+ * - In development, paths under `/assets/` are served by Vite from `public/`.
+ *   Everything else (e.g. /audio/...) uses R2 when configured, because the
+ *   local dev tree doesn't mirror those folders.
  * - In production, relative paths are prefixed with the R2 public URL.
  *
  * @param path Asset path or URL
@@ -28,8 +39,8 @@ export function resolveAssetUrl(path: string): string {
 		return path;
 	}
 
-	// Dev mode — always serve from the Vite dev server (public/)
-	if (import.meta.env.DEV) {
+	// Dev mode: serve /assets/** locally; everything else goes to R2 if set.
+	if (import.meta.env.DEV && LOCAL_DEV_PREFIXES.some((p) => path.startsWith(p))) {
 		return path;
 	}
 

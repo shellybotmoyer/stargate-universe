@@ -14,6 +14,7 @@ import { createThreeRuntimeSceneInstance, type ThreeRuntimeSceneInstance } from 
 import * as THREE from "three";
 import { WebGPURenderer } from "three/webgpu";
 import { frameCameraOnObject } from "./camera";
+import { AudioManager } from "../systems/audio";
 import { createDefaultGameplaySystems, createStarterGameplayHost, mergeGameplaySystems } from "./gameplay";
 import { createRuntimePhysicsSession, type RuntimePhysicsSession } from "./runtime-physics";
 import type { GameSceneBootstrapContext, GameSceneDefinition, GameSceneLifecycle } from "./scene-types";
@@ -84,6 +85,10 @@ export async function createGameApp(options: GameAppOptions) {
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 4000);
+  // Attach the shared audio listener to the camera once for the life of the
+  // app. Scenes just call `AudioManager.getInstance().play(id)` to play
+  // cataloged sounds. The listener follows the camera across scene swaps.
+  AudioManager.getInstance().attachListener(camera);
   const clock = new THREE.Clock();
   let activeScene: ActiveScene | undefined;
   let currentLoadToken = 0;
