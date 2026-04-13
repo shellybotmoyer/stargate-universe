@@ -7,7 +7,17 @@
  * Sources:
  * - SFX/UI: soundcn CC0 library + ElevenLabs Sound Effects API
  * - Ambient: ElevenLabs Music API (planet beds) + soundcn (ship sounds)
+ * - Music: ported from sibling repo `stargate-evolution/apps/game/public/sounds/`
+ *          (sgu-theme-song, sgu-soundtrack) — uploaded to R2 bucket `sgu-assets`
+ *          under `/audio/music/`.
  * - Voice: ElevenLabs TTS (multilingual v2 model)
+ *
+ * R2 layout (bucket: sgu-assets):
+ *   /audio/sfx/         one-shot SFX (chevron-lock, stargate-kawoosh, etc.)
+ *   /audio/ambient/     looping ambient beds (ship hums, planet beds)
+ *   /audio/music/       score cues & theme
+ *   /audio/ui/          interface clicks/hovers/navigation
+ *   /audio/voice/       TTS-generated character VO
  *
  * Voice cast:
  * - Eli Wallace: "Will" voice (young, american, chill)
@@ -56,6 +66,7 @@ export const SOUND_CATALOG = {
 
 	// ─── SFX — Stargate ──────────────────────────────────────────────────────
 	"chevron-lock": { path: "/audio/sfx/chevron-lock.mp3", volume: 0.8, category: "sfx", loop: false, positional: true },
+	"stargate-kawoosh": { path: "/audio/sfx/stargate-kawoosh.mp3", volume: 0.9, category: "sfx", loop: false, positional: true },
 	"energy-burst": { path: "/audio/sfx/energy-burst.mp3", volume: 0.9, category: "sfx", loop: false, positional: true },
 	"energy-charge": { path: "/audio/sfx/energy-charge.mp3", volume: 0.7, category: "sfx", loop: false, positional: true },
 	"energy-zap": { path: "/audio/sfx/energy-zap.mp3", volume: 0.6, category: "sfx", loop: false, positional: true },
@@ -142,6 +153,16 @@ export const SOUND_CATALOG = {
 	"planet-jungle": { path: "/audio/ambient/planet-jungle.mp3", volume: 0.25, category: "ambient", loop: true, positional: false },
 	"planet-temperate": { path: "/audio/ambient/planet-temperate.mp3", volume: 0.25, category: "ambient", loop: true, positional: false },
 	"planet-volcanic": { path: "/audio/ambient/planet-volcanic.mp3", volume: 0.25, category: "ambient", loop: true, positional: false },
+
+	// ─── Music — Theme & Score ───────────────────────────────────────────────
+	// Sourced from stargate-evolution project (sibling repo). Ported 2026-04-13.
+	// "sgu-theme-song": DRAMATIC one-shot reserved for cinematics only —
+	//                   opening cinematic + other cinematic beats.
+	//                   Do NOT use on menus (too dramatic for background).
+	// "sgu-soundtrack": looping background score — use for main menu,
+	//                   exploration, ship-interior idle, and quiet story beats.
+	"sgu-theme-song": { path: "/audio/music/sgu-theme-song.mp3", volume: 0.8, category: "music", loop: false, positional: false },
+	"sgu-soundtrack": { path: "/audio/music/sgu-soundtrack.mp3", volume: 0.4, category: "music", loop: true, positional: false },
 
 	// ─── UI — Clicks & Selection ─────────────────────────────────────────────
 	"click-001": { path: "/audio/ui/click-001.mp3", volume: 0.3, category: "ui", loop: false, positional: false },
