@@ -1603,50 +1603,20 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	// Player VRM loaded via scene definition player.vrmUrl (StarterPlayerController handles it)
 
 	// ── Opening cinematic mode ───────────────────────────────────────────────
-	// Activated when the user clicks NEW GAME on the start screen.
+	// Declared here; constructed AFTER the HUD is built below so we can
+	// collect HUD refs for cinematic hide/show.
 	let cinematicController: GateRoomCinematicController | undefined;
 	const isCinematicBoot = Boolean(sessionStorage.getItem("sgu-new-game"));
 	if (isCinematicBoot) {
 		sessionStorage.removeItem("sgu-new-game");
-		// Disable player input during cinematic
 		if (player) player.inputEnabled = false;
-
-		// Hide the persistent gameplay NPCs until the cinematic ends —
-		// the cinematic spawns its own thrown actors and we don't want the
-		// static Rush NPC visible during the overhead shot or kawoosh.
 		rushDot.visible = false;
-		const rushVisibilityGate = () => {
-			if (rushCharacter) rushCharacter.root.visible = false;
-		};
-		rushVisibilityGate();
-
-		cinematicController = new GateRoomCinematicController(
-			scene,
-			camera as import("three").PerspectiveCamera,
-			() => {
-				// Cinematic complete — restore gameplay NPCs and hand control back.
-				if (player) player.inputEnabled = true;
-				if (rushCharacter) rushCharacter.root.visible = true;
-				rushDot.visible = true;
-				cinematicController = undefined;
-				// Kick off the opening quest — Scott crouches in front of Eli.
-				void triggerOpeningDialogue();
-			},
-			player?.object ?? undefined,
-		);
-
-		// If Rush loads AFTER the cinematic starts, keep him hidden until the
-		// cinematic completes. `rushCharacter` is assigned by the promise
-		// resolved below — wire a poll to apply the gate.
-		const rushHidePoll = setInterval(() => {
-			if (rushCharacter && cinematicController) {
-				rushCharacter.root.visible = false;
-				clearInterval(rushHidePoll);
-			} else if (!cinematicController) {
-				clearInterval(rushHidePoll);
-			}
-		}, 100);
+		if (rushCharacter) rushCharacter.root.visible = false;
 	}
+
+	// Elements the cinematic should hide — populated as they're built
+	// below. The cinematic walks this list and sets display:none on each.
+	const cinematicHide: HTMLElement[] = [];
 
 	// Opening dialogue — "Eli... Eli, can you hear me?" — plays right after the
 	// cinematic. Scott appears in front of the player; player clicks through a
@@ -1687,6 +1657,16 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 
 	// When Rush ends a dialogue session that accepted the power quest, start it.
 	// startQuest() is idempotent so it's safe to call on every conversation end.
+	// Dialogue gate — lock player movement while the dialogue panel is up.
+	// The camera is still free to look around but WASD/stick is blocked so
+	// the player can't wander off mid-conversation.
+	bus.on("crew:dialogue:started", () => {
+		if (player) player.inputEnabled = false;
+	});
+	bus.on("crew:dialogue:ended", () => {
+		if (player && !cinematicController) player.inputEnabled = true;
+	});
+
 	bus.on("crew:dialogue:ended", ({ speakerId }) => {
 		if (speakerId === "dr-rush") {
 			const saved = dialogueManager.serialize();
@@ -1761,10 +1741,16 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 
 	// ─── UI elements ─────────────────────────────────────────────────────
 	const hud = createHUD();
+	cinematicHide.push(hud);
 	const compassHud = createHud(renderer.domElement.parentElement ?? document.body);
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const compass = createHorizontalCompass() as any;
 	compassHud.mount(compass);
+	// compassHud has no public DOM ref — it's its own managed HTMLDivElement
+	// returned from createHud(). Cast to probe for common element shapes.
+	const compassAny = compassHud as unknown as { element?: HTMLElement; container?: HTMLElement };
+	const compassRoot = compassAny.element ?? compassAny.container;
+	if (compassRoot) cinematicHide.push(compassRoot);
 
 	// ── Gate blocker ───────────────────────────────────────────────────────────
 	// Invisible static box covering the Stargate opening. Physically prevents the
@@ -1823,7 +1809,10 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const menu = createEscapeMenu(renderer.domElement);
 	const cleanupFullscreen = setupFullscreen(renderer.domElement, menu);
 	const interactPrompt = createInteractionPrompt();
+	cinematicHide.push(interactPrompt);
 	const co2Display = createCO2Display();
+	const co2El = (co2Display as unknown as { element?: HTMLElement }).element;
+	if (co2El) cinematicHide.push(co2El);
 	const repairBar = createRepairProgressBar3D();
 	scene.add(repairBar.group);
 
@@ -1919,6 +1908,58 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			void context.gotoScene("scrubber-room");
 		}
 	};
+
+	// ─── Opening cinematic kick-off ──────────────────────────────────────
+	// Constructed here (not earlier) so we have HUD refs to hide for the
+	// cinematic duration.
+	if (isCinematicBoot) {
+		// Hide every registered HUD element for the cinematic's lifetime.
+		for (const el of cinematicHide) el.style.display = "none";
+
+		cinematicController = new GateRoomCinematicController(
+			scene,
+			camera as import("three").PerspectiveCamera,
+			(i) => {
+				// Gate runtime callback — cinematic asks us to light
+				// up chevrons 1..9 during its dial beat. We drive the
+				// actual in-scene gate state so the chevrons glow for
+				// real instead of the cinematic faking it.
+				if (gate) {
+					gate.lockedChevrons = Math.min(9, i);
+					for (let k = 0; k < gate.chevronMeshes.length; k++) {
+						const mat = gate.chevronMeshes[k].material as THREE.MeshStandardMaterial;
+						const lit = k < gate.lockedChevrons;
+						mat.color.setHex(lit ? COLOR_CHEVRON_ON : COLOR_CHEVRON_OFF);
+						mat.emissive.setHex(lit ? COLOR_CHEVRON_ON : COLOR_CHEVRON_OFF);
+						mat.emissiveIntensity = lit ? 1.5 : 0.1;
+					}
+				}
+			},
+			() => {
+				// Cinematic complete — restore HUD, gameplay NPCs, input.
+				for (const el of cinematicHide) el.style.display = "";
+				if (player) {
+					player.inputEnabled = true;
+					player.setProne(true);
+				}
+				if (rushCharacter) rushCharacter.root.visible = true;
+				rushDot.visible = true;
+				cinematicController = undefined;
+				void triggerOpeningDialogue();
+			},
+			player?.object ?? undefined,
+		);
+
+		// If Rush loads AFTER the cinematic starts, keep him hidden.
+		const rushHidePoll = setInterval(() => {
+			if (rushCharacter && cinematicController) {
+				rushCharacter.root.visible = false;
+				clearInterval(rushHidePoll);
+			} else if (!cinematicController) {
+				clearInterval(rushHidePoll);
+			}
+		}, 100);
+	}
 
 	// ─── Test hooks ──────────────────────────────────────────────────────
 	// Signal to Playwright that this scene's 3-D setup is complete and

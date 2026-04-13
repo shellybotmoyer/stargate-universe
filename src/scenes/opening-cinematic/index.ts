@@ -37,20 +37,31 @@ interface CreditBeat {
 	fontSize: string;
 }
 
+// ─── 60-second opening timeline ─────────────────────────────────────────────
+//
+// This scene is act one (0-20s). The gate-room arrival cinematic (fired
+// via sgu-new-game flag) is act two (20-60s). The sgu-theme-song plays
+// once at t=0 and runs the full 60s without a restart — this scene
+// starts it and INTENTIONALLY does not stop on dispose so the theme
+// carries through the scene swap.
+//
+// Test any second of this scene in isolation via ?cinstep=N:
+//   /?scene=opening-cinematic&cinstep=12   ← jumps to t=12
+//
+const TOTAL_DURATION = 20;
+
 const BEATS: CreditBeat[] = [
-	{ start: 1,    end: 5,  fontSize: "clamp(1rem, 2vw, 1.2rem)",
+	{ start: 0.5, end: 4.5,  fontSize: "clamp(1rem, 2vw, 1.2rem)",
 		text: "In a distant corner of the universe…" },
-	{ start: 5.5,  end: 9.5, fontSize: "clamp(1rem, 2vw, 1.2rem)",
+	{ start: 5,    end: 9,   fontSize: "clamp(1rem, 2vw, 1.2rem)",
 		text: "the Ancients launched a ship called Destiny —\nseeded before humanity walked the Earth." },
-	{ start: 10,   end: 14, fontSize: "clamp(1rem, 2vw, 1.2rem)",
+	{ start: 9.5,  end: 13.5, fontSize: "clamp(1rem, 2vw, 1.2rem)",
 		text: "For millions of years it has drifted alone,\nmapping the farthest reaches of space." },
-	{ start: 14.5, end: 18, fontSize: "clamp(1rem, 2vw, 1.2rem)",
+	{ start: 14,   end: 17,   fontSize: "clamp(1rem, 2vw, 1.2rem)",
 		text: "Today, nine stranded souls dial a nine-chevron address…" },
-	{ start: 18.5, end: 22, fontSize: "clamp(2.2rem, 6vw, 4rem)",
+	{ start: 17,   end: 20,   fontSize: "clamp(2.2rem, 6vw, 4rem)",
 		text: "STARGATE\u00A0UNIVERSE" },
 ];
-
-const TOTAL_DURATION = 23;
 
 // ─── Star-field (same look as start-screen for continuity) ────────────────────
 
@@ -258,13 +269,23 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const credits = createCreditOverlay();
 	const skipHint = createSkipHint();
 
-	// Dramatic theme one-shot for the opening reveal. sgu-theme-song is
-	// the cinematic stinger (~matches the 23s credit window). The menu
-	// uses the looping soundtrack bed so the theme hits fresh here.
+	// Play the SGU theme, forced to LOOP so it spans the full 60-second
+	// cinematic (the track file itself is ~45s, so it'd run out mid-
+	// gate-room arrival without loop:true). It starts here and
+	// intentionally keeps playing through the scene transition into
+	// gate-room; the arrival cinematic inherits this audio and stops
+	// it only when the cinematic ends.
 	const audio = AudioManager.getInstance();
-	void audio.play("sgu-theme-song");
+	void audio.play("sgu-theme-song", undefined, { loop: true, volume: 0.8 });
 
-	let elapsed = 0;
+	// ?cinstep=N — jump to elapsed = N seconds for testing. Clamped to
+	// [0, TOTAL_DURATION - 0.1] so a skip value of 20 doesn't immediately
+	// tear the scene down before you can see anything.
+	const cinStepRaw = new URLSearchParams(window.location.search).get("cinstep");
+	const cinStep = cinStepRaw !== null ? Number.parseFloat(cinStepRaw) : NaN;
+	let elapsed = Number.isFinite(cinStep)
+		? Math.max(0, Math.min(TOTAL_DURATION - 0.1, cinStep))
+		: 0;
 	let disposed = false;
 	let finished = false;
 
@@ -333,9 +354,10 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 
 		dispose(): void {
 			disposed = true;
-			// Stop the theme if the player skipped early — otherwise let
-			// AudioManager's auto-cleanup handle the one-shot ending.
-			audio.stop("sgu-theme-song");
+			// DO NOT stop sgu-theme-song here — the gate-room arrival
+			// cinematic is the continuation of the same 60-second musical
+			// beat. Music is stopped when the gate-room cinematic ends
+			// (see cinematic-controller's dispose).
 			credits.dispose();
 			skipHint.dispose();
 			scene.remove(keyLight);

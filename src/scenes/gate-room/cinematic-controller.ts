@@ -55,19 +55,34 @@ function applyEasing(t: number, mode: Beat["easing"]): number {
 // Gate center in world space (matches gate-room buildStargate placement)
 const GATE_CENTER = new THREE.Vector3(0, 3.2, 0);
 const GATE_BACK   = new THREE.Vector3(0, 3.2, 0.5);  // just behind the horizon
-// MASSIVE overhead — the gate room is 26×40, so we position very high so
-// the entire hall plus the corridor behind the gate fit comfortably in
-// frame. No motion, no shake on this beat — just a calm bird's-eye view.
-const OVERHEAD    = new THREE.Vector3(0, 85, -6);
+// Overhead shot — high angle, not straight-down. y=18 gives both the
+// gate and the crew tumbling through enough framing to read, and
+// looking at a point slightly in front of the gate centers the action.
+const OVERHEAD    = new THREE.Vector3(0, 18, -12);
 // Wide establishing shot — camera far back and elevated so the whole
 // gate + room silhouette is visible. Stays static during dial & kawoosh
 // so the player actually reads the chevrons locking in.
 const ESTABLISH   = new THREE.Vector3(0, 6, 22);
 
+// ─── 40-second gate-room arrival ────────────────────────────────────────────
+//
+// This is act two of the 60-second opening (act one is opening-cinematic
+// 0-20s, this is 0-40s relative = 20-60s absolute). The sgu-theme-song is
+// already playing from act one and runs through to the end of act two.
+// Each beat is independently testable via ?cinstep=N in the URL.
+//
+// BEAT TABLE (seconds relative to cinematic start):
+//    0 - 2s  establishing, dormant gate
+//    2 -12s  chevrons dialing (9 chevron-lock SFX)
+//   12 -15s  kawoosh + event horizon forms
+//   15 -20s  Scott emerges first, "scott-clear" voice line
+//   20 -32s  STATIC OVERHEAD — crew tumble through
+//   32 -37s  descent to Eli on the ground, Scott crouches
+//   37 -40s  fade to gameplay (player prone)
 const BEATS: Beat[] = [
 	// Beat 1 — WIDE ESTABLISHING. Dormant gate, massive empty hall.
 	{
-		start: 0, end: 5,
+		start: 0, end: 2,
 		camFrom: ESTABLISH.clone(),
 		camTo:   ESTABLISH.clone(),
 		lookAt:  GATE_CENTER,
@@ -75,7 +90,7 @@ const BEATS: Beat[] = [
 	},
 	// Beat 2 — CHEVRONS DIALING. Same wide shot, 9 chevron-lock SFX.
 	{
-		start: 5, end: 11,
+		start: 2, end: 12,
 		camFrom: ESTABLISH.clone(),
 		camTo:   ESTABLISH.clone(),
 		lookAt:  GATE_CENTER,
@@ -83,46 +98,62 @@ const BEATS: Beat[] = [
 	},
 	// Beat 3 — KAWOOSH. Push in slightly for the effect reveal.
 	{
-		start: 11, end: 14,
+		start: 12, end: 15,
 		camFrom: ESTABLISH.clone(),
 		camTo:   new THREE.Vector3(0, 4, 14),
 		lookAt:  GATE_CENTER,
 		easing:  "ease-out",
 	},
-	// Beat 4 — STATIC OVERHEAD. Scott emerges + calls the all-clear,
-	// then the rest of the crew start coming through. This beat is long
-	// because it's the dramatic arrival moment.
+	// Beat 4 — SCOTT EMERGES. Low angle tracking his walk through.
 	{
-		start: 14, end: 24,
-		camFrom: OVERHEAD.clone(),
-		camTo:   OVERHEAD.clone(),
-		lookAt:  new THREE.Vector3(0, 0, -4),
+		start: 15, end: 20,
+		camFrom: new THREE.Vector3(2.5, 1.0, -3),
+		camTo:   new THREE.Vector3(3.5, 1.0, -6),
+		lookAt:  GATE_BACK,
 		easing:  "linear",
 	},
-	// Beat 5 — GATE SHUTDOWN. Mid-height wide shot, gate flickers off.
+	// Beat 5 — OVERHEAD. Static high-angle, crew tumble through.
+	// LookAt is between the gate center (0,3.2,0) and the landing zone
+	// (~-5 Z), biased toward the gate so crew exiting are in frame.
 	{
-		start: 24, end: 30,
-		camFrom: new THREE.Vector3(0, 5, 10),
-		camTo:   new THREE.Vector3(0, 4, 14),
-		lookAt:  GATE_CENTER,
-		easing:  "ease-in",
+		start: 20, end: 32,
+		camFrom: OVERHEAD.clone(),
+		camTo:   OVERHEAD.clone(),
+		lookAt:  new THREE.Vector3(0, 2, -3),
+		easing:  "linear",
+	},
+	// Beat 6 — DESCENT to Eli prone on the ground; Scott crouches in.
+	{
+		start: 32, end: 37,
+		camFrom: new THREE.Vector3(0.4, 6, -4),
+		camTo:   new THREE.Vector3(0.4, 0.9, -2.5),
+		lookAt:  new THREE.Vector3(0.4, 0.3, -5),
+		easing:  "ease-out",
+	},
+	// Beat 7 — FADE. Stays close on Eli as the cinematic hands off.
+	{
+		start: 37, end: 40,
+		camFrom: new THREE.Vector3(0.4, 0.9, -2.5),
+		camTo:   new THREE.Vector3(0.4, 0.9, -2.5),
+		lookAt:  new THREE.Vector3(0.4, 0.3, -5),
+		easing:  "linear",
 	},
 ];
 
-const TOTAL_DURATION = 30;
+const TOTAL_DURATION = 40;
 
 // Timing anchors — centralize so the updateAudio/updateCrew/updateSubtitles
 // stay in sync with the beat structure above.
-const T_DIAL_START = 5;
-const T_DIAL_END   = 11;
-const T_KAWOOSH    = 11;
-const T_OVERHEAD   = 14;
-const T_SCOTT_EMERGE = 14;
-const T_CHAOS_START  = 16;
-const T_TJ_ELI       = 18.5;
-const T_RUSH         = 20;
-const T_YOUNG_IMPACT = 22;
-const T_GATE_SHUTDOWN = 24;
+const T_DIAL_START = 2;
+const T_DIAL_END   = 12;
+const T_KAWOOSH    = 12;
+const T_SCOTT_EMERGE  = 15;
+const T_OVERHEAD      = 20;
+const T_CHAOS_START   = 22;
+const T_TJ_ELI        = 24.5;
+const T_RUSH          = 26.5;
+const T_YOUNG_IMPACT  = 28.5;
+const T_GATE_SHUTDOWN = 32;
 
 // ─── Named thrown actor (VRM crew) ────────────────────────────────────────────
 
@@ -330,22 +361,45 @@ export class GateRoomCinematicController {
 	private droneOsc: OscillatorNode | null = null;
 	private audioPlayed = new Set<string>();
 
+	private readonly onChevronLock: (lockedCount: number) => void;
+
 	constructor(
 		scene: THREE.Scene,
 		camera: THREE.PerspectiveCamera,
+		onChevronLock: (lockedCount: number) => void,
 		onComplete: () => void,
 		playerObject?: THREE.Object3D,
 	) {
 		this.scene = scene;
 		this.camera = camera;
+		this.onChevronLock = onChevronLock;
 		this.onComplete = onComplete;
 		this.playerObject = playerObject;
+
+		// ?cinstep=N — jump to elapsed = N seconds for testing. Pair with
+		// the same param on opening-cinematic to step through the whole
+		// 60-second opening one second at a time.
+		const cinStepRaw = new URLSearchParams(window.location.search).get("cinstep");
+		const cinStep = cinStepRaw !== null ? Number.parseFloat(cinStepRaw) : NaN;
+		if (Number.isFinite(cinStep)) {
+			this.elapsed = Math.max(0, Math.min(TOTAL_DURATION - 0.1, cinStep));
+		}
 
 		this.buildKawoosh();
 		this.buildChaosActors();
 		this.loadCrew();
 		this.initAudio();
 		this.hidePlayerVisual();
+
+		// If the theme song isn't already playing (e.g. player landed
+		// directly on this scene with ?scene=gate-room without going
+		// through opening-cinematic), kick it off now so the arrival
+		// has its score. Force loop:true because the track is shorter
+		// than the 40-second arrival cinematic.
+		const audio = AudioManager.getInstance();
+		if (!audio.isPlaying("sgu-theme-song")) {
+			void audio.play("sgu-theme-song", undefined, { loop: true, volume: 0.8 });
+		}
 	}
 
 	// ── Player visual hide/restore ────────────────────────────────────────────
@@ -388,7 +442,9 @@ export class GateRoomCinematicController {
 		const audio = AudioManager.getInstance();
 
 		// Beat 2 — CHEVRONS DIALING. Play chevron-lock once per chevron,
-		// spaced evenly over the dial window. 9 chevrons × ~0.6s = 5.4s.
+		// spaced evenly over the 10-second dial window (~1s apart, last
+		// lock fires just before kawoosh). Also drives the real gate
+		// runtime's chevron lighting via the onChevronLock callback.
 		const DIAL_DURATION = T_DIAL_END - T_DIAL_START;
 		for (let i = 0; i < 9; i++) {
 			const chevronTime = T_DIAL_START + (i + 1) * (DIAL_DURATION / 10);
@@ -396,20 +452,27 @@ export class GateRoomCinematicController {
 			if (elapsed >= chevronTime && !this.audioPlayed.has(key)) {
 				this.audioPlayed.add(key);
 				void audio.play("chevron-lock");
+				this.onChevronLock(i + 1);
 			}
 		}
 
-		// Beat 3 — KAWOOSH. One big dramatic whoosh when the event horizon forms.
+		// Beat 3 — KAWOOSH. The signature gate activation sound.
 		if (elapsed >= T_KAWOOSH && !this.audioPlayed.has("kawoosh")) {
 			this.audioPlayed.add("kawoosh");
 			void audio.play("stargate-kawoosh");
 		}
 
-		// Beat 4 — crew emergence. Wormhole transit whoosh per named arrival.
+		// Beat 4 — Scott steps through. The scott-clear / scott-bark-eli
+		// voice lines are in the catalog but NOT yet uploaded to R2 —
+		// playing them would 404 and poison the AudioContext. Subtitles
+		// handle the dialogue for now; wire the voice back in once the
+		// files land in /audio/voice/ on the sgu-assets bucket.
 		if (elapsed >= T_SCOTT_EMERGE && !this.audioPlayed.has("scott-emerge")) {
 			this.audioPlayed.add("scott-emerge");
 			void audio.play("wormhole-transit");
 		}
+
+		// Beat 5 — crew tumble through (overhead). Staggered transits.
 		if (elapsed >= T_CHAOS_START && !this.audioPlayed.has("chaos-emerge")) {
 			this.audioPlayed.add("chaos-emerge");
 			void audio.play("energy-burst");
@@ -422,7 +485,7 @@ export class GateRoomCinematicController {
 			this.audioPlayed.add("rush-emerge");
 			void audio.play("wormhole-transit");
 		}
-		// Beat 5 — Young slams the far wall.
+		// Young slams the far wall.
 		if (elapsed >= T_YOUNG_IMPACT && !this.audioPlayed.has("young-impact")) {
 			this.audioPlayed.add("young-impact");
 			void audio.play("debris-impact");
@@ -433,6 +496,8 @@ export class GateRoomCinematicController {
 			this.audioPlayed.add("gate-shutdown");
 			void audio.play("power-down");
 		}
+		// (Beat 6 — Scott checking on Eli) — voice line goes here once
+		// scott-bark-eli is uploaded to R2. Subtitle-only for now.
 	}
 
 	// ── Kawoosh effect ────────────────────────────────────────────────────────
@@ -693,27 +758,27 @@ export class GateRoomCinematicController {
 	// ── Subtitles ─────────────────────────────────────────────────────────────
 
 	private updateSubtitles(elapsed: number) {
-		// Beat 2 — chevrons locking (during the dial phase)
-		if (elapsed >= T_DIAL_START + 1 && elapsed < T_DIAL_START + 4 && !this.subtitleShown.has("chevrons")) {
+		// Beat 2 — chevrons locking
+		if (elapsed >= T_DIAL_START + 1 && elapsed < T_DIAL_START + 5 && !this.subtitleShown.has("chevrons")) {
 			this.subtitleShown.add("chevrons");
-			this.subtitle.show("Chevrons locking...", 3);
+			this.subtitle.show("Chevrons locking...", 4);
 		}
 		// Beat 3 — kawoosh forms
 		if (elapsed >= T_KAWOOSH && elapsed < T_KAWOOSH + 2 && !this.subtitleShown.has("wormhole")) {
 			this.subtitleShown.add("wormhole");
 			this.subtitle.show("Wormhole established.", 2);
 		}
-		// Beat 4 — Scott all-clear, called as he emerges first during the overhead
-		if (elapsed >= T_SCOTT_EMERGE + 1 && elapsed < T_SCOTT_EMERGE + 4 && !this.subtitleShown.has("scott-clear")) {
+		// Beat 4 — Scott's all-clear call (paired with scott-clear voice line)
+		if (elapsed >= T_SCOTT_EMERGE + 1.5 && elapsed < T_SCOTT_EMERGE + 5 && !this.subtitleShown.has("scott-clear")) {
 			this.subtitleShown.add("scott-clear");
-			this.subtitle.show("It's clear — start the evacuation!", 3);
+			this.subtitle.show("It's clear — start the evacuation!", 3.5);
 		}
-		// Beat 4 — chaos surge starts
-		if (elapsed >= T_CHAOS_START && elapsed < T_CHAOS_START + 2.5 && !this.subtitleShown.has("evacuate")) {
+		// Beat 5 — chaos surge starts (overhead)
+		if (elapsed >= T_CHAOS_START && elapsed < T_CHAOS_START + 3 && !this.subtitleShown.has("evacuate")) {
 			this.subtitleShown.add("evacuate");
-			this.subtitle.show("Everyone through now — GO!", 2.5);
+			this.subtitle.show("Everyone through now — GO!", 3);
 		}
-		// Beat 4 — Rush observes
+		// Beat 5 — Rush observes
 		if (elapsed >= T_RUSH && elapsed < T_RUSH + 2 && !this.subtitleShown.has("rush-fascinating")) {
 			this.subtitleShown.add("rush-fascinating");
 			this.subtitle.show("Fascinating...", 2);
@@ -723,10 +788,13 @@ export class GateRoomCinematicController {
 			this.subtitleShown.add("young-down");
 			this.subtitle.show("Get Young — he's not moving!", 2);
 		}
-		// The "Eli... Eli, can you hear me?" moment is intentionally NOT a
-		// cinematic subtitle — Scott crouching in front of the player and
-		// saying this line is the opening of the first quest, triggered as
-		// a real dialogue after the cinematic completes (see gate-room mount).
+		// Beat 6 — Scott's wake-up call to Eli (paired with scott-bark-eli
+		// voice line). The quest-opening player dialogue fires right after
+		// the cinematic ends — this subtitle is the cinematic's lead-in.
+		if (elapsed >= T_GATE_SHUTDOWN + 3 && elapsed < T_GATE_SHUTDOWN + 6 && !this.subtitleShown.has("scott-eli")) {
+			this.subtitleShown.add("scott-eli");
+			this.subtitle.show("Eli... Eli, can you hear me?", 3);
+		}
 	}
 
 	// ── Beat-triggered crew visibility ────────────────────────────────────────
@@ -863,6 +931,9 @@ export class GateRoomCinematicController {
 			void this.audioCtx.close();
 			this.audioCtx = null;
 		}
+		// End the 60-second theme here — it was started in opening-cinematic
+		// and played through the whole sequence. Gameplay starts in silence.
+		AudioManager.getInstance().stop("sgu-theme-song");
 
 		// Restore player visual before anything else
 		this.restorePlayerVisual();

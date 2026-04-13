@@ -119,6 +119,41 @@ export class StarterPlayerController {
     }
   }
 
+  // ── Prone state ───────────────────────────────────────────────────────────
+  // Used for post-cinematic wake-up: player spawns lying on their back,
+  // any movement attempt stands them up. Implemented as a rotation on
+  // the VRM root (no animation required — swap for a Mixamo "get up"
+  // clip once uploaded to R2).
+  private _prone = false;
+
+  get isProne(): boolean { return this._prone; }
+
+  /**
+   * Put the player in a prone (supine) pose by rotating the VRM root
+   * back 90°. Does nothing if no VRM is loaded yet — call again later
+   * when VRM is available. Disables movement until `setProne(false)`.
+   */
+  setProne(prone: boolean): void {
+    this._prone = prone;
+    if (this.vrmCharacter?.vrm) {
+      // Rotate on X so the character lies on their back with head toward -Z.
+      // The +Math.PI offset in updateAfterStep() keeps the character
+      // facing the camera, so we add here rather than overwrite.
+      this.vrmCharacter.root.rotation.x = prone ? -Math.PI / 2 : 0;
+    }
+    // Block all movement inputs while prone — but allow mouse look.
+    if (prone) this.keyState.clear();
+  }
+
+  /** Detect movement intent — used to auto-stand up from prone. */
+  private hasMovementIntent(): boolean {
+    if (Math.abs(this._extForward) > 0.1 || Math.abs(this._extStrafe) > 0.1) return true;
+    return this.keyState.has("KeyW") || this.keyState.has("KeyA")
+        || this.keyState.has("KeyS") || this.keyState.has("KeyD")
+        || this.keyState.has("ArrowUp") || this.keyState.has("ArrowDown")
+        || this.keyState.has("ArrowLeft") || this.keyState.has("ArrowRight");
+  }
+
   constructor(options: StarterPlayerControllerOptions) {
     this.camera = options.camera;
     this.cameraMode = options.cameraMode;
@@ -424,6 +459,18 @@ export class StarterPlayerController {
     // Pick whichever source has higher magnitude on each axis
     this.strafeInput = Math.abs(this._extStrafe) > Math.abs(kbStrafe) ? this._extStrafe : kbStrafe;
     this.forwardInput = Math.abs(this._extForward) > Math.abs(kbForward) ? this._extForward : kbForward;
+
+    // Prone state: any movement intent triggers a stand-up. Once stood,
+    // the rest of the frame proceeds normally. While prone, zero the
+    // movement axes so the character doesn't slide on the floor.
+    if (this._prone) {
+      if (this.hasMovementIntent()) {
+        this.setProne(false);
+      } else {
+        this.strafeInput = 0;
+        this.forwardInput = 0;
+      }
+    }
 
     const moveDirection = scratchMoveDirection
       .set(0, 0, 0)
