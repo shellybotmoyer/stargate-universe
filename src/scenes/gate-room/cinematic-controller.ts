@@ -17,6 +17,7 @@
 import * as THREE from "three";
 import { loadCrewMember } from "../../characters/character-loader";
 import type { CharacterLoadResult } from "../../characters/character-loader";
+import { AudioManager } from "../../systems/audio";
 
 // ─── Beat definitions ─────────────────────────────────────────────────────────
 
@@ -53,81 +54,74 @@ function applyEasing(t: number, mode: Beat["easing"]): number {
 // Gate center in world space (matches gate-room buildStargate placement)
 const GATE_CENTER = new THREE.Vector3(0, 3.2, 0);
 const GATE_BACK   = new THREE.Vector3(0, 3.2, 0.5);  // just behind the horizon
-// High overhead — the gate room is 26×40, so position high enough to frame
-// the whole space including the corridor behind the gate. No motion,
-// no shake during this beat; just a calm wide view of the massive hall.
-const OVERHEAD    = new THREE.Vector3(0, 55, -6);
+// MASSIVE overhead — the gate room is 26×40, so we position very high so
+// the entire hall plus the corridor behind the gate fit comfortably in
+// frame. No motion, no shake on this beat — just a calm bird's-eye view.
+const OVERHEAD    = new THREE.Vector3(0, 85, -6);
+// Wide establishing shot — camera far back and elevated so the whole
+// gate + room silhouette is visible. Stays static during dial & kawoosh
+// so the player actually reads the chevrons locking in.
+const ESTABLISH   = new THREE.Vector3(0, 6, 22);
 
 const BEATS: Beat[] = [
-	// Beat 1 — dormant gate, slow push toward ring
+	// Beat 1 — WIDE ESTABLISHING. Dormant gate, massive empty hall.
 	{
-		start: 0, end: 4,
-		camFrom: new THREE.Vector3(0, 1.7, 16),
-		camTo:   new THREE.Vector3(0, 1.7,  6),
+		start: 0, end: 5,
+		camFrom: ESTABLISH.clone(),
+		camTo:   ESTABLISH.clone(),
 		lookAt:  GATE_CENTER,
-		easing:  "ease-in",
+		easing:  "linear",
 	},
-	// Beat 2 — gate activates, kawoosh expands
+	// Beat 2 — CHEVRONS DIALING. Same wide shot, 9 chevron-lock SFX.
 	{
-		start: 4, end: 7,
-		camFrom: new THREE.Vector3(0, 1.7, 6),
-		camTo:   new THREE.Vector3(0, 1.7, 4),
+		start: 5, end: 11,
+		camFrom: ESTABLISH.clone(),
+		camTo:   ESTABLISH.clone(),
+		lookAt:  GATE_CENTER,
+		easing:  "linear",
+	},
+	// Beat 3 — KAWOOSH. Push in slightly for the effect reveal.
+	{
+		start: 11, end: 14,
+		camFrom: ESTABLISH.clone(),
+		camTo:   new THREE.Vector3(0, 4, 14),
 		lookAt:  GATE_CENTER,
 		easing:  "ease-out",
 	},
-	// Beat 3 — Scott through, low angle toward camera
+	// Beat 4 — STATIC OVERHEAD. Scott emerges + calls the all-clear,
+	// then the rest of the crew start coming through. This beat is long
+	// because it's the dramatic arrival moment.
 	{
-		start: 7, end: 11,
-		camFrom: new THREE.Vector3(0.5, 0.6, -2),
-		camTo:   new THREE.Vector3(0.5, 0.6, -4),
-		lookAt:  GATE_BACK,
-		easing:  "linear",
-	},
-	// Beat 4 — evacuation chaos, anonymous crew flying
-	{
-		start: 11, end: 16,
-		camFrom: new THREE.Vector3(-1.5, 0.4, -5),
-		camTo:   new THREE.Vector3(-2.0, 0.4, -8),
-		lookAt:  new THREE.Vector3(0, 2, 0),
-		easing:  "linear",
-	},
-	// Beat 5 — STATIC overhead wide shot of the gate room.
-	// camFrom === camTo so there's no motion. Dampen=true kills residual
-	// shake from the Beat 4 landing. lookAt is the center of the room floor.
-	{
-		start: 16, end: 20,
+		start: 14, end: 24,
 		camFrom: OVERHEAD.clone(),
 		camTo:   OVERHEAD.clone(),
-		lookAt:  new THREE.Vector3(0, 0, 0),
+		lookAt:  new THREE.Vector3(0, 0, -4),
 		easing:  "linear",
 	},
-	// Beat 6 — Rush lands clean, walks off
+	// Beat 5 — GATE SHUTDOWN. Mid-height wide shot, gate flickers off.
 	{
-		start: 20, end: 23,
-		camFrom: new THREE.Vector3(-3, 1.4, -4),
-		camTo:   new THREE.Vector3(-4, 1.4, -8),
-		lookAt:  new THREE.Vector3(-2, 1.4, -6),
-		easing:  "ease-out",
-	},
-	// Beat 7 — Eli and TJ tumble through
-	{
-		start: 23, end: 26,
-		camFrom: new THREE.Vector3(1.5, 0.5, -3),
-		camTo:   new THREE.Vector3(2.0, 0.5, -6),
-		lookAt:  GATE_BACK,
-		easing:  "linear",
-	},
-	// Beat 8 — Young last through at high speed, gate flickers shut, fade out
-	{
-		start: 26, end: 30,
-		camFrom: new THREE.Vector3(0, 1.4, -4),
-		camTo:   new THREE.Vector3(0, 1.4, -10),
-		lookAt:  new THREE.Vector3(0, 1.2, -16),
+		start: 24, end: 30,
+		camFrom: new THREE.Vector3(0, 5, 10),
+		camTo:   new THREE.Vector3(0, 4, 14),
+		lookAt:  GATE_CENTER,
 		easing:  "ease-in",
 	},
 ];
 
 const TOTAL_DURATION = 30;
+
+// Timing anchors — centralize so the updateAudio/updateCrew/updateSubtitles
+// stay in sync with the beat structure above.
+const T_DIAL_START = 5;
+const T_DIAL_END   = 11;
+const T_KAWOOSH    = 11;
+const T_OVERHEAD   = 14;
+const T_SCOTT_EMERGE = 14;
+const T_CHAOS_START  = 16;
+const T_TJ_ELI       = 18.5;
+const T_RUSH         = 20;
+const T_YOUNG_IMPACT = 22;
+const T_GATE_SHUTDOWN = 24;
 
 // ─── Named thrown actor (VRM crew) ────────────────────────────────────────────
 
@@ -294,59 +288,6 @@ function createSkipHint(): { setProgress: (p: number) => void; dispose: () => vo
 	};
 }
 
-// ─── Web Audio helpers ────────────────────────────────────────────────────────
-
-function playGateTone(ctx: AudioContext) {
-	const osc = ctx.createOscillator();
-	const gain = ctx.createGain();
-	osc.type = "sine";
-	osc.frequency.setValueAtTime(200, ctx.currentTime);
-	osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.5);
-	gain.gain.setValueAtTime(0.3, ctx.currentTime);
-	gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.0);
-	osc.connect(gain);
-	gain.connect(ctx.destination);
-	osc.start();
-	osc.stop(ctx.currentTime + 2.0);
-}
-
-function playWhoosh(ctx: AudioContext, intensity = 1.0) {
-	const bufSize = Math.floor(ctx.sampleRate * 0.35);
-	const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-	const data = buf.getChannelData(0);
-	for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-
-	const src = ctx.createBufferSource();
-	src.buffer = buf;
-
-	const filter = ctx.createBiquadFilter();
-	filter.type = "highpass";
-	filter.frequency.value = 800;
-
-	const gain = ctx.createGain();
-	gain.gain.setValueAtTime(0.25 * intensity, ctx.currentTime);
-	gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-
-	src.connect(filter);
-	filter.connect(gain);
-	gain.connect(ctx.destination);
-	src.start();
-}
-
-function playBoom(ctx: AudioContext) {
-	const osc = ctx.createOscillator();
-	const gain = ctx.createGain();
-	osc.type = "sine";
-	osc.frequency.setValueAtTime(80, ctx.currentTime);
-	osc.frequency.exponentialRampToValueAtTime(18, ctx.currentTime + 0.5);
-	gain.gain.setValueAtTime(0.5, ctx.currentTime);
-	gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-	osc.connect(gain);
-	gain.connect(ctx.destination);
-	osc.start();
-	osc.stop(ctx.currentTime + 1.2);
-}
-
 // ─── Controller ───────────────────────────────────────────────────────────────
 
 export class GateRoomCinematicController {
@@ -439,9 +380,11 @@ export class GateRoomCinematicController {
 	// ── Audio ─────────────────────────────────────────────────────────────────
 
 	private initAudio() {
+		// Real SFX are played via AudioManager (sound-catalog entries on R2).
+		// We keep a tiny AudioContext only for the background drone since
+		// there isn't a looping ship-hum entry in the catalog yet.
 		try {
 			this.audioCtx = new AudioContext();
-			// Low background drone — ship ambient hum
 			const osc = this.audioCtx.createOscillator();
 			const gain = this.audioCtx.createGain();
 			osc.type = "sine";
@@ -457,38 +400,53 @@ export class GateRoomCinematicController {
 	}
 
 	private updateAudio(elapsed: number) {
-		if (!this.audioCtx) return;
+		const audio = AudioManager.getInstance();
 
-		// Beat 2: gate activation tone sweep (200→80 Hz)
-		if (elapsed >= 4 && !this.audioPlayed.has("gate-tone")) {
-			this.audioPlayed.add("gate-tone");
-			playGateTone(this.audioCtx);
+		// Beat 2 — CHEVRONS DIALING. Play chevron-lock once per chevron,
+		// spaced evenly over the dial window. 9 chevrons × ~0.6s = 5.4s.
+		const DIAL_DURATION = T_DIAL_END - T_DIAL_START;
+		for (let i = 0; i < 9; i++) {
+			const chevronTime = T_DIAL_START + (i + 1) * (DIAL_DURATION / 10);
+			const key = `chevron-${i}`;
+			if (elapsed >= chevronTime && !this.audioPlayed.has(key)) {
+				this.audioPlayed.add(key);
+				void audio.play("chevron-lock");
+			}
 		}
-		// Beat 3: Scott lands
-		if (elapsed >= 9 && !this.audioPlayed.has("whoosh-scott")) {
-			this.audioPlayed.add("whoosh-scott");
-			playWhoosh(this.audioCtx, 0.9);
+
+		// Beat 3 — KAWOOSH. One big dramatic whoosh when the event horizon forms.
+		if (elapsed >= T_KAWOOSH && !this.audioPlayed.has("kawoosh")) {
+			this.audioPlayed.add("kawoosh");
+			void audio.play("stargate-kawoosh");
 		}
-		// Beat 4: chaos landing surge
-		if (elapsed >= 13 && !this.audioPlayed.has("whoosh-chaos")) {
-			this.audioPlayed.add("whoosh-chaos");
-			playWhoosh(this.audioCtx, 1.2);
+
+		// Beat 4 — crew emergence. Wormhole transit whoosh per named arrival.
+		if (elapsed >= T_SCOTT_EMERGE && !this.audioPlayed.has("scott-emerge")) {
+			this.audioPlayed.add("scott-emerge");
+			void audio.play("wormhole-transit");
 		}
-		// Beat 6: Rush lands (quiet, clean)
-		if (elapsed >= 21.2 && !this.audioPlayed.has("whoosh-rush")) {
-			this.audioPlayed.add("whoosh-rush");
-			playWhoosh(this.audioCtx, 0.5);
+		if (elapsed >= T_CHAOS_START && !this.audioPlayed.has("chaos-emerge")) {
+			this.audioPlayed.add("chaos-emerge");
+			void audio.play("energy-burst");
 		}
-		// Beat 7: TJ/Eli tumble in
-		if (elapsed >= 24.5 && !this.audioPlayed.has("whoosh-tj")) {
-			this.audioPlayed.add("whoosh-tj");
-			playWhoosh(this.audioCtx, 0.8);
+		if (elapsed >= T_TJ_ELI && !this.audioPlayed.has("tj-eli-emerge")) {
+			this.audioPlayed.add("tj-eli-emerge");
+			void audio.play("wormhole-transit");
 		}
-		// Beat 8: Young hits wall — boom + whoosh
-		if (elapsed >= 27 && !this.audioPlayed.has("boom-young")) {
-			this.audioPlayed.add("boom-young");
-			playBoom(this.audioCtx);
-			playWhoosh(this.audioCtx, 1.4);
+		if (elapsed >= T_RUSH && !this.audioPlayed.has("rush-emerge")) {
+			this.audioPlayed.add("rush-emerge");
+			void audio.play("wormhole-transit");
+		}
+		// Beat 5 — Young slams the far wall.
+		if (elapsed >= T_YOUNG_IMPACT && !this.audioPlayed.has("young-impact")) {
+			this.audioPlayed.add("young-impact");
+			void audio.play("debris-impact");
+			void audio.play("low-rumble");
+		}
+		// Gate shutdown energy wind-down.
+		if (elapsed >= T_GATE_SHUTDOWN + 2 && !this.audioPlayed.has("gate-shutdown")) {
+			this.audioPlayed.add("gate-shutdown");
+			void audio.play("power-down");
 		}
 	}
 
@@ -521,7 +479,7 @@ export class GateRoomCinematicController {
 
 	private updateKawoosh(delta: number, globalElapsed: number) {
 		if (this.kawooshDone) {
-			// Flicker at Beat 8 (t≈27-29)
+			// Flicker during shutdown beat (t≈27-29)
 			if (globalElapsed >= 27 && globalElapsed <= 29) {
 				const flicker = Math.random() > 0.7;
 				if (this.eventHorizon) this.eventHorizon.visible = flicker;
@@ -533,7 +491,8 @@ export class GateRoomCinematicController {
 			return;
 		}
 
-		if (globalElapsed < 4) return;  // Before Beat 2
+		// Kawoosh starts at the top of Beat 3
+		if (globalElapsed < T_KAWOOSH) return;
 
 		this.kawooshElapsed += delta;
 
@@ -725,11 +684,9 @@ export class GateRoomCinematicController {
 
 		const pos = new THREE.Vector3().lerpVectors(beat.camFrom, beat.camTo, t);
 
-		// Force-kill shake during the static overhead beat so residual
-		// landing shake doesn't wobble the zoomed-out hall view.
-		const OVERHEAD_BEAT_START = 16;
-		const OVERHEAD_BEAT_END = 20;
-		if (elapsed >= OVERHEAD_BEAT_START && elapsed < OVERHEAD_BEAT_END) {
+		// Force-kill shake during the wide establishing + dial + overhead
+		// beats so residual landing shake doesn't wobble the calm shots.
+		if (elapsed < T_OVERHEAD || (elapsed >= T_OVERHEAD && elapsed < T_OVERHEAD + 2)) {
 			this.shakeIntensity = 0;
 		}
 
@@ -751,28 +708,33 @@ export class GateRoomCinematicController {
 	// ── Subtitles ─────────────────────────────────────────────────────────────
 
 	private updateSubtitles(elapsed: number) {
-		// Beat 2: ambient — chevrons locking
-		if (elapsed >= 4 && elapsed < 6 && !this.subtitleShown.has("chevrons")) {
+		// Beat 2 — chevrons locking (during the dial phase)
+		if (elapsed >= T_DIAL_START + 1 && elapsed < T_DIAL_START + 4 && !this.subtitleShown.has("chevrons")) {
 			this.subtitleShown.add("chevrons");
-			this.subtitle.show("Chevrons locking...", 2);
+			this.subtitle.show("Chevrons locking...", 3);
 		}
-		// Beat 3: Scott clears the gate
-		if (elapsed >= 7 && elapsed < 9 && !this.subtitleShown.has("scott-clear")) {
+		// Beat 3 — kawoosh forms
+		if (elapsed >= T_KAWOOSH && elapsed < T_KAWOOSH + 2 && !this.subtitleShown.has("wormhole")) {
+			this.subtitleShown.add("wormhole");
+			this.subtitle.show("Wormhole established.", 2);
+		}
+		// Beat 4 — Scott all-clear, called as he emerges first during the overhead
+		if (elapsed >= T_SCOTT_EMERGE + 1 && elapsed < T_SCOTT_EMERGE + 4 && !this.subtitleShown.has("scott-clear")) {
 			this.subtitleShown.add("scott-clear");
-			this.subtitle.show("It's clear — start the evacuation", 3);
+			this.subtitle.show("It's clear — start the evacuation!", 3);
 		}
-		// Beat 4: chaos begins
-		if (elapsed >= 11 && elapsed < 13.5 && !this.subtitleShown.has("evacuate")) {
+		// Beat 4 — chaos surge starts
+		if (elapsed >= T_CHAOS_START && elapsed < T_CHAOS_START + 2.5 && !this.subtitleShown.has("evacuate")) {
 			this.subtitleShown.add("evacuate");
-			this.subtitle.show("Evacuate! Everyone through now!", 2.5);
+			this.subtitle.show("Everyone through now — GO!", 2.5);
 		}
-		// Beat 6: Rush observes the ancient ship
-		if (elapsed >= 20 && elapsed < 22 && !this.subtitleShown.has("rush-fascinating")) {
+		// Beat 4 — Rush observes
+		if (elapsed >= T_RUSH && elapsed < T_RUSH + 2 && !this.subtitleShown.has("rush-fascinating")) {
 			this.subtitleShown.add("rush-fascinating");
 			this.subtitle.show("Fascinating...", 2);
 		}
-		// Beat 8: Young is down
-		if (elapsed >= 26 && elapsed < 28 && !this.subtitleShown.has("young-down")) {
+		// Beat 5 — Young hits the wall
+		if (elapsed >= T_YOUNG_IMPACT && elapsed < T_YOUNG_IMPACT + 2 && !this.subtitleShown.has("young-down")) {
 			this.subtitleShown.add("young-down");
 			this.subtitle.show("Get Young — he's not moving!", 2);
 		}
@@ -787,39 +749,36 @@ export class GateRoomCinematicController {
 	private updateCrew(elapsed: number) {
 		if (!this.crewLoaded) return;
 
-		// Scott visible from Beat 3 onwards
-		if (this.scottNpc && elapsed >= 7) {
-			this.scottNpc.root.visible = true;
-		}
-		// Rush cinematic NPC visible Beat 6
-		if (this.rushNpc && elapsed >= 20 && elapsed < 23) {
-			this.rushNpc.root.visible = true;
+		// Hard rule: no crew visible until the overhead beat starts.
+		// The first 3 beats (wide/dial/kawoosh) show the empty gate room alone.
+		if (elapsed < T_OVERHEAD) {
+			return;
 		}
 
 		// Named thrown actors — indexed by order set in loadCrew:
-		// 0=scott(beat3), 1=rush(beat6), 2=tj(beat7), 3=eli(beat7), 4=young(beat8)
-		const beat4E  = Math.max(0, elapsed - 11);
-		const beat7E  = Math.max(0, elapsed - 23);
-		const beat8E  = Math.max(0, elapsed - 26);
-
+		// 0=scott(first through at T_SCOTT_EMERGE)
+		// 1=rush  (clean landing at T_RUSH)
+		// 2=tj    (T_TJ_ELI)
+		// 3=eli   (T_TJ_ELI)
+		// 4=young (T_YOUNG_IMPACT — hits wall)
 		this.thrownActors.forEach((actor, idx) => {
 			const beatE =
-				idx === 0 ? Math.max(0, elapsed - 7) :
-				idx === 1 ? Math.max(0, elapsed - 20) :
-				idx === 2 || idx === 3 ? beat7E :
-				beat8E;
+				idx === 0 ? Math.max(0, elapsed - T_SCOTT_EMERGE) :
+				idx === 1 ? Math.max(0, elapsed - T_RUSH) :
+				idx === 2 || idx === 3 ? Math.max(0, elapsed - T_TJ_ELI) :
+				Math.max(0, elapsed - T_YOUNG_IMPACT);
 			updateThrown(actor, beatE);
 		});
 
-		// Beat 4 chaos actors
-		this.chaosActors.forEach(actor => updateChaos(actor, beat4E));
+		// Anonymous chaos actors — start emerging after Scott's all-clear
+		const chaosE = Math.max(0, elapsed - T_CHAOS_START);
+		this.chaosActors.forEach(actor => updateChaos(actor, chaosE));
 
-		// Shake on first landing in Beat 4
-		if (elapsed >= 12 && elapsed < 13 && this.shakeIntensity < 0.05) {
-			this.shakeIntensity = 0.25;
+		// Shake on the chaos-arrival surge and again on Young's impact.
+		if (elapsed >= T_CHAOS_START + 0.3 && elapsed < T_CHAOS_START + 1 && this.shakeIntensity < 0.05) {
+			this.shakeIntensity = 0.22;
 		}
-		// Shake on Young hitting wall in Beat 8
-		if (elapsed >= 27 && elapsed < 27.5 && this.shakeIntensity < 0.05) {
+		if (elapsed >= T_YOUNG_IMPACT && elapsed < T_YOUNG_IMPACT + 0.5 && this.shakeIntensity < 0.05) {
 			this.shakeIntensity = 0.35;
 		}
 	}
