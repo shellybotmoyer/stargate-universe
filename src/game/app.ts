@@ -15,6 +15,7 @@ import * as THREE from "three";
 import { WebGPURenderer } from "three/webgpu";
 import { frameCameraOnObject } from "./camera";
 import { AudioManager } from "../systems/audio";
+import { installDebugApi, toggleDebugOverlay } from "../systems/debug-api";
 import { pollInput } from "../systems/input";
 import { createDefaultGameplaySystems, createStarterGameplayHost, mergeGameplaySystems } from "./gameplay";
 import { createRuntimePhysicsSession, type RuntimePhysicsSession } from "./runtime-physics";
@@ -92,6 +93,30 @@ export async function createGameApp(options: GameAppOptions) {
   AudioManager.getInstance().attachListener(camera);
   const clock = new THREE.Clock();
   let activeScene: ActiveScene | undefined;
+
+  // Dev hook surface — exposes window.__sgu for Playwright/MCP/console
+  // automation and renders an on-screen dev overlay. Only live in dev;
+  // the overlay is hidden until the player double-taps Backquote (or
+  // clicks the "open dev tools" hook).
+  const hostHooks = {
+    getCurrentSceneId: () => activeScene?.id,
+    getPlayerPosition: () => {
+      if (!activeScene?.player) return undefined;
+      const p = activeScene.player.object.position;
+      return { x: p.x, y: p.y, z: p.z };
+    },
+    setExternalMove: (forward: number, strafe: number) => {
+      activeScene?.player?.setExternalMoveInput(forward, strafe);
+    },
+    gotoScene: (sceneId: string) => loadScene(sceneId),
+  };
+  installDebugApi(hostHooks);
+  if (import.meta.env.DEV) {
+    const toggleDev = (e: KeyboardEvent) => {
+      if (e.code === "Backquote") toggleDebugOverlay(hostHooks);
+    };
+    window.addEventListener("keydown", toggleDev);
+  }
   let currentLoadToken = 0;
   let disposed = false;
 
