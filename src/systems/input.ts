@@ -19,10 +19,38 @@
  * the current state via `getInput()`.
  */
 import {
+	Action,
 	DEFAULT_GAMEPAD_BINDINGS,
 	DEFAULT_KEY_BINDINGS,
+	GamepadButton,
 	InputManager,
 } from "@kopertop/vibe-game-engine";
+
+/**
+ * Project-specific action IDs. Engine reserves 0-99; 100+ is ours.
+ * These are plain numbers so InputManager can key bindings on them.
+ */
+export const SguAction = {
+	/** G — dial the stargate (or shut it down if already active). */
+	DialGate: 100,
+	/** F5 — manual save. */
+	ManualSave: 101,
+	/** Backquote — toggle debug overlay (caller handles double-tap debounce). */
+	DebugToggle: 102,
+} as const;
+
+const SGU_KEY_BINDINGS: Record<string, number> = {
+	...DEFAULT_KEY_BINDINGS,
+	KeyG:      SguAction.DialGate,
+	F5:        SguAction.ManualSave,
+	Backquote: SguAction.DebugToggle,
+};
+
+const SGU_GAMEPAD_BINDINGS: Partial<Record<number, number[]>> = {
+	...(DEFAULT_GAMEPAD_BINDINGS as Record<number, number[]>),
+	// Y/Triangle → dial the gate (same button used for "special" in our HUD).
+	[GamepadButton.Y]: [SguAction.DialGate],
+};
 
 let instance: InputManager | undefined;
 let keyboardUnbind: (() => void) | undefined;
@@ -31,12 +59,15 @@ let keyboardUnbind: (() => void) | undefined;
 export function getInput(): InputManager {
 	if (!instance) {
 		instance = new InputManager();
-		instance.setKeyBindings(DEFAULT_KEY_BINDINGS);
-		instance.setGamepadBindings(DEFAULT_GAMEPAD_BINDINGS);
+		instance.setKeyBindings(SGU_KEY_BINDINGS);
+		instance.setGamepadBindings(SGU_GAMEPAD_BINDINGS);
 		keyboardUnbind = instance.bind();
 	}
 	return instance;
 }
+
+/** Re-export Action so scene code doesn't need to also import from the engine. */
+export { Action };
 
 /** Poll gamepad + snapshot edge-detection state for this frame. */
 export function pollInput(): void {

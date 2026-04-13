@@ -18,6 +18,7 @@ import * as THREE from "three";
 import { loadCrewMember } from "../../characters/character-loader";
 import type { CharacterLoadResult } from "../../characters/character-loader";
 import { AudioManager } from "../../systems/audio";
+import { Action, getInput } from "../../systems/input";
 
 // ─── Beat definitions ─────────────────────────────────────────────────────────
 
@@ -314,14 +315,12 @@ export class GateRoomCinematicController {
 	private scene: THREE.Scene;
 	private readonly onComplete: () => void;
 
-	// Skip mechanism
+	// Skip mechanism (InputManager: Action.Pause = Escape / Gamepad Start)
 	private skipHint = createSkipHint();
 	private skipHoldStart: number | null = null;
 	private readonly SKIP_HOLD_MS = 1500;
 	private skipFadeOverlay: HTMLDivElement | undefined;
 	private skipTriggered = false;
-	private readonly boundKeyDown: (e: KeyboardEvent) => void;
-	private readonly boundKeyUp: (e: KeyboardEvent) => void;
 
 	// Player visual hide/restore
 	private playerObject: THREE.Object3D | undefined;
@@ -347,20 +346,6 @@ export class GateRoomCinematicController {
 		this.loadCrew();
 		this.initAudio();
 		this.hidePlayerVisual();
-
-		this.boundKeyDown = (e: KeyboardEvent) => {
-			if (e.code === "Escape" && this.skipHoldStart === null && !this.skipTriggered) {
-				this.skipHoldStart = performance.now();
-			}
-		};
-		this.boundKeyUp = (e: KeyboardEvent) => {
-			if (e.code === "Escape") {
-				this.skipHoldStart = null;
-				this.skipHint.setProgress(0);
-			}
-		};
-		window.addEventListener("keydown", this.boundKeyDown);
-		window.addEventListener("keyup", this.boundKeyUp);
 	}
 
 	// ── Player visual hide/restore ────────────────────────────────────────────
@@ -788,26 +773,21 @@ export class GateRoomCinematicController {
 	private updateSkip() {
 		if (this.skipTriggered) return;
 
-		// Gamepad Start (standard mapping index 9) as alternative to ESC
-		const gamepads = navigator.getGamepads();
-		let gpStartHeld = false;
-		for (const gp of gamepads) {
-			if (gp?.buttons[9]?.pressed) { gpStartHeld = true; break; }
-		}
+		// Action.Pause is bound to Escape (keyboard) + Start (gamepad) by
+		// default — hold either for SKIP_HOLD_MS to skip.
+		const held = getInput().isAction(Action.Pause);
 
-		if (gpStartHeld && this.skipHoldStart === null) {
+		if (held && this.skipHoldStart === null) {
 			this.skipHoldStart = performance.now();
-		} else if (!gpStartHeld && this.skipHoldStart !== null) {
-			// Only clear if ESC also isn't held (ESC tracking is event-driven)
-			// This path handles gamepad-only release — ESC has its own keyup listener
+		} else if (!held && this.skipHoldStart !== null) {
+			this.skipHoldStart = null;
+			this.skipHint.setProgress(0);
 		}
 
 		if (this.skipHoldStart !== null) {
-			const held = performance.now() - this.skipHoldStart;
-			const progress = Math.min(1, held / this.SKIP_HOLD_MS);
-			this.skipHint.setProgress(progress);
-
-			if (held >= this.SKIP_HOLD_MS) {
+			const elapsed = performance.now() - this.skipHoldStart;
+			this.skipHint.setProgress(Math.min(1, elapsed / this.SKIP_HOLD_MS));
+			if (elapsed >= this.SKIP_HOLD_MS) {
 				this.triggerSkip();
 			}
 		}
@@ -866,9 +846,6 @@ export class GateRoomCinematicController {
 	dispose() {
 		if (this.disposed) return;
 		this.disposed = true;
-
-		window.removeEventListener("keydown", this.boundKeyDown);
-		window.removeEventListener("keyup", this.boundKeyUp);
 
 		this.subtitle.dispose();
 		this.skipHint.dispose();

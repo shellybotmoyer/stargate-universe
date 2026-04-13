@@ -19,6 +19,7 @@ import {
 } from "../../game/runtime-scene-sources";
 import type { GameSceneModuleContext, GameSceneLifecycle } from "../../game/scene-types";
 import { emit, scopedBus } from "../../systems/event-bus";
+import { Action, getInput } from "../../systems/input";
 import { createQuestManager } from "../../systems/quest-manager";
 import { registerAirCrisis, QUEST_ID as AIR_CRISIS_QUEST_ID } from "../../quests/air-crisis";
 import { isLimeCollected, setLimeCollected } from "../../systems/scene-transition-state";
@@ -443,13 +444,11 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		}, 1500);
 	};
 
-	// ─── Input ────────────────────────────────────────────────────────
-	const handleKeyDown = (e: KeyboardEvent): void => {
-		if (e.code !== "KeyE" || e.repeat) return;
-
+	// ─── Input (shared InputManager) ──────────────────────────────────
+	const input = getInput();
+	const tryInteract = (): void => {
 		if (nearPanel && !repaired) {
 			if (!isLimeCollected()) {
-				// Guard: player somehow arrived without lime (shouldn't happen via normal flow)
 				interactPrompt.style.display = "block";
 				interactPrompt.textContent = "You need to find a calcium source first.";
 				return;
@@ -459,7 +458,6 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			void context.gotoScene("gate-room");
 		}
 	};
-	window.addEventListener("keydown", handleKeyDown);
 
 	// ─── Test hooks ──────────────────────────────────────────────────────
 	(window as any).__sceneReady = true;
@@ -468,6 +466,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	return {
 		update(delta: number) {
 			elapsed += delta;
+
+			if (input.isActionJustPressed(Action.Interact)) tryInteract();
 
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			compassHud.update(camera as any, delta);
@@ -514,7 +514,6 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		},
 
 		dispose() {
-			window.removeEventListener("keydown", handleKeyDown);
 			for (const id of repairTimers) clearTimeout(id);
 			repairTimers.clear();
 			co2Display.element.remove();

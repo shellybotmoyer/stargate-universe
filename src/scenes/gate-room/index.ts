@@ -7,6 +7,7 @@ import type { GameSceneModuleContext, GameSceneLifecycle } from "../../game/scen
 import { perfMetrics } from "../../game/app";
 import { ShipState, SHIP_STATE_CONFIG, type Section, type Subsystem } from "../../systems/ship-state";
 import { emit, scopedBus } from "../../systems/event-bus";
+import { Action, SguAction, getInput } from "../../systems/input";
 import { createDialogueManager } from "../../systems/dialogue-manager";
 import { createNpcManager } from "../../systems/npc-manager";
 import { createQuestManager } from "../../systems/quest-manager";
@@ -1881,69 +1882,43 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		}
 	};
 
-	/** Gamepad A/Cross button — track previous state for leading-edge detection. */
-	let _gpAWasPressed = false;
 	/** Previous-frame player position used to derive velocity for loco input. */
 	const _prevPlayerPos = new THREE.Vector3();
 	if (player) _prevPlayerPos.copy(player.object.position);
 
-	const handleKeyDown = (e: KeyboardEvent) => {
-		if (e.code === "Backquote") {
-			const now = performance.now();
-			if (now - lastBackquoteTime < 400) { toggleDebug(); lastBackquoteTime = 0; }
-			else lastBackquoteTime = now;
-			return;
-		}
-		if (e.code === "KeyG" && !menu.visible) {
-			if (gate.state === "idle") {
-				startDial(gate);
-				// Advance locate-planet objective when player dials the gate
-				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "locate-planet");
-			} else if (gate.state === "active") {
-				shutdownGate(gate);
-			}
-		}
-		if (e.code === "KeyE" && !e.repeat && !menu.visible) {
-			if (interactTarget === "gate" && gate.state === "active") {
-				// Step through the stargate — advance gate-to-planet and transition scene
-				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "gate-to-planet");
-				void context.gotoScene("desert-planet");
-			} else if (interactTarget === "crate" && nearestCrate && !nearestCrate.looted) {
-				// Loot the crate (instant)
-				addResource("ship-parts", nearestCrate.contents);
-				markCrateLooted(nearestCrate);
-			} else if (interactTarget === "subsystem" && nearestSub && !repairingSubsystemId) {
-				const sub = shipState.getSubsystem(nearestSub.id);
-				if (sub && sub.condition < 1.0) {
-					const cost = sub.repairCost;
-					if (hasResource("ship-parts", cost)) {
-						// Calculate how many segments needed to reach 100%
-						const repairPerSegment = SHIP_STATE_CONFIG.BASE_REPAIR_AMOUNT * SHIP_STATE_CONFIG.REPAIR_SKILL_MODIFIER;
-						const remaining = 1.0 - sub.condition;
-						const segmentsToFull = Math.ceil(remaining / repairPerSegment);
+	// All input is polled from the shared InputManager in update() below.
+	// No ad-hoc window listeners — keyboard + gamepad go through the same
+	// action system (Action.Interact, SguAction.DialGate, etc.).
+	const input = getInput();
 
-						repairingSubsystemId = sub.id;
-						repairTotalSegments = segmentsToFull;
-						repairCompletedSegments = 0;
-						repairSegmentElapsed = 0;
-						player?.setRepairing(true);
-						repairBar.init(segmentsToFull, nearestSub.mesh.position);
-					}
-				}
-			} else if (interactTarget === "npc" && nearestNpc && !nearestNpc.inDialogue) {
-				emit("player:interact", { targetId: nearestNpc.definition.id, action: "talk" });
-			} else if (interactTarget === "scrubber-entrance") {
-				void context.gotoScene("scrubber-room");
+	/** Handle the "interact" trigger — keyboard E and gamepad A both fire this. */
+	const tryInteract = (): void => {
+		if (menu.visible) return;
+		if (interactTarget === "gate" && gate.state === "active") {
+			questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "gate-to-planet");
+			void context.gotoScene("desert-planet");
+		} else if (interactTarget === "crate" && nearestCrate && !nearestCrate.looted) {
+			addResource("ship-parts", nearestCrate.contents);
+			markCrateLooted(nearestCrate);
+		} else if (interactTarget === "subsystem" && nearestSub && !repairingSubsystemId) {
+			const sub = shipState.getSubsystem(nearestSub.id);
+			if (sub && sub.condition < 1.0 && hasResource("ship-parts", sub.repairCost)) {
+				const repairPerSegment = SHIP_STATE_CONFIG.BASE_REPAIR_AMOUNT * SHIP_STATE_CONFIG.REPAIR_SKILL_MODIFIER;
+				const remaining = 1.0 - sub.condition;
+				const segs = Math.ceil(remaining / repairPerSegment);
+				repairingSubsystemId = sub.id;
+				repairTotalSegments = segs;
+				repairCompletedSegments = 0;
+				repairSegmentElapsed = 0;
+				player?.setRepairing(true);
+				repairBar.init(segs, nearestSub.mesh.position);
 			}
+		} else if (interactTarget === "npc" && nearestNpc && !nearestNpc.inDialogue) {
+			emit("player:interact", { targetId: nearestNpc.definition.id, action: "talk" });
+		} else if (interactTarget === "scrubber-entrance") {
+			void context.gotoScene("scrubber-room");
 		}
 	};
-	const handleKeyUp = (e: KeyboardEvent) => {
-		if (e.code === "KeyE") {
-			cancelRepair();
-		}
-	};
-	window.addEventListener("keydown", handleKeyDown);
-	window.addEventListener("keyup", handleKeyUp);
 
 	// ─── Test hooks ──────────────────────────────────────────────────────
 	// Signal to Playwright that this scene's 3-D setup is complete and
@@ -1957,72 +1932,49 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		update(delta: number) {
 			playtimeMs += delta * 1000;
 
-			// ─── Gamepad polling ─────────────────────────────────────────
-			// Poll every frame; keyboard is fallback (handled by StarterPlayerController's
-			// own keyState). We inject gamepad axes via the public external-input API.
-			const gamepads = navigator.getGamepads();
-			let gpConnected = false;
-			for (const gp of gamepads) {
-				if (!gp || !gp.connected) continue;
-				gpConnected = true;
-
-				// Left stick: axes[0]=LX, axes[1]=LY (standard mapping)
-				const DEAD = 0.12;
-				const lx = Math.abs(gp.axes[0] ?? 0) > DEAD ? (gp.axes[0] ?? 0) : 0;
-				const ly = Math.abs(gp.axes[1] ?? 0) > DEAD ? (gp.axes[1] ?? 0) : 0;
-				// Right stick: axes[2]=RX, axes[3]=RY
-				const rx = Math.abs(gp.axes[2] ?? 0) > DEAD ? (gp.axes[2] ?? 0) : 0;
-				const ry = Math.abs(gp.axes[3] ?? 0) > DEAD ? (gp.axes[3] ?? 0) : 0;
-
-				if (player) {
-					// Left stick → movement (forward = -LY, strafe = LX)
-					player.setExternalMoveInput(-ly, lx);
-					// Right stick → camera orbit (scale to match mouse sensitivity)
-					if (rx !== 0 || ry !== 0) {
-						player.applyOrbitDelta(rx * delta * 2.2, ry * delta * 1.8);
-					}
-					// B/Circle (button 1) → sprint
-					player.setSprintOverride(!!(gp.buttons[1]?.pressed));
+			// ─── Input (unified: keyboard + gamepad via InputManager) ───────
+			// InputManager is polled once per frame in app.ts. We only read
+			// state here — both keyboard and gamepad go through the same
+			// action bindings defined in src/systems/input.ts.
+			if (input.gamepad.isConnected && player) {
+				// Left stick → movement. Engine dead-zones and clamps already.
+				const move = input.gamepad.getMovement();
+				player.setExternalMoveInput(-move.z, move.x);
+				// Right stick → camera orbit
+				const look = input.gamepad.getLook();
+				if (look.x !== 0 || look.y !== 0) {
+					player.applyOrbitDelta(look.x * delta * 2.2, look.y * delta * 1.8);
 				}
-
-				// A/Cross (button 0) → interact (same as KeyE, fire on leading edge only)
-				const aPressed = !!(gp.buttons[0]?.pressed);
-				if (aPressed && !_gpAWasPressed && !menu.visible) {
-					// Synthesise the same logic as handleKeyDown "KeyE"
-					if (interactTarget === "gate" && gate.state === "active") {
-						questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "gate-to-planet");
-						void context.gotoScene("desert-planet");
-					} else if (interactTarget === "crate" && nearestCrate && !nearestCrate.looted) {
-						addResource("ship-parts", nearestCrate.contents);
-						markCrateLooted(nearestCrate);
-					} else if (interactTarget === "subsystem" && nearestSub && !repairingSubsystemId) {
-						const sub = shipState.getSubsystem(nearestSub.id);
-						if (sub && sub.condition < 1.0 && hasResource("ship-parts", sub.repairCost)) {
-							const repairPerSegment = SHIP_STATE_CONFIG.BASE_REPAIR_AMOUNT * SHIP_STATE_CONFIG.REPAIR_SKILL_MODIFIER;
-							const remaining = 1.0 - sub.condition;
-							const segs = Math.ceil(remaining / repairPerSegment);
-							repairingSubsystemId = sub.id;
-							repairTotalSegments = segs;
-							repairCompletedSegments = 0;
-							repairSegmentElapsed = 0;
-							player?.setRepairing(true);
-							repairBar.init(segs, nearestSub.mesh.position);
-						}
-					} else if (interactTarget === "npc" && nearestNpc && !nearestNpc.inDialogue) {
-						emit("player:interact", { targetId: nearestNpc.definition.id, action: "talk" });
-					} else if (interactTarget === "scrubber-entrance") {
-						void context.gotoScene("scrubber-room");
-					}
-				}
-				_gpAWasPressed = aPressed;
-
-				// Only process first connected gamepad
-				break;
-			}
-			// Clear external inputs if no gamepad is connected
-			if (!gpConnected && player) {
+				// Sprint when gamepad Sprint action is held (B/Circle by default)
+				player.setSprintOverride(input.isAction(Action.Sprint));
+			} else if (player) {
 				player.setExternalMoveInput(0, 0);
 				player.setSprintOverride(false);
+			}
+
+			// Interact (KeyE / Gamepad A) — single fire on leading edge.
+			if (input.isActionJustPressed(Action.Interact)) {
+				tryInteract();
+			}
+			if (input.isActionJustReleased(Action.Interact)) {
+				cancelRepair();
+			}
+
+			// Dial the gate (KeyG / Gamepad Y).
+			if (input.isActionJustPressed(SguAction.DialGate) && !menu.visible) {
+				if (gate.state === "idle") {
+					startDial(gate);
+					questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "locate-planet");
+				} else if (gate.state === "active") {
+					shutdownGate(gate);
+				}
+			}
+
+			// Debug overlay toggle (double-tap Backquote).
+			if (input.isActionJustPressed(SguAction.DebugToggle)) {
+				const now = performance.now();
+				if (now - lastBackquoteTime < 400) { toggleDebug(); lastBackquoteTime = 0; }
+				else lastBackquoteTime = now;
 			}
 
 			// ─── Neural locomotion (10 Hz predict, 60 fps lerp) ──────────────
@@ -2313,8 +2265,6 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			}
 		},
 		dispose() {
-			window.removeEventListener("keydown", handleKeyDown);
-			window.removeEventListener("keyup", handleKeyUp);
 			limeBanner?.remove();
 			cancelRepair();
 			repairBar.dispose();

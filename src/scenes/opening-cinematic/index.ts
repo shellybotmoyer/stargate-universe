@@ -17,6 +17,7 @@ import {
 } from "../../game/runtime-scene-sources";
 import type { GameSceneModuleContext, GameSceneLifecycle } from "../../game/scene-types";
 import { AudioManager } from "../../systems/audio";
+import { Action, getInput } from "../../systems/input";
 
 const assetUrlLoaders = import.meta.glob("./assets/**/*", {
 	import: "default",
@@ -275,12 +276,9 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		void gotoScene("gate-room");
 	};
 
-	const handleKey = (e: KeyboardEvent): void => {
-		if (e.code === "Escape" || e.code === "Space" || e.code === "Enter") {
-			finish();
-		}
-	};
-	window.addEventListener("keydown", handleKey);
+	// Skip handled via InputManager — Action.MenuConfirm (Enter/Gamepad A)
+	// and Action.Pause (Escape/Gamepad Start) both end the cinematic.
+	const input = getInput();
 
 	// Position the ship far back so the opening frames are just stars
 	destiny.root.position.set(4, -0.5, 40);
@@ -290,6 +288,11 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		update(delta: number): void {
 			if (disposed) return;
 			elapsed += delta;
+
+			// Skip on any confirm/pause press
+			if (input.isActionJustPressed(Action.MenuConfirm) || input.isActionJustPressed(Action.Pause)) {
+				finish();
+			}
 
 			// Star drift
 			stars.rotation.y += delta * 0.01;
@@ -330,7 +333,6 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 
 		dispose(): void {
 			disposed = true;
-			window.removeEventListener("keydown", handleKey);
 			// Stop the theme if the player skipped early — otherwise let
 			// AudioManager's auto-cleanup handle the one-shot ending.
 			audio.stop("sgu-theme-song");

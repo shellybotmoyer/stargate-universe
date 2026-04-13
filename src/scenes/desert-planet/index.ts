@@ -21,6 +21,7 @@ import {
 } from "../../game/runtime-scene-sources";
 import type { GameSceneModuleContext, GameSceneLifecycle } from "../../game/scene-types";
 import { emit, scopedBus } from "../../systems/event-bus";
+import { Action, getInput } from "../../systems/input";
 import { createQuestManager } from "../../systems/quest-manager";
 import { registerAirCrisis, QUEST_ID as AIR_CRISIS_QUEST_ID } from "../../quests/air-crisis";
 import { createHud, createCompass, createDialoguePanel } from "@kopertop/vibe-game-engine";
@@ -432,36 +433,31 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	let nearGate = false;
 	let gateElapsed = 0;
 
-	const handleKeyDown = (e: KeyboardEvent): void => {
-		if (e.code === "KeyE" && !e.repeat) {
-			if (nearestDeposit && !nearestDeposit.collected) {
-				// Collect the deposit — emit resource:collected for quest manager
-				markDepositCollected(nearestDeposit);
-				collectedCount++;
-				collectionHUD.setCollected(collectedCount);
-				emit("resource:collected", {
-					type: "calcium-deposit",
-					amount: 1,
-					source: "desert-planet",
-				});
-				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "find-lime");
-			} else if (nearGate) {
-				// Guard: block return until all deposits are collected.
-				// Without this the player lands in gate-room with isLimeCollected()===false,
-				// the scrubber entrance never appears, and they are soft-locked (BUG-002).
-				if (collectedCount < totalDeposits) {
-					interactPrompt.style.display = "block";
-					interactPrompt.textContent =
-						`You need all ${totalDeposits} calcium deposits before returning. (${collectedCount}/${totalDeposits})`;
-					return;
-				}
-				setLimeCollected(true);
-				questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "return-to-destiny");
-				void context.gotoScene("gate-room");
+	const input = getInput();
+	const tryInteract = (): void => {
+		if (nearestDeposit && !nearestDeposit.collected) {
+			markDepositCollected(nearestDeposit);
+			collectedCount++;
+			collectionHUD.setCollected(collectedCount);
+			emit("resource:collected", {
+				type: "calcium-deposit",
+				amount: 1,
+				source: "desert-planet",
+			});
+			questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "find-lime");
+		} else if (nearGate) {
+			// Guard: block return until all deposits are collected (BUG-002).
+			if (collectedCount < totalDeposits) {
+				interactPrompt.style.display = "block";
+				interactPrompt.textContent =
+					`You need all ${totalDeposits} calcium deposits before returning. (${collectedCount}/${totalDeposits})`;
+				return;
 			}
+			setLimeCollected(true);
+			questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "return-to-destiny");
+			void context.gotoScene("gate-room");
 		}
 	};
-	window.addEventListener("keydown", handleKeyDown);
 
 	// ─── Test hooks ──────────────────────────────────────────────────────
 	(window as any).__sceneReady = true;
@@ -470,6 +466,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	return {
 		update(delta: number) {
 			gateElapsed += delta;
+
+			if (input.isActionJustPressed(Action.Interact)) tryInteract();
 
 			// Pulse event horizon
 			const horizonMat = gate.eventHorizon.material as THREE.MeshStandardMaterial;
@@ -532,7 +530,6 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		},
 
 		dispose() {
-			window.removeEventListener("keydown", handleKeyDown);
 			co2Timer.element.remove();
 			interactPrompt.remove();
 			collectionHUD.element.remove();

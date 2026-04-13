@@ -15,6 +15,7 @@ import {
 import type { GameSceneModuleContext, GameSceneLifecycle } from "../../game/scene-types";
 import { ShipState, type Section, type Subsystem, SHIP_STATE_CONFIG } from "../../systems/ship-state";
 import { emit, on, scopedBus } from "../../systems/event-bus";
+import { Action, SguAction, getInput } from "../../systems/input";
 
 const assetUrlLoaders = import.meta.glob("./assets/**/*", {
 	import: "default",
@@ -497,35 +498,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	// Disable shadows for performance
 	renderer.shadowMap.enabled = false;
 
-	// Key handlers
-	const handleKeyDown = (e: KeyboardEvent) => {
-		if (e.code === "Backquote") {
-			const now = performance.now();
-			if (now - lastBackquoteTime < 400) {
-				debugMode = !debugMode;
-				debug.element.style.display = debugMode ? "block" : "none";
-				lastBackquoteTime = 0;
-			} else {
-				lastBackquoteTime = now;
-			}
-			return;
-		}
-
-		if (e.code === "KeyE" && !e.repeat && interaction.nearestSubsystem && !interaction.repairingSubsystemId) {
-			const sub = shipState.getSubsystem(interaction.nearestSubsystem.subsystemId);
-			if (sub && sub.condition < 1.0) {
-				interaction.repairingSubsystemId = sub.id;
-				interaction.repairDuration = sub.repairCost * SECONDS_PER_REPAIR_PART;
-				interaction.repairElapsed = 0;
-				player?.setRepairing(true);
-			}
-		}
-	};
-	const handleKeyUp = (e: KeyboardEvent) => {
-		if (e.code === "KeyE") {
-			cancelRepair();
-		}
-	};
+	// Input via shared InputManager (polled in update below)
+	const input = getInput();
 	const cancelRepair = () => {
 		if (interaction.repairingSubsystemId) {
 			interaction.repairingSubsystemId = null;
@@ -534,14 +508,36 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			player?.setRepairing(false);
 		}
 	};
-	window.addEventListener("keydown", handleKeyDown);
-	window.addEventListener("keyup", handleKeyUp);
+	const tryInteract = () => {
+		if (!interaction.nearestSubsystem || interaction.repairingSubsystemId) return;
+		const sub = shipState.getSubsystem(interaction.nearestSubsystem.subsystemId);
+		if (sub && sub.condition < 1.0) {
+			interaction.repairingSubsystemId = sub.id;
+			interaction.repairDuration = sub.repairCost * SECONDS_PER_REPAIR_PART;
+			interaction.repairElapsed = 0;
+			player?.setRepairing(true);
+		}
+	};
+	const tryDebugToggle = () => {
+		const now = performance.now();
+		if (now - lastBackquoteTime < 400) {
+			debugMode = !debugMode;
+			debug.element.style.display = debugMode ? "block" : "none";
+			lastBackquoteTime = 0;
+		} else {
+			lastBackquoteTime = now;
+		}
+	};
 
 	// Track which section the player is in
 	let currentSection = "gate-room";
 
 	return {
 		update(delta: number) {
+			if (input.isActionJustPressed(Action.Interact)) tryInteract();
+			if (input.isActionJustReleased(Action.Interact)) cancelRepair();
+			if (input.isActionJustPressed(SguAction.DebugToggle)) tryDebugToggle();
+
 			// Update atmosphere visuals for each room
 			for (const room of ROOMS) {
 				const section = shipState.getSection(room.id);
@@ -595,8 +591,6 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			if (debugMode) debug.update();
 		},
 		dispose() {
-			window.removeEventListener("keydown", handleKeyDown);
-			window.removeEventListener("keyup", handleKeyUp);
 			cancelRepair();
 			debug.element.remove();
 			interaction.promptElement.remove();
