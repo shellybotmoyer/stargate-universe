@@ -30,6 +30,7 @@ export class AudioManager {
 	private readonly loader = new AudioLoader();
 	private readonly bufferCache = new Map<string, globalThis.AudioBuffer>();
 	private readonly activeSounds = new Map<string, Audio | PositionalAudio>();
+	private listenerParent: Camera | undefined;
 
 	private constructor() {}
 
@@ -42,8 +43,20 @@ export class AudioManager {
 
 	/** Attach the listener to the camera. Call once during scene setup. */
 	attachListener(camera: Camera): void {
+		if (this.listenerParent && this.listenerParent !== camera) {
+			this.listenerParent.remove(this.listener);
+		}
 		if (!camera.children.includes(this.listener)) {
 			camera.add(this.listener);
+		}
+		this.listenerParent = camera;
+	}
+
+	/** Detach the listener from its current camera. */
+	detachListener(): void {
+		if (this.listenerParent) {
+			this.listenerParent.remove(this.listener);
+			this.listenerParent = undefined;
 		}
 	}
 
@@ -122,6 +135,7 @@ export class AudioManager {
 	/** Dispose all resources. */
 	dispose(): void {
 		this.stopAll();
+		this.detachListener();
 		this.bufferCache.clear();
 	}
 

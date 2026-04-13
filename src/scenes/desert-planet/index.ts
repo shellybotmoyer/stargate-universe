@@ -568,7 +568,7 @@ export const desertPlanetScene = defineGameScene({
 	}),
 	title: "Desert Planet",
 	player: {
-		vrmUrl: "/characters/eli.vrm",
+		vrmUrl: "https://pub-c642ba55d4f641de916d72786545c520.r2.dev/characters/eli.vrm",
 	},
 	mount,
 });

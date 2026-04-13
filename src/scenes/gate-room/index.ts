@@ -1577,8 +1577,11 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	rushDot.position.set(rushPos.x, rushPos.y + 2.0, rushPos.z);
 	scene.add(rushDot);
 
-	// Load Dr. Rush's character model; fall back to capsule on error
-	void loadVRMCharacter("/assets/characters/dr-rush.vrm")
+	// Load Dr. Rush's character model; fall back to capsule on error.
+	// Path matches /assets/characters/manifest.json. The legacy
+	// /assets/characters/dr-rush.vrm at the top level is a byte-identical
+	// duplicate of eli-wallace.vrm (placeholder) — do not reference it.
+	void loadVRMCharacter("/assets/characters/nicholas-rush/nicholas-rush.vrm")
 		.then((char) => {
 			rushCharacter = char;
 			// Position and face player spawn (+Z)
@@ -1647,23 +1650,14 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	// Assigned after HUD setup below; removed when the air crisis quest completes.
 	let gateBlocker: CrashcatRigidBody | null = null;
 
-	// HUD TODO — wire these to on-screen indicators once HUD layer exists
-	bus.on("quest:started", ({ questId }) => {
-		console.log(`[HUD TODO] Quest started: ${questId}`);
-	});
-	bus.on("quest:objective-complete", ({ questId, objectiveId }) => {
-		console.log(`[HUD TODO] Objective complete: ${questId} / ${objectiveId}`);
-	});
+	// Air crisis done → scrubbers fixed → gate is now passable.
+	// When a real quest-toast HUD is added, also surface quest:started /
+	// quest:objective-complete / save:completed via that system.
 	bus.on("quest:completed", ({ questId }) => {
-		console.log(`[HUD TODO] Quest completed: ${questId}`);
-		// Air crisis done → scrubbers fixed → gate is now passable
 		if (questId === AIR_CRISIS_QUEST_ID && gateBlocker !== null) {
 			rigidBody.remove(context.physicsWorld, gateBlocker);
 			gateBlocker = null;
 		}
-	});
-	bus.on("save:completed", ({ slotId }) => {
-		console.log(`[HUD TODO] Saved to slot: ${slotId}`);
 	});
 
 	let playtimeMs = 0;
@@ -2321,6 +2315,6 @@ export const gateRoomScene = defineGameScene({
 		manifestLoader: () => import("./scene.runtime.json?raw").then((module) => module.default)
 	}),
 	title: "Gate Room",
-	player: { vrmUrl: "/assets/characters/eli-wallace/eli-wallace.vrm" },
+	player: { vrmUrl: "https://pub-c642ba55d4f641de916d72786545c520.r2.dev/characters/eli.vrm" },
 	mount
 });

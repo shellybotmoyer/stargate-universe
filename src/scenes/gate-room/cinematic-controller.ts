@@ -370,6 +370,8 @@ export class GateRoomCinematicController {
 	private rushNpc: CharacterLoadResult | undefined;
 	private scottNpc: CharacterLoadResult | undefined;
 	private youngNpc: CharacterLoadResult | undefined;
+	private tjNpc: CharacterLoadResult | undefined;
+	private eliNpc: CharacterLoadResult | undefined;
 	private camera: THREE.PerspectiveCamera;
 	private scene: THREE.Scene;
 	private readonly onComplete: () => void;
@@ -601,101 +603,120 @@ export class GateRoomCinematicController {
 	// ── Crew loading ──────────────────────────────────────────────────────────
 
 	private async loadCrew() {
-		try {
-			const [scott, rush, young, tj, eli] = await Promise.allSettled([
-				loadCrewMember("scott"),
-				loadCrewMember("rush"),
-				loadCrewMember("young"),
-				loadCrewMember("tj"),
-				loadCrewMember("eli"),
-			]);
+		const [scott, rush, young, tj, eli] = await Promise.allSettled([
+			loadCrewMember("scott"),
+			loadCrewMember("rush"),
+			loadCrewMember("young"),
+			loadCrewMember("tj"),
+			loadCrewMember("eli"),
+		]);
 
-			if (scott.status === "fulfilled") {
-				this.scottNpc = scott.value;
-				this.scene.add(this.scottNpc.root);
-				this.scottNpc.root.visible = false;
+		// If the cinematic was disposed while crew was loading (e.g. player
+		// skipped, or the scene was torn down), discard loaded VRM resources
+		// instead of attaching them to a dead scene.
+		if (this.disposed) {
+			for (const result of [scott, rush, young, tj, eli]) {
+				if (result.status === "fulfilled") {
+					result.value.dispose?.();
+				}
 			}
-
-			if (rush.status === "fulfilled") {
-				// Rush is already in the scene as the main NPC — cinematic version
-				// is positioned at the gate mouth for the throw, separately
-				this.rushNpc = rush.value;
-				this.rushNpc.root.position.set(0.3, 3.2, 0.5);
-				this.rushNpc.root.visible = false;
-				this.scene.add(this.rushNpc.root);
-			}
-
-			if (young.status === "fulfilled") {
-				this.youngNpc = young.value;
-				this.scene.add(this.youngNpc.root);
-				this.youngNpc.root.visible = false;
-			}
-
-			// Set up thrown actors once crew is loaded
-			const actors: ThrownActor[] = [];
-
-			if (scott.status === "fulfilled") {
-				// Beat 3: Scott walks through at t=7, arrives at t=9
-				actors.push(createThrownActor(
-					scott.value,
-					new THREE.Vector3(0, 3.2, 0.3),
-					new THREE.Vector3(-0.3, -0.5, -4),
-					0, 1.8,
-					new THREE.Vector3(-0.5, 0.1, -7),
-				));
-			}
-
-			if (rush.status === "fulfilled") {
-				// Beat 6: Rush lands mostly clean at t=20
-				actors.push(createThrownActor(
-					rush.value,
-					new THREE.Vector3(0.2, 3.2, 0.3),
-					new THREE.Vector3(0.2, 0.2, -5),
-					0, 1.2,
-					new THREE.Vector3(0.3, 0.1, -6),
-				));
-			}
-
-			if (tj.status === "fulfilled") {
-				// Beat 7: TJ tumbles at t=23
-				actors.push(createThrownActor(
-					tj.value,
-					new THREE.Vector3(-0.5, 3.2, 0.3),
-					new THREE.Vector3(-1.2, 2.5, -8),
-					0.3, 1.0,
-					new THREE.Vector3(-1.8, 0.1, -8),
-				));
-			}
-
-			if (eli.status === "fulfilled") {
-				// Beat 7: Eli tumbles (NPC version — player Eli is hidden during cinematic)
-				actors.push(createThrownActor(
-					eli.value,
-					new THREE.Vector3(0.4, 3.2, 0.3),
-					new THREE.Vector3(0.9, 3.0, -7),
-					0.6, 1.1,
-					new THREE.Vector3(1.2, 0.1, -7),
-				));
-				this.scene.add(eli.value.root);
-			}
-
-			if (young.status === "fulfilled") {
-				// Beat 8: Young high-speed, hits far wall unconscious
-				actors.push(createThrownActor(
-					young.value,
-					new THREE.Vector3(-0.2, 3.2, 0.3),
-					new THREE.Vector3(-1.0, 1.5, -14),
-					0, 0.7,
-					new THREE.Vector3(-1.2, 0.1, -17),
-				));
-			}
-
-			this.thrownActors = actors;
 			this.crewLoaded = true;
-		} catch (err) {
-			console.warn("[Cinematic] Crew load error:", err);
-			this.crewLoaded = true; // continue without crew
+			return;
 		}
+
+		if (scott.status === "fulfilled") {
+			this.scottNpc = scott.value;
+			this.scene.add(this.scottNpc.root);
+			this.scottNpc.root.visible = false;
+		}
+
+		if (rush.status === "fulfilled") {
+			// Rush is already in the scene as the main NPC — cinematic version
+			// is positioned at the gate mouth for the throw, separately
+			this.rushNpc = rush.value;
+			this.rushNpc.root.position.set(0.3, 3.2, 0.5);
+			this.rushNpc.root.visible = false;
+			this.scene.add(this.rushNpc.root);
+		}
+
+		if (young.status === "fulfilled") {
+			this.youngNpc = young.value;
+			this.scene.add(this.youngNpc.root);
+			this.youngNpc.root.visible = false;
+		}
+
+		if (tj.status === "fulfilled") {
+			this.tjNpc = tj.value;
+			this.scene.add(this.tjNpc.root);
+			this.tjNpc.root.visible = false;
+		}
+
+		if (eli.status === "fulfilled") {
+			this.eliNpc = eli.value;
+			this.scene.add(this.eliNpc.root);
+			this.eliNpc.root.visible = false;
+		}
+
+		// Set up thrown actors once crew is loaded
+		const actors: ThrownActor[] = [];
+
+		if (scott.status === "fulfilled") {
+			// Beat 3: Scott walks through at t=7, arrives at t=9
+			actors.push(createThrownActor(
+				scott.value,
+				new THREE.Vector3(0, 3.2, 0.3),
+				new THREE.Vector3(-0.3, -0.5, -4),
+				0, 1.8,
+				new THREE.Vector3(-0.5, 0.1, -7),
+			));
+		}
+
+		if (rush.status === "fulfilled") {
+			// Beat 6: Rush lands mostly clean at t=20
+			actors.push(createThrownActor(
+				rush.value,
+				new THREE.Vector3(0.2, 3.2, 0.3),
+				new THREE.Vector3(0.2, 0.2, -5),
+				0, 1.2,
+				new THREE.Vector3(0.3, 0.1, -6),
+			));
+		}
+
+		if (tj.status === "fulfilled") {
+			// Beat 7: TJ tumbles at t=23
+			actors.push(createThrownActor(
+				tj.value,
+				new THREE.Vector3(-0.5, 3.2, 0.3),
+				new THREE.Vector3(-1.2, 2.5, -8),
+				0.3, 1.0,
+				new THREE.Vector3(-1.8, 0.1, -8),
+			));
+		}
+
+		if (eli.status === "fulfilled") {
+			// Beat 7: Eli tumbles (NPC version — player Eli is hidden during cinematic)
+			actors.push(createThrownActor(
+				eli.value,
+				new THREE.Vector3(0.4, 3.2, 0.3),
+				new THREE.Vector3(0.9, 3.0, -7),
+				0.6, 1.1,
+				new THREE.Vector3(1.2, 0.1, -7),
+			));
+		}
+
+		if (young.status === "fulfilled") {
+			// Beat 8: Young high-speed, hits far wall unconscious
+			actors.push(createThrownActor(
+				young.value,
+				new THREE.Vector3(-0.2, 3.2, 0.3),
+				new THREE.Vector3(-1.0, 1.5, -14),
+				0, 0.7,
+				new THREE.Vector3(-1.2, 0.1, -17),
+			));
+		}
+
+		this.thrownActors = actors;
+		this.crewLoaded = true;
 	}
 
 	// ── Camera ────────────────────────────────────────────────────────────────
@@ -911,16 +932,33 @@ export class GateRoomCinematicController {
 		// Restore player visual before anything else
 		this.restorePlayerVisual();
 
-		if (this.kawooshDisc) { this.scene.remove(this.kawooshDisc); this.kawooshDisc = undefined; }
-		if (this.eventHorizon) { this.scene.remove(this.eventHorizon); this.eventHorizon = undefined; }
+		if (this.kawooshDisc) {
+			this.scene.remove(this.kawooshDisc);
+			this.kawooshDisc.geometry.dispose();
+			(this.kawooshDisc.material as THREE.Material).dispose();
+			this.kawooshDisc = undefined;
+		}
+		if (this.eventHorizon) {
+			this.scene.remove(this.eventHorizon);
+			this.eventHorizon.geometry.dispose();
+			(this.eventHorizon.material as THREE.Material).dispose();
+			this.eventHorizon = undefined;
+		}
 
-		[this.scottNpc, this.rushNpc, this.youngNpc].forEach(c => {
-			if (c) this.scene.remove(c.root);
-		});
-		this.thrownActors.forEach(a => this.scene.remove(a.char.root));
+		// Crew NPCs (VRM) — remove from scene and dispose GPU resources.
+		for (const c of [this.scottNpc, this.rushNpc, this.youngNpc, this.tjNpc, this.eliNpc]) {
+			if (!c) continue;
+			this.scene.remove(c.root);
+			c.dispose?.();
+		}
+		this.scottNpc = this.rushNpc = this.youngNpc = this.tjNpc = this.eliNpc = undefined;
 		this.thrownActors = [];
 
-		this.chaosActors.forEach(a => this.scene.remove(a.mesh));
+		for (const a of this.chaosActors) {
+			this.scene.remove(a.mesh);
+			a.mesh.geometry.dispose();
+			(a.mesh.material as THREE.Material).dispose();
+		}
 		this.chaosActors = [];
 	}
 }

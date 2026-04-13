@@ -21,7 +21,6 @@
  */
 
 import { test, expect, type Page } from "@playwright/test";
-import * as path from "path";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -51,8 +50,7 @@ const emitBus = (page: Page, event: string, payload: Record<string, unknown>) =>
 	);
 
 /** Save path for named snapshots (also stored to __snapshots__ via toMatchSnapshot). */
-const snap = (name: string) =>
-	path.join("tests", "visual", "__snapshots__", `${name}.png`);
+const snap = (name: string) => `tests/visual/__snapshots__/${name}.png`;
 
 /** Take a screenshot, save it to disk, and assert it matches the stored baseline. */
 const screenshot = async (page: Page, name: string) => {

@@ -44,13 +44,33 @@ function dismissLoading() {
 	setTimeout(() => loading.remove(), 700);
 }
 
-const unsubscribe = on("character:model:loaded", () => {
-	unsubscribe();
+const unsubLoaded = on("character:model:loaded", () => {
+	unsubLoaded();
+	unsubFailed();
 	dismissLoading();
 });
 
-// Fallback: dismiss after 10s even if VRM fails to load
-setTimeout(dismissLoading, 10000);
+// If VRM load fails, surface the error to the playtester (who may not have
+// DevTools open) rather than silently timing out. The game still drops into
+// the scene with a capsule fallback, so this is informational.
+const unsubFailed = on("character:model:failed", ({ characterId, error }) => {
+	unsubFailed();
+	subtitle.textContent = `Character "${characterId}" failed — running with fallback`;
+	subtitle.title = error;
+	(barFill.style as CSSStyleDeclaration).background = "#ff6644";
+	// Give the player a moment to see the message, then drop into the scene.
+	setTimeout(() => {
+		unsubLoaded();
+		dismissLoading();
+	}, 2500);
+});
+
+// Fallback: dismiss after 10s even if neither event fires
+setTimeout(() => {
+	unsubLoaded();
+	unsubFailed();
+	dismissLoading();
+}, 10000);
 
 // ─── Scene URL routing ────────────────────────────────────────────────────────
 // ?scene=<id> lets Playwright navigate directly to any scene without playing

@@ -602,6 +602,18 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			interaction.promptElement.remove();
 			shipState.dispose();
 			bus.cleanup();
+			// Dispose GPU geometry + material objects to prevent VRAM leaks
+			// across scene transitions (matches BUG-003 pattern from other scenes).
+			scene.traverse((obj) => {
+				if (obj instanceof THREE.Mesh) {
+					obj.geometry.dispose();
+					if (Array.isArray(obj.material)) {
+						obj.material.forEach((m) => m.dispose());
+					} else {
+						(obj.material as THREE.Material).dispose();
+					}
+				}
+			});
 		}
 	};
 }
@@ -616,7 +628,7 @@ export const destinyCorridorScene = defineGameScene({
 	}),
 	title: "Destiny Corridor",
 	player: {
-		vrmUrl: "/characters/eli.vrm",
+		vrmUrl: "https://pub-c642ba55d4f641de916d72786545c520.r2.dev/characters/eli.vrm",
 	},
 	mount
 });
