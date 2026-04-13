@@ -4,6 +4,7 @@ import { initialSceneId, scenes } from "./scenes";
 import { on, emit } from "./systems/event-bus";
 import { AudioManager } from "./systems/audio";
 import { installFullscreenBehavior } from "./systems/fullscreen";
+import { createInstallPrompt, registerServiceWorker } from "@kopertop/vibe-game-engine";
 
 // Chrome autoplay policy: audio contexts created before a user gesture
 // start in "suspended" state. Resume on the first click/key so menu music
@@ -49,6 +50,31 @@ window.addEventListener("focus", handleVisibility);
 // browser doesn't steal it for "exit fullscreen". Escape is routed to
 // the in-game menu via InputManager's Action.Pause instead.
 installFullscreenBehavior();
+
+// ─── PWA — service worker + installability ────────────────────────────────────
+// Skipped entirely on localhost dev (no need to cache the dev server).
+// The SW is generated from @kopertop/vibe-game-engine's DEFAULT_SW_SOURCE
+// via scripts/gen-sw.ts into public/sw.js and picked up by Vite.
+const installPrompt = createInstallPrompt();
+(window as any).__sguInstallPrompt = installPrompt;
+
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+	void registerServiceWorker({
+		url:   "/sw.js",
+		scope: "/",
+		onUpdateReady: (registration) => {
+			// New build available in the background. For now, auto-apply
+			// after a short delay so returning players get fresh content
+			// without a "Reload?" prompt. Swap to a UI prompt when we have
+			// a HUD toast system.
+			console.info("[SW] New version ready — applying in 5s");
+			setTimeout(() => {
+				registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+			}, 5000);
+		},
+		onError: (err) => console.warn("[SW] registration failed:", err.message),
+	});
+}
 
 const root = document.querySelector<HTMLDivElement>("#app");
 
