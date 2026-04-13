@@ -8,7 +8,14 @@
  * @see src/systems/save-manager.ts
  */
 import type { ShipStateSnapshot } from '../systems/ship-state';
-import type { QuestStatus } from './quest';
+// Quest + dialogue save shapes are defined in the engine so every consumer
+// shares one schema. We re-export them here for SGU's existing imports.
+export type {
+	QuestObjectiveSave,
+	QuestStateSave,
+	QuestSaveData,
+	DialogueSaveData,
+} from '@kopertop/vibe-game-engine';
 
 // ─── Versioning ───────────────────────────────────────────────────────────────
 
@@ -36,42 +43,7 @@ export type ResourceSnapshot = {
 	resources: Record<string, number>;
 };
 
-/** Per-objective progress stored in a save. */
-export type QuestObjectiveSave = {
-	id: string;
-	current: number;
-	completed: boolean;
-	visible: boolean;
-};
-
-/** Serialized state of a single quest. The definition is not stored — it is
- *  re-registered at startup and looked up by questId during deserialization. */
-export type QuestStateSave = {
-	questId: string;
-	status: QuestStatus;
-	objectives: QuestObjectiveSave[];
-	startedAt?: number;
-	completedAt?: number;
-};
-
-/** Full quest manager snapshot. */
-export type QuestSaveData = {
-	version: number;
-	active: QuestStateSave[];
-	completed: QuestStateSave[];
-	failed: QuestStateSave[];
-};
-
-/** Persistent dialogue state across all NPC conversations. */
-export type DialogueSaveData = {
-	version: number;
-	/** NPC IDs the player has spoken to at least once. */
-	metNpcs: string[];
-	/** Net affinity accumulated per NPC ID over all completed conversations. */
-	affinityMap: Record<string, number>;
-	/** All quest IDs accepted through dialogue (union across sessions). */
-	acceptedQuests: string[];
-};
+import type { QuestSaveData, DialogueSaveData } from '@kopertop/vibe-game-engine';
 
 // ─── Top-level save blob ──────────────────────────────────────────────────────
 
