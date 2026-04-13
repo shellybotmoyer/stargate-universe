@@ -107,6 +107,18 @@ export class StarterPlayerController {
   /** When true, counts as sprint regardless of Shift key. */
   private _extSprint = false;
 
+  // ── Cinematic input gate ───────────────────────────────────────────────────
+  private _inputEnabled = true;
+
+  get inputEnabled() { return this._inputEnabled; }
+  set inputEnabled(v: boolean) {
+    this._inputEnabled = v;
+    if (!v) {
+      this.keyState.clear();
+      this.releasePointerLock();
+    }
+  }
+
   constructor(options: StarterPlayerControllerOptions) {
     this.camera = options.camera;
     this.cameraMode = options.cameraMode;
@@ -593,6 +605,7 @@ export class StarterPlayerController {
   };
 
   private readonly handleKeyDown = (event: KeyboardEvent) => {
+    if (!this._inputEnabled) return;
     if (isTextInputTarget(event.target)) {
       return;
     }
@@ -606,10 +619,12 @@ export class StarterPlayerController {
   };
 
   private readonly handleKeyUp = (event: KeyboardEvent) => {
+    if (!this._inputEnabled) return;
     this.keyState.delete(event.code);
   };
 
   private readonly handleMouseMove = (event: MouseEvent) => {
+    if (!this._inputEnabled) return;
     this.pointerLocked = document.pointerLockElement === this.domElement;
 
     if (!this.pointerLocked) {

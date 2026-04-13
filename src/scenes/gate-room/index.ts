@@ -38,6 +38,7 @@ import {
 } from "@ggez/runtime-physics-crashcat";
 import type { DialoguePanelEventBus } from "@kopertop/vibe-game-engine";
 import { loadVRMCharacter, type CharacterLoadResult } from "../../characters/character-loader";
+import { GateRoomCinematicController } from "./cinematic-controller";
 
 const assetUrlLoaders = import.meta.glob("./assets/**/*", {
 	import: "default",
@@ -1599,7 +1600,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	// VRM/GLB model attached to the physics body so it follows player movement.
 	let playerCharacter: CharacterLoadResult | undefined;
 	if (player) {
-		void loadVRMCharacter("/assets/characters/player.vrm")
+		void loadVRMCharacter("/assets/characters/eli-wallace/eli-wallace.vrm")
 			.then((char) => {
 				playerCharacter = char;
 				// Re-parent under player.object so it moves with the physics body.
@@ -1611,6 +1612,24 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			.catch((err: unknown) => {
 				console.warn("[GateRoom] Player VRM load failed — no visual overlay", err);
 			});
+	}
+
+	// ── Opening cinematic mode ───────────────────────────────────────────────
+	// Activated when the user clicks NEW GAME on the start screen.
+	let cinematicController: GateRoomCinematicController | undefined;
+	if (sessionStorage.getItem("sgu-new-game")) {
+		sessionStorage.removeItem("sgu-new-game");
+		// Disable player input during cinematic
+		if (player) player.inputEnabled = false;
+		cinematicController = new GateRoomCinematicController(
+			scene,
+			camera as import("three").PerspectiveCamera,
+			() => {
+				// Beat 9 complete — hand control back to player
+				if (player) player.inputEnabled = true;
+				cinematicController = undefined;
+			},
+		);
 	}
 
 	// When Rush ends a dialogue session that accepted the power quest, start it.
@@ -2032,6 +2051,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			if (playerCharacter) playerCharacter.update(delta);
 			updateGate(gate, delta);
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			if (cinematicController) cinematicController.update(delta);
 			compassHud.update(camera as any, delta);
 
 			// ─── Ship State driven lighting ──────────────────────────────
@@ -2277,7 +2297,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			npcManager.dispose();
 			questManager.dispose();
 			saveManager.dispose();
-			setSceneManagers(null);
+			if (cinematicController) { cinematicController.dispose(); cinematicController = undefined; }
+		setSceneManagers(null);
 			shipState.dispose();
 			bus.cleanup();
 			wallMeshes.length = 0;
@@ -2312,8 +2333,6 @@ export const gateRoomScene = defineGameScene({
 		manifestLoader: () => import("./scene.runtime.json?raw").then((module) => module.default)
 	}),
 	title: "Gate Room",
-	player: {
-		vrmUrl: "/characters/eli.vrm",
-	},
+	player: {},
 	mount
 });
