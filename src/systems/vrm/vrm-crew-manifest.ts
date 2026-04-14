@@ -135,9 +135,7 @@ export async function loadCrewRoster(
 		const response = await fetch(url);
 
 		if (!response.ok) {
-			console.warn(
-				`[CrewManifest] Failed to load roster from ${url} (${response.status}). Using defaults.`
-			);
+\t\t\tconsole.info(`[CrewManifest] Failed to load roster from ${url} (${response.status}). Using defaults.`);
 			return roster;
 		}
 
