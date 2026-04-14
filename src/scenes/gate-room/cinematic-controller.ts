@@ -236,10 +236,14 @@ interface ThrownActor {
 	char: CharacterLoadResult;
 	startPos: THREE.Vector3;
 	velocity: THREE.Vector3;
-	t0: number;         // time offset within beat window that throw starts
-	flightTime: number;
+	t0: number;           // delay before throw starts (within beat window)
+	flightTime: number;   // seconds of parabolic arc
 	landPos: THREE.Vector3;
 	landed: boolean;
+	landedAt: number;     // beatElapsed when landing occurred
+	standUpDelay: number; // seconds after landing before standing up starts
+	standUpDur: number;   // seconds to lerp from prone to upright
+	staysDown: boolean;   // true = unconscious (Young), never stands up
 }
 
 function createThrownActor(
@@ -249,10 +253,17 @@ function createThrownActor(
 	t0: number,
 	flightTime: number,
 	landPos: THREE.Vector3,
+	standUpDelay = 1.5,
+	standUpDur = 2.0,
+	staysDown = false,
 ): ThrownActor {
 	char.root.position.copy(startPos);
 	char.root.visible = false;
-	return { char, startPos: startPos.clone(), velocity: velocity.clone(), t0, flightTime, landPos: landPos.clone(), landed: false };
+	return {
+		char, startPos: startPos.clone(), velocity: velocity.clone(),
+		t0, flightTime, landPos: landPos.clone(), landed: false,
+		landedAt: 0, standUpDelay, standUpDur, staysDown,
+	};
 }
 
 function updateThrown(actor: ThrownActor, beatElapsed: number) {
@@ -261,28 +272,43 @@ function updateThrown(actor: ThrownActor, beatElapsed: number) {
 
 	actor.char.root.visible = true;
 
+	// ── Landed state ─────────────────────────────────────────────────
 	if (actor.landed) {
-		// Landed: lie on the ground (rotation.x = -π/2 = face-down).
-		// Slight Y rotation so they don't all point the same direction.
+		if (actor.staysDown) {
+			// Unconscious (Young) — stays prone permanently.
+			actor.char.root.rotation.x = -Math.PI / 2;
+			return;
+		}
+		const sinceL = beatElapsed - actor.landedAt;
+		if (sinceL < actor.standUpDelay) {
+			// Still on the ground recovering
+			actor.char.root.rotation.x = -Math.PI / 2;
+		} else {
+			// Standing up — lerp from prone (-π/2) to upright (0)
+			const standT = Math.min(1, (sinceL - actor.standUpDelay) / actor.standUpDur);
+			const eased = standT * standT * (3 - 2 * standT); // smoothstep
+			actor.char.root.rotation.x = -Math.PI / 2 * (1 - eased);
+			actor.char.root.rotation.z = 0;
+		}
+		return;
+	}
+
+	// ── Landing snap ─────────────────────────────────────────────────
+	if (t >= actor.flightTime) {
+		actor.landed = true;
+		actor.landedAt = beatElapsed;
+		actor.char.root.position.copy(actor.landPos);
 		actor.char.root.rotation.x = -Math.PI / 2;
 		return;
 	}
 
-	if (t >= actor.flightTime) {
-		actor.landed = true;
-		actor.char.root.position.copy(actor.landPos);
-		actor.char.root.rotation.x = -Math.PI / 2; // face-down on landing
-		return;
-	}
-
-	// Parabolic arc
+	// ── In-flight parabolic arc ──────────────────────────────────────
 	actor.char.root.position.set(
 		actor.startPos.x + actor.velocity.x * t,
 		actor.startPos.y + actor.velocity.y * t - 4.9 * t * t,
 		actor.startPos.z + actor.velocity.z * t,
 	);
 	// Tumble during flight — rapid rotation simulates ragdoll chaos.
-	// X spins forward (somersault), Z wobbles (barrel roll).
 	actor.char.root.rotation.x = -t * 6;
 	actor.char.root.rotation.z = Math.sin(t * 8) * 0.8;
 }
@@ -561,14 +587,24 @@ export class GateRoomCinematicController {
 			void audio.play("stargate-kawoosh");
 		}
 
-		// Beat 4 — Scott steps through. The scott-clear / scott-bark-eli
-		// voice lines are in the catalog but NOT yet uploaded to R2 —
-		// playing them would 404 and poison the AudioContext. Subtitles
-		// handle the dialogue for now; wire the voice back in once the
-		// files land in /audio/voice/ on the sgu-assets bucket.
+		// Beat 4 — Scott steps through the gate.
 		if (elapsed >= T_SCOTT_EMERGE && !this.audioPlayed.has("scott-emerge")) {
 			this.audioPlayed.add("scott-emerge");
 			void audio.play("wormhole-transit");
+		}
+		// Scott's radio call — he gets up (flight 1s + delay 1s + stand 1.5s ≈ t=18.5)
+		// then radios "It's clear! Start the evacuation!" with radio clicks.
+		if (elapsed >= 18.5 && !this.audioPlayed.has("scott-radio-click-1")) {
+			this.audioPlayed.add("scott-radio-click-1");
+			void audio.play("radio-click");
+		}
+		if (elapsed >= 19 && !this.audioPlayed.has("scott-clear-voice")) {
+			this.audioPlayed.add("scott-clear-voice");
+			void audio.play("scott-clear");
+		}
+		if (elapsed >= 21.5 && !this.audioPlayed.has("scott-radio-click-2")) {
+			this.audioPlayed.add("scott-radio-click-2");
+			void audio.play("radio-click");
 		}
 
 		// Beat 5 — crew tumble through (overhead). Staggered transits.
@@ -784,59 +820,76 @@ export class GateRoomCinematicController {
 		//   - velocity.z  >0 = thrown INTO the room (+Z toward player spawn).
 		//   - All land positions at +Z, further from the gate for chaos.
 
+		// createThrownActor extra args: standUpDelay, standUpDur, staysDown
+		// Scott gets up FIRST (fastest) so he can radio "all clear" while standing.
+		// Young NEVER gets up — he's unconscious after hitting the wall.
+
 		if (scott.status === "fulfilled") {
-			// Scott is FIRST through — controlled but fast, stumbles and slides.
+			// Scott — first through, controlled but fast. Gets up quickly.
 			actors.push(createThrownActor(
 				scott.value,
 				new THREE.Vector3(0, 0.1, 0.8),
-				new THREE.Vector3(-0.5, 0.3, 14),   // fast +Z, low arc
+				new THREE.Vector3(-0.5, 0.3, 14),
 				0, 1.0,
 				new THREE.Vector3(-1.0, 0.1, 10),
+				1.0,   // standUpDelay — gets up 1s after landing
+				1.5,   // standUpDur — takes 1.5s to stand
+				false,
 			));
 		}
 
 		if (rush.status === "fulfilled") {
-			// Rush — second wave, tumbles forward and rolls.
+			// Rush — second wave, slower to recover.
 			actors.push(createThrownActor(
 				rush.value,
 				new THREE.Vector3(0.3, 0.1, 0.8),
-				new THREE.Vector3(0.6, 0.8, 16),    // higher arc, fast
+				new THREE.Vector3(0.6, 0.8, 16),
 				0.3, 0.9,
 				new THREE.Vector3(2.0, 0.1, 12),
+				3.0,   // standUpDelay
+				2.5,   // standUpDur — Rush is older, takes longer
+				false,
 			));
 		}
 
 		if (tj.status === "fulfilled") {
-			// TJ — third wave, launched sideways, clutching med kit
+			// TJ — third wave, medic, gets up relatively quickly.
 			actors.push(createThrownActor(
 				tj.value,
 				new THREE.Vector3(-0.4, 0.1, 0.8),
-				new THREE.Vector3(-2.0, 1.2, 13),   // arcs left hard
+				new THREE.Vector3(-2.0, 1.2, 13),
 				0.5, 0.8,
 				new THREE.Vector3(-3.5, 0.1, 13),
+				2.0,   // standUpDelay
+				2.0,   // standUpDur
+				false,
 			));
 		}
 
 		if (eli.status === "fulfilled") {
-			// Eli (NPC copy) — flailing, crashes hard center-right
+			// Eli (NPC copy) — hard crash, slow to recover.
 			actors.push(createThrownActor(
 				eli.value,
 				new THREE.Vector3(0.2, 0.1, 0.8),
-				new THREE.Vector3(1.5, 1.5, 15),    // high tumble
+				new THREE.Vector3(1.5, 1.5, 15),
 				0.7, 0.9,
 				new THREE.Vector3(3.0, 0.1, 14),
+				4.0,   // standUpDelay — dazed
+				3.0,   // standUpDur — slow
+				false,
 			));
 		}
 
 		if (young.status === "fulfilled") {
-			// Young — LAST through, maximum velocity, slams into the far
-			// wall. He's unconscious after impact. Farthest from gate.
+			// Young — LAST through, hits wall at max velocity. UNCONSCIOUS.
 			actors.push(createThrownActor(
 				young.value,
 				new THREE.Vector3(-0.2, 0.1, 0.8),
-				new THREE.Vector3(-1.2, 0.4, 24),   // max velocity, flat trajectory → wall
+				new THREE.Vector3(-1.2, 0.4, 24),
 				0, 0.7,
 				new THREE.Vector3(-2.0, 0.1, 18),
+				0, 0,
+				true,  // staysDown — unconscious, never stands up
 			));
 		}
 
@@ -876,10 +929,11 @@ export class GateRoomCinematicController {
 			this.subtitleShown.add("wormhole");
 			this.subtitle.show("Wormhole established.", 2);
 		}
-		// Beat 4 — Scott's all-clear call (paired with scott-clear voice line)
-		if (elapsed >= T_SCOTT_EMERGE + 1.5 && elapsed < T_SCOTT_EMERGE + 5 && !this.subtitleShown.has("scott-clear")) {
+		// Scott's radio call subtitle — synced with the TTS voice line at t=19
+		// (after he stands up from his landing at ~t=18.5).
+		if (elapsed >= 19 && !this.subtitleShown.has("scott-clear")) {
 			this.subtitleShown.add("scott-clear");
-			this.subtitle.show("It's clear — start the evacuation!", 3.5);
+			this.subtitle.show("[RADIO] It's clear! Start the evacuation!", 3.0);
 		}
 		// Beat 5 — chaos surge starts (overhead)
 		if (elapsed >= T_CHAOS_START && elapsed < T_CHAOS_START + 3 && !this.subtitleShown.has("evacuate")) {

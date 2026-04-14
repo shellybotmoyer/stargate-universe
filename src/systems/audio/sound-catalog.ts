@@ -105,6 +105,7 @@ export const SOUND_CATALOG = {
 	"impact-metal-light": { path: "/audio/sfx/impact-metal-light.mp3", volume: 0.4, category: "sfx", loop: false, positional: true },
 	"metal-click": { path: "/audio/sfx/metal-click.mp3", volume: 0.4, category: "sfx", loop: false, positional: true },
 	"metal-latch": { path: "/audio/sfx/metal-latch.mp3", volume: 0.5, category: "sfx", loop: false, positional: true },
+	"radio-click": { path: "/audio/sfx/radio-click.mp3", volume: 0.6, category: "sfx", loop: false, positional: false },
 	"repair-sparks": { path: "/audio/sfx/repair-sparks.mp3", volume: 0.6, category: "sfx", loop: true, positional: true },
 
 	// ─── SFX — Footsteps (Metal/Ship) ────────────────────────────────────────
@@ -468,7 +469,7 @@ export const SOUND_CATALOG = {
 	"scott-move-out": { path: "/audio/voice/scott-move-out.mp3", volume: 0.8, category: "voice", loop: false, positional: true },
 	"scott-point": { path: "/audio/voice/scott-point.mp3", volume: 0.8, category: "voice", loop: false, positional: true },
 	"scott-scout": { path: "/audio/voice/scott-scout.mp3", volume: 0.8, category: "voice", loop: false, positional: true },
-	"scott-clear": { path: "/audio/voice/scott-clear.mp3", volume: 0.8, category: "voice", loop: false, positional: true },
+	"scott-clear": { path: "/audio/voice/scott-clear-evacuation.mp3", volume: 0.85, category: "voice", loop: false, positional: false },
 	"scott-contact": { path: "/audio/voice/scott-contact.mp3", volume: 0.9, category: "voice", loop: false, positional: true },
 	"scott-cover": { path: "/audio/voice/scott-cover.mp3", volume: 0.9, category: "voice", loop: false, positional: true },
 	"scott-gate-time": { path: "/audio/voice/scott-gate-time.mp3", volume: 0.8, category: "voice", loop: false, positional: true },
