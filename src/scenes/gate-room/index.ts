@@ -326,11 +326,11 @@ function buildStargate(scene: THREE.Scene): GateRuntime {
 	// emissive so it reads in the dark establishing shot but doesn't glow
 	// like a neon sign. The thicker tube (0.5) gives the chunky look.
 	const outerRingMat = new THREE.MeshStandardMaterial({
-		color: 0x3a3a4a,
-		roughness: 0.5,
+		color: 0x4a4a5a,
+		roughness: 0.45,
 		metalness: 0.92,
-		emissive: 0x112233,
-		emissiveIntensity: 1.0,
+		emissive: 0x1a3355,
+		emissiveIntensity: 1.8,
 	});
 	const outerRing = new THREE.Mesh(
 		new THREE.TorusGeometry(GATE_RADIUS, 0.5, 24, 64),
@@ -342,11 +342,11 @@ function buildStargate(scene: THREE.Scene): GateRuntime {
 	// Inner detail ring — the inner track where the symbols rotate.
 	// Slightly recessed, darker metal with faint glow.
 	const innerRingMat = new THREE.MeshStandardMaterial({
-		color: 0x252535,
-		roughness: 0.4,
+		color: 0x303040,
+		roughness: 0.35,
 		metalness: 0.95,
-		emissive: 0x0e1522,
-		emissiveIntensity: 0.8,
+		emissive: 0x122240,
+		emissiveIntensity: 1.2,
 	});
 	const innerRing = new THREE.Mesh(
 		new THREE.TorusGeometry(GATE_RADIUS - 0.2, 0.25, 16, 64),
@@ -356,14 +356,14 @@ function buildStargate(scene: THREE.Scene): GateRuntime {
 	// ── Glow halo — subtle backlight, not an obvious disc. Makes the
 	// gate silhouette pop against the dark back wall from any distance.
 	const glowRingMat = new THREE.MeshBasicMaterial({
-		color: 0x1a3366,
+		color: 0x2244aa,
 		transparent: true,
-		opacity: 0.2,
+		opacity: 0.35,
 		side: THREE.DoubleSide,
 		depthWrite: false,
 	});
 	const glowRing = new THREE.Mesh(
-		new THREE.RingGeometry(GATE_RADIUS - 1.0, GATE_RADIUS + 1.2, 64),
+		new THREE.RingGeometry(GATE_RADIUS - 1.2, GATE_RADIUS + 2.0, 64),
 		glowRingMat,
 	);
 	glowRing.position.copy(GATE_CENTER);
@@ -483,24 +483,24 @@ function buildLighting(scene: THREE.Scene, debugObjects: THREE.Object3D[]): THRE
 	// All decay:0 (infinite range) so the blue glow reads from the
 	// establishing shot 50+ units away.
 
-	// Directly IN FRONT of the gate ring — soft blue wash on the ring face.
-	const gateRingLight = new THREE.PointLight(0x4477cc, 3, 0, 0);
-	gateRingLight.position.set(0, GATE_CENTER.y, gateZ + 3);
+	// Directly IN FRONT of the gate ring — cool blue wash on the ring face.
+	const gateRingLight = new THREE.PointLight(0x3366aa, 5, 0, 0);
+	gateRingLight.position.set(0, GATE_CENTER.y, gateZ + 4);
 	scene.add(gateRingLight);
 	lights.push(gateRingLight);
 
-	// Wider gate-area blue glow — subtle
-	const gateFrontLight = new THREE.PointLight(COLOR_ANCIENT_GLOW, 2, 0, 0);
-	gateFrontLight.position.set(0, 4, gateZ + 8);
+	// Wider gate-area blue glow — visible from distance
+	const gateFrontLight = new THREE.PointLight(0x2244aa, 3, 0, 0);
+	gateFrontLight.position.set(0, 4, gateZ + 10);
 	scene.add(gateFrontLight);
 	lights.push(gateFrontLight);
 
-	const gateBackLight = new THREE.PointLight(COLOR_ANCIENT_GLOW, 3, 0, 0);
+	const gateBackLight = new THREE.PointLight(0x2244aa, 4, 0, 0);
 	gateBackLight.position.set(0, 5, gateZ - 6);
 	scene.add(gateBackLight);
 	lights.push(gateBackLight);
 
-	const gateTopLight = new THREE.PointLight(COLOR_ANCIENT_GLOW, 3, 0, 0);
+	const gateTopLight = new THREE.PointLight(0x2244aa, 4, 0, 0);
 	gateTopLight.position.set(0, 12, gateZ);
 	scene.add(gateTopLight);
 	lights.push(gateTopLight);
