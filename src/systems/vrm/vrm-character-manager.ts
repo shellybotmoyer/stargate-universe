@@ -381,7 +381,7 @@ function onVrmLoaded(instance: VrmCharacterInstance, result: VrmLoadResult): voi
 	loadCustomization(instance.id).then((customization) => {
 		if (customization && instance.vrm) {
 			applyCustomization(instance.id, instance.vrm, customization).catch((err) => {
-				console.warn(`[VrmCharacterManager] Failed to apply customization for "${instance.id}"`, err);
+\t\t\t\tconsole.error(`[VrmCharacterManager] Failed to apply customization for "${instance.id}"`, err);
 			});
 		}
 	}).catch(() => {
