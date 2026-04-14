@@ -94,7 +94,7 @@ export function openVrmEditor(characterId: string, vrm: VRM): void {
 		if (saved && activeEditor) {
 			// Apply saved customization to the VRM immediately
 			applyCustomization(activeEditor.characterId, activeEditor.vrm, saved).catch((err) => {
-				console.warn(\"[VrmEditor] Failed to apply saved customization on load\", err);
+				console.info(\"[VrmEditor] Saved customization not applied on load (using defaults)\", err);
 			});
 
 			// Populate tab UI state from saved customization
