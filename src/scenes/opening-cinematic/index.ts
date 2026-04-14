@@ -301,9 +301,24 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	// and Action.Pause (Escape/Gamepad Start) both end the cinematic.
 	const input = getInput();
 
-	// Position the ship far back so the opening frames are just stars
-	destiny.root.position.set(4, -0.5, 40);
-	destiny.root.rotation.y = Math.PI * 0.9; // showing 3/4 rear quarter first
+	// Ship stationary at origin — camera orbits around it.
+	destiny.root.position.set(0, 0, 0);
+	destiny.root.rotation.y = 0;           // nose pointing −Z (ship forward)
+
+	// ── Camera flight plan (parametric orbit) ─────────────────────────────
+	//
+	// Phase 1 (0-3s):   Pull-back reveal. Camera starts close on hull,
+	//                    rapidly backs out so starfield dominates frame.
+	// Phase 2 (3-12s):  Orbit counterclockwise from rear-quarter → side →
+	//                    full front view (nose-on). Fixed distance ~30.
+	// Phase 3 (12-18s): Push-in toward the nose cone from front view.
+	//                    Camera closes from r=30 to r=10.
+	// Phase 4 (18-20s): Final close on hull / smash to black.
+	//
+	// Orbit angle θ:  π (behind ship, engines) → 0 (front, nose)
+	// θ = π at t=0, sweeps to 0 at t=12, stays 0 through push-in.
+
+	const smooth = (t: number) => t * t * (3 - 2 * t); // hermite smoothstep
 
 	return {
 		update(delta: number): void {
@@ -316,29 +331,49 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			}
 
 			// Star drift
-			stars.rotation.y += delta * 0.01;
-			stars.rotation.x  = Math.sin(elapsed * 0.04) * 0.03;
+			stars.rotation.y += delta * 0.008;
+			stars.rotation.x  = Math.sin(elapsed * 0.03) * 0.02;
 
-			// Destiny drifts slowly toward the camera, then past the right
-			// side of frame — classic "reveal" move. Progress runs 0→1 across
-			// the cinematic.
-			const p = Math.min(1, elapsed / TOTAL_DURATION);
-			// Pull from z=40 to z=-4 in an ease-out curve so the ship
-			// decelerates as it gets close.
-			const ez = 1 - Math.pow(1 - p, 2);
-			destiny.root.position.z = 40 - ez * 44;
-			// Slight lateral drift so we see more of the hull
-			destiny.root.position.x = 4 - ez * 3;
-			// Slow yaw — reveals the forward hull by the end
-			destiny.root.rotation.y = Math.PI * 0.9 + ez * 0.35;
-			// Gentle roll for a "drifting" feel
-			destiny.root.rotation.z = Math.sin(elapsed * 0.15) * 0.02;
+			// Gentle ship roll / drift so it reads as "floating in space"
+			destiny.root.rotation.z = Math.sin(elapsed * 0.12) * 0.015;
+			destiny.root.rotation.x = Math.sin(elapsed * 0.08 + 1) * 0.01;
 
-			// Camera: mostly still with subtle breathing so it feels cinematic
+			// ── Camera orbit ─────────────────────────────────────────────
+			let camR: number;      // radial distance to ship center
+			let camTheta: number;  // horizontal orbit angle (π = behind, 0 = front)
+			let camY: number;      // camera elevation
+
+			if (elapsed < 3) {
+				// Phase 1: pull-back reveal (close → far, rear-quarter view)
+				const t = elapsed / 3;
+				camR = 6 + smooth(t) * 44;          // 6 → 50 (zoomed out, stars dominant)
+				camTheta = Math.PI * 0.85;           // slightly off dead-astern
+				camY = 1 + smooth(t) * 3;            // low → mid elevation
+			} else if (elapsed < 12) {
+				// Phase 2: orbit rear → front (θ goes π → 0)
+				const t = (elapsed - 3) / 9;
+				camR = 30 + Math.sin(t * Math.PI) * 5; // slight breathing 30±5
+				camTheta = Math.PI * (1 - smooth(t));   // π → 0 (rear → front)
+				camY = 4 - smooth(t) * 2;               // settle from 4 to 2
+			} else if (elapsed < 18) {
+				// Phase 3: push-in on nose
+				const t = (elapsed - 12) / 6;
+				camR = 30 - smooth(t) * 22;          // 30 → 8
+				camTheta = 0;                        // dead-ahead front view
+				camY = 2 - smooth(t) * 0.8;          // subtle drop 2 → 1.2
+			} else {
+				// Phase 4: hold tight on hull, fade to black
+				const t = (elapsed - 18) / 2;
+				camR = 8 - smooth(Math.min(1, t)) * 3;  // 8 → 5 (extreme close)
+				camTheta = 0;
+				camY = 1.2 - smooth(Math.min(1, t)) * 0.4;
+			}
+
+			// Orbit in XZ plane. Ship faces −Z, so θ=0 → camera at −Z (front).
 			camera.position.set(
-				Math.sin(elapsed * 0.08) * 0.6,
-				0.3 + Math.cos(elapsed * 0.06) * 0.2,
-				0,
+				camR * Math.sin(camTheta),
+				camY,
+				-camR * Math.cos(camTheta),  // −cos so θ=0 → camera at −Z (nose view)
 			);
 			camera.lookAt(destiny.root.position);
 
