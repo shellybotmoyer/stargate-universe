@@ -1934,8 +1934,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	// at all during Episode 1. Kept offline until a scrubber-crisis event
 	// reveals it (see episode-scripting todo). Construction is deferred so
 	// the DOM element doesn't even exist on first boot.
-	let co2Display: HTMLDivElement | undefined;
-	void co2Display; // referenced only in conditional block below + disposer
+	let co2Display: HTMLDivElement | undefined; // created when Ep-2 scrubber crisis begins
 	const repairBar = createRepairProgressBar3D();
 	scene.add(repairBar.group);
 

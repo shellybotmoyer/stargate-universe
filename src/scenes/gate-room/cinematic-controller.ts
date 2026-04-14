@@ -219,7 +219,6 @@ async function loadCrewOrFallback(id: string, fallbackColor: number): Promise<Ch
 	try {
 		const result = await loadCrewMember(id);
 		const meshes = countMeshes(result.root);
-		console.log(`[cinematic] crew "${id}" loaded (meshes=${meshes})`);
 		if (meshes === 0) {
 			console.warn(`[cinematic] crew "${id}" has 0 meshes, swapping to capsule fallback`);
 			result.dispose?.();
@@ -692,7 +691,6 @@ export class GateRoomCinematicController {
 	// ── Crew loading ──────────────────────────────────────────────────────────
 
 	private async loadCrew() {
-		console.log("[cinematic] loadCrew() start");
 		// Use fallback-wrapped loader so missing VRM placeholders don't leave
 		// the cinematic empty. Colors chosen to visually differentiate the crew
 		// in wide/overhead shots when the real models are unavailable.
