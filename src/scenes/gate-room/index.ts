@@ -186,11 +186,11 @@ function buildRoom(scene: THREE.Scene): void {
 		metalness: 0.25,
 	});
 	const alcoveLightMat = new THREE.MeshStandardMaterial({
-		color: 0xffcc88,
-		emissive: 0xffaa55,
-		emissiveIntensity: 3.0,
-		roughness: 0.2,
-		metalness: 0,
+		color: 0x556688,
+		emissive: 0x223344,
+		emissiveIntensity: 1.5,
+		roughness: 0.3,
+		metalness: 0.2,
 	});
 	const archSpacing = 8;
 	const archCount = Math.floor(ROOM_DEPTH / archSpacing);
@@ -325,50 +325,47 @@ function buildStargate(scene: THREE.Scene): GateRuntime {
 	// has a chunky, industrial-looking ring. Dark metal with subtle blue
 	// emissive so it reads in the dark establishing shot but doesn't glow
 	// like a neon sign. The thicker tube (0.5) gives the chunky look.
-	const outerRingMat = new THREE.MeshStandardMaterial({
-		color: 0x4a4a5a,
-		roughness: 0.45,
-		metalness: 0.92,
-		emissive: 0x1a3355,
-		emissiveIntensity: 1.8,
+	// Outer ring — fog:false so it punches through the atmospheric fog
+	// and reads as a visible metallic circle even at 25+ meters.
+	const outerRingMat = new THREE.MeshBasicMaterial({
+		color: 0x556677,
+		fog: false,
 	});
 	const outerRing = new THREE.Mesh(
 		new THREE.TorusGeometry(GATE_RADIUS, 0.5, 24, 64),
 		outerRingMat,
 	);
+	outerRing.rotation.x = Math.PI / 2;  // stand upright (XZ plane → XY plane)
 	outerRing.position.copy(GATE_CENTER);
 	scene.add(outerRing);
 
-	// Inner detail ring — the inner track where the symbols rotate.
-	// Slightly recessed, darker metal with faint glow.
-	const innerRingMat = new THREE.MeshStandardMaterial({
-		color: 0x303040,
-		roughness: 0.35,
-		metalness: 0.95,
-		emissive: 0x122240,
-		emissiveIntensity: 1.2,
+	// Inner detail ring — also fog-exempt and upright.
+	const innerRingMat = new THREE.MeshBasicMaterial({
+		color: 0x2a3344,
+		fog: false,
 	});
 	const innerRing = new THREE.Mesh(
 		new THREE.TorusGeometry(GATE_RADIUS - 0.2, 0.25, 16, 64),
 		innerRingMat,
 	);
 
-	// ── Glow halo — subtle backlight, not an obvious disc. Makes the
-	// gate silhouette pop against the dark back wall from any distance.
+	// ── Glow halo — fog-exempt backlight disc behind the gate ring.
 	const glowRingMat = new THREE.MeshBasicMaterial({
-		color: 0x2244aa,
+		color: 0x1a3388,
 		transparent: true,
 		opacity: 0.35,
 		side: THREE.DoubleSide,
 		depthWrite: false,
+		fog: false,
 	});
 	const glowRing = new THREE.Mesh(
-		new THREE.RingGeometry(GATE_RADIUS - 1.2, GATE_RADIUS + 2.0, 64),
+		new THREE.RingGeometry(GATE_RADIUS - 1.2, GATE_RADIUS + 2.5, 64),
 		glowRingMat,
 	);
 	glowRing.position.copy(GATE_CENTER);
 	glowRing.position.z -= 0.15;
 	scene.add(glowRing);
+	innerRing.rotation.x = Math.PI / 2;  // stand upright
 	innerRing.position.copy(GATE_CENTER);
 	scene.add(innerRing);
 

@@ -118,8 +118,8 @@
       "ambientColor": "#1a1a3a",
       "ambientIntensity": 0.7,
       "fogColor": "#050510",
-      "fogFar": 50,
-      "fogNear": 25,
+      "fogFar": 80,
+      "fogNear": 40,
       "gravity": {
         "x": 0,
         "y": -9.81,
