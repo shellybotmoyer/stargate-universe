@@ -82,6 +82,10 @@ let firstPersonState = {
  * Set the camera used for LOD distance calculations.
  * Must be called before `update()` to enable LOD.
  */
+/**
+ * Sets the active camera for the VRM character system.
+ * @param camera The perspective camera to use as the active view.
+ */
 export function setActiveCamera(camera: PerspectiveCamera): void {
 	activeCamera = camera;
 }
@@ -90,6 +94,11 @@ export function setActiveCamera(camera: PerspectiveCamera): void {
  * Register and begin loading a VRM character.
  * Returns the character's root Group immediately (may show fallback capsule
  * until the VRM finishes loading).
+ */
+/**
+ * Adds a new VRM character instance to the manager.
+ * @param options Character configuration including model URL and initial state.
+ * @returns The created VRM character instance.
  */
 export function addCharacter(options: VrmCharacterOptions): VrmCharacterInstance {
 	const existing = characters.get(options.id);
@@ -133,6 +142,10 @@ export function addCharacter(options: VrmCharacterOptions): VrmCharacterInstance
 /**
  * Remove a character and dispose its VRM resources.
  */
+/**
+ * Removes a VRM character instance by its ID and cleans up associated resources.
+ * @param id The unique identifier of the character to remove.
+ */
 export function removeCharacter(id: string): void {
 	const instance = characters.get(id);
 
@@ -149,6 +162,11 @@ export function removeCharacter(id: string): void {
 
 /**
  * Get a character instance by ID.
+ */
+/**
+ * Retrieves a VRM character instance by its ID.
+ * @param id The unique identifier of the character.
+ * @returns The character instance if found, otherwise undefined.
  */
 export function getCharacter(id: string): VrmCharacterInstance | undefined {
 	return characters.get(id);
