@@ -466,7 +466,7 @@ export class StarterPlayerController {
     } else if (this.cameraMode === "third-person") {
       // Over-the-shoulder orbit: pivot at chest/shoulder height, 3.5 units back.
       // Camera orbits freely via yaw/pitch; character mesh faces movement direction.
-      const ORBIT_DISTANCE = 3.5;
+      const ORBIT_DISTANCE = 7.0;
       const lookTarget = scratchLookTarget.set(
         translation[0],
         translation[1] + this.standingHeight * 0.72, // chest/shoulder pivot
@@ -482,7 +482,7 @@ export class StarterPlayerController {
       this.camera.position.lerp(targetCameraPosition, 1 - Math.exp(-deltaSeconds * 8));
       this.camera.lookAt(lookTarget);
     } else {
-      const followDistance = Math.max(8, this.standingHeight * 5.2);
+      const followDistance = Math.max(14, this.standingHeight * 10);
       const targetCameraPosition = eyePosition.clone().addScaledVector(viewDirection, -followDistance);
       targetCameraPosition.y += this.standingHeight * 1.8;
       this.camera.position.lerp(targetCameraPosition, 1 - Math.exp(-deltaSeconds * 8));

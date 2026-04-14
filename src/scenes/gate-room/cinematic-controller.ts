@@ -61,11 +61,11 @@ function applyEasing(t: number, mode: Beat["easing"]): number {
 const GATE_CENTER = new THREE.Vector3(0, 2.72, 0);
 const GATE_BACK   = new THREE.Vector3(0, 2.72, 0.5);  // just in front of the horizon
 // Overhead shot — high angle from behind the landing zone, looking back
-// TOWARD the gate. Gate at z=0, crew land at z=8-18, player at z=25.
-const OVERHEAD    = new THREE.Vector3(0, 18, 16);
+// TOWARD the gate. Gate at z=0, crew land at z=8-18, player at z=50.
+const OVERHEAD    = new THREE.Vector3(0, 24, 20);
 // Wide establishing shot — camera far back and elevated so the whole
-// gate + room silhouette is visible in the much larger room.
-const ESTABLISH   = new THREE.Vector3(0, 8, 35);
+// gate + room silhouette is visible in the doubled room (100×160×32).
+const ESTABLISH   = new THREE.Vector3(0, 10, 50);
 
 // ─── 40-second gate-room arrival ────────────────────────────────────────────
 //

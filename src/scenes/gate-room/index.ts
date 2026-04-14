@@ -52,9 +52,9 @@ const assetUrlLoaders = import.meta.glob("./assets/**/*", {
 // cavernous Ancient chamber. Gate and characters are NOT scaled — only
 // the architectural envelope grows. The room needs to be large enough
 // for crew to be thrown 15-20m from the gate during the arrival cinematic.
-const ROOM_WIDTH = 50;
-const ROOM_DEPTH = 80;
-const ROOM_HEIGHT = 16;
+const ROOM_WIDTH = 100;
+const ROOM_DEPTH = 160;
+const ROOM_HEIGHT = 32;
 const GATE_RADIUS = 2.8;
 const GATE_TUBE = 0.22;
 const GATE_CENTER = new THREE.Vector3(0, GATE_RADIUS + GATE_TUBE - 0.3, 0); // centered in room
@@ -1609,15 +1609,15 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		color: 0x1a2a3a, emissive: 0x66aaff, emissiveIntensity: 0.9,
 		roughness: 0.15, metalness: 0.1,
 	});
-	for (const cz of [20, 24, 28]) {          // 3 consoles, flanking Rush at z=24
+	for (const cz of [40, 48, 56]) {          // 3 consoles, flanking Rush at z=48
 		const base = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 0.8), consoleBaseMat);
-		base.position.set(-11.5, 0.45, cz);
+		base.position.set(-22, 0.45, cz);
 		consoleRoot.add(base);
 		const topPanel = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 0.8), consolePanelMat);
-		topPanel.position.set(-11.5, 0.92, cz);
+		topPanel.position.set(-22, 0.92, cz);
 		consoleRoot.add(topPanel);
 		const monitor = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.55, 0.04), consoleScreenMat);
-		monitor.position.set(-11.8, 1.25, cz);
+		monitor.position.set(-22.3, 1.25, cz);
 		monitor.rotation.z = -Math.PI / 2;
 		monitor.rotation.x = 0.3;
 		consoleRoot.add(monitor);
