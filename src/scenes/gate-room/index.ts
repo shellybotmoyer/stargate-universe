@@ -402,62 +402,57 @@ function buildLighting(scene: THREE.Scene, debugObjects: THREE.Object3D[]): THRE
 	const lights: THREE.PointLight[] = [];
 	const gateZ = GATE_CENTER.z;
 
-	// ── Global ambient ──────────────────────────────────────────────────
-	// The room is 100×160×32 — hemisphere + directional must fill the
-	// entire volume so the gate is clearly visible even before it activates.
-	// High ambient so the 100×160×32 room is never pitch-black anywhere.
-	// Hemisphere provides subtle sky/ground colour separation on top of the
-	// flat ambient. Combined: ~12 lux equivalent base illumination.
-	const hemisphereLight = new THREE.HemisphereLight(0x6688cc, 0x222244, 10.0);
-	scene.add(hemisphereLight);
-	const ambientLight = new THREE.AmbientLight(0x445566, 6.0);
+	// ── Global fill (distance-independent) ──────────────────────────────
+	// Room is 100×160×32. Point lights with physical decay can't reach
+	// across 80+ units. Use distance-independent lights for base fill,
+	// then add point-light accents for local colour only.
+	// Low ambient — just enough to keep surfaces readable, not washed out.
+	const ambientLight = new THREE.AmbientLight(0x334455, 3.0);
 	scene.add(ambientLight);
+	const hemisphereLight = new THREE.HemisphereLight(0x556688, 0x222233, 2.0);
+	scene.add(hemisphereLight);
 
-	// Directional key — uniform fill from above. High intensity to light
-	// both the gate end (z=0) and the spawn end (z=80) of the long room.
-	const dirLight = new THREE.DirectionalLight(0xccddff, 5.0);
-	dirLight.position.set(10, 28, 40);
+	// Directional from above-front — gentle fill, not blinding.
+	const dirLight = new THREE.DirectionalLight(0xaabbcc, 1.5);
+	dirLight.position.set(0, 25, 40);
 	dirLight.target.position.set(0, 0, 0);
 	scene.add(dirLight);
 	scene.add(dirLight.target);
 
-	// ── Gate-area accents ────────────────────────────────────────────────
-	// 1. Overhead — centered in room, massive range
-	const overheadLight = new THREE.PointLight(0xffeedd, 600, 200, 1.0);
-	overheadLight.position.set(0, ROOM_HEIGHT - 3, ROOM_DEPTH / 4);
-	scene.add(overheadLight);
-	lights.push(overheadLight);
-
-	// 2. Gate front — blue Ancient glow
-	const gateFrontLight = new THREE.PointLight(COLOR_ANCIENT_GLOW, 800, 100, 1.0);
+	// ── Gate-area accent lights (colour, not fill) ──────────────────────
+	// Gate accent lights — decay:0 (infinite range) so the blue glow
+	// reads from the establishing shot 80 units away. Low intensity to
+	// avoid blowing out the floor near the gate.
+	const gateFrontLight = new THREE.PointLight(COLOR_ANCIENT_GLOW, 4, 0, 0);
 	gateFrontLight.position.set(0, 4, gateZ + 6);
 	scene.add(gateFrontLight);
 	lights.push(gateFrontLight);
 
-	// 3. Gate back — backlight the ring
-	const gateBackLight = new THREE.PointLight(COLOR_ANCIENT_GLOW, 400, 60, 1.2);
+	const gateBackLight = new THREE.PointLight(COLOR_ANCIENT_GLOW, 3, 0, 0);
 	gateBackLight.position.set(0, 5, gateZ - 6);
 	scene.add(gateBackLight);
 	lights.push(gateBackLight);
 
-	// 4. Gate top — highlights the upper ring
-	const gateTopLight = new THREE.PointLight(COLOR_ANCIENT_GLOW, 300, 50, 1.2);
+	const gateTopLight = new THREE.PointLight(COLOR_ANCIENT_GLOW, 2, 0, 0);
 	gateTopLight.position.set(0, 12, gateZ);
 	scene.add(gateTopLight);
 	lights.push(gateTopLight);
 
-	// 5-6. Warm amber side lights — two per side, spaced along Z
-	const COLOR_WARM_ACCENT = 0xffaa44;
-	for (const zOff of [ROOM_DEPTH / 6, ROOM_DEPTH / 2]) {
-		const left = new THREE.PointLight(COLOR_WARM_ACCENT, 200, 100, 1.0);
-		left.position.set(-ROOM_WIDTH / 3, 6, zOff);
-		scene.add(left);
-		lights.push(left);
+	// Overhead room light — decay:0 for even fill
+	const overheadLight = new THREE.PointLight(0xffeedd, 2, 0, 0);
+	overheadLight.position.set(0, ROOM_HEIGHT - 3, ROOM_DEPTH / 4);
+	scene.add(overheadLight);
+	lights.push(overheadLight);
 
-		const right = new THREE.PointLight(COLOR_WARM_ACCENT, 200, 100, 1.0);
-		right.position.set(ROOM_WIDTH / 3, 6, zOff);
-		scene.add(right);
-		lights.push(right);
+	// Warm amber side accents — three rows along Z, both sides
+	const COLOR_WARM_ACCENT = 0xffaa44;
+	for (const zOff of [0, ROOM_DEPTH / 3, 2 * ROOM_DEPTH / 3]) {
+		for (const xSign of [-1, 1]) {
+			const side = new THREE.PointLight(COLOR_WARM_ACCENT, 1.5, 0, 0);
+			side.position.set(xSign * (ROOM_WIDTH / 3), 6, zOff);
+			scene.add(side);
+			lights.push(side);
+		}
 	}
 
 	// 7-10. Floor spotlights aimed at gate faces — restored from working prototype
