@@ -250,7 +250,7 @@ async function applyGearAttachment(
 ): Promise<void> {
 	const boneNode = vrm.humanoid?.getNormalizedBoneNode(attachment.boneName as VRMHumanBoneName);
 	if (!boneNode) {
-		console.warn(
+		console.error(
 			`[VrmCustomizer] Bone "${attachment.boneName}" not found for gear slot "${attachment.slotId}"`
 		);
 		return;
