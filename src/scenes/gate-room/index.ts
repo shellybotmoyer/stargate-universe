@@ -65,6 +65,11 @@ function createWallMaterial(): THREE.MeshStandardMaterial {
 	});
 }
 
+/**
+ * Constructs the physical room geometry for the Gate Room, including walls, ceiling,
+ * structural arches, and amber floor guide strips.
+ * @param scene The Three.js scene to add geometry to.
+ */
 function buildRoom(scene: THREE.Scene): void {
 	const ceilingMat = new THREE.MeshStandardMaterial({
 		color: 0x181828,
@@ -209,7 +214,14 @@ function buildRoom(scene: THREE.Scene): void {
 
 // ─── Stargate construction ───────────────────────────────────────────────────
 
-/** Create a flat-profiled ring (rectangular cross-section) using LatheGeometry */
+/**
+ * Creates a flat-profiled ring (rectangular cross-section) using LatheGeometry.
+ * @param radius The distance from the center to the mid-point of the ring profile.
+ * @param width The width of the ring (thickness along the radius).
+ * @param depth The depth of the ring (thickness along the axis of rotation).
+ * @param segments The number of segments used to approximate the circle. Defaults to 64.
+ * @returns A BufferGeometry representing the ring.
+ */
 function createFlatRingGeometry(radius: number, width: number, depth: number, segments: number = 64): THREE.BufferGeometry {
 	// Profile: a rectangle at distance `radius` from the Y axis, extruded around Y
 	// LatheGeometry rotates a 2D profile around Y. Profile points are (x, y) = (radius, z-offset)
