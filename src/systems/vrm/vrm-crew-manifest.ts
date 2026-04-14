@@ -135,16 +135,14 @@ export async function loadCrewRoster(
 		const response = await fetch(url);
 
 		if (!response.ok) {
-			console.warn(
-				`[CrewManifest] Failed to load roster from ${url} (${response.status}). Using defaults.`
-			);
+\t\t\tconsole.error(\n\t\t\t\t`[CrewManifest] Failed to load roster from ${url} (${response.status}). Using defaults.`\n\t\t\t);
 			return roster;
 		}
 
 		const raw: unknown = await response.json();
 
 		if (!Array.isArray(raw)) {
-			console.warn("[CrewManifest] Roster JSON is not an array. Using defaults.");
+\t\t\tconsole.error(\"[CrewManifest] Roster JSON is not an array. Using defaults.\");
 			return roster;
 		}
 
@@ -155,7 +153,7 @@ export async function loadCrewRoster(
 		console.info(`[CrewManifest] Loaded ${roster.length} crew members from ${url}`);
 		return roster;
 	} catch (error) {
-		console.warn("[CrewManifest] Error loading roster. Using defaults.", error);
+\t\tconsole.error(\"[CrewManifest] Error loading roster. Using defaults.\", error);
 		return roster;
 	}
 }
