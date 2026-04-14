@@ -266,6 +266,7 @@ export class StarterPlayerController {
     rightPad.castShadow = true; rightPad.receiveShadow = true;
 
     this.visual = new Group();
+    this.visual.name = "capsule-fallback";
     // Offset so feet sit at the bottom of the physics capsule
     this.visual.position.y = -this.footOffset;
     this.visual.add(legMesh, torsoMesh, headMesh, leftPad, rightPad);

@@ -107,15 +107,15 @@ const BEATS: Beat[] = [
 		lookAt:  GATE_CENTER,
 		easing:  "ease-out",
 	},
-	// Beat 4 — SCOTT EMERGES. Camera on the PLAYER SIDE of the gate (+Z),
-	// low angle, looking BACK at the gate — so we see Scott come through
-	// with the glowing event horizon behind him. Camera tracks sideways
-	// as he stumbles past.
+	// Beat 4 — SCOTT EMERGES. Camera BEHIND Scott's landing zone (z=14),
+	// low angle, looking back at the gate. Scott flies from gate mouth
+	// (z=0.8) toward and past the camera. We see him emerge from the
+	// event horizon, arc through the air, and crash-land at z=10.
 	{
 		start: 15, end: 20,
-		camFrom: new THREE.Vector3(2.0, 1.2, 6),
-		camTo:   new THREE.Vector3(3.5, 1.2, 10),
-		lookAt:  new THREE.Vector3(0, 1.5, 0),   // look back at gate base
+		camFrom: new THREE.Vector3(3, 1.5, 14),
+		camTo:   new THREE.Vector3(4, 1.5, 16),
+		lookAt:  new THREE.Vector3(0, 2.0, 0),   // look back at gate
 		easing:  "linear",
 	},
 	// Beat 5 — OVERHEAD. Camera elevated behind the landing zone (z=12)
@@ -261,11 +261,17 @@ function updateThrown(actor: ThrownActor, beatElapsed: number) {
 
 	actor.char.root.visible = true;
 
-	if (actor.landed) return;
+	if (actor.landed) {
+		// Landed: lie on the ground (rotation.x = -π/2 = face-down).
+		// Slight Y rotation so they don't all point the same direction.
+		actor.char.root.rotation.x = -Math.PI / 2;
+		return;
+	}
 
 	if (t >= actor.flightTime) {
 		actor.landed = true;
 		actor.char.root.position.copy(actor.landPos);
+		actor.char.root.rotation.x = -Math.PI / 2; // face-down on landing
 		return;
 	}
 
@@ -275,6 +281,10 @@ function updateThrown(actor: ThrownActor, beatElapsed: number) {
 		actor.startPos.y + actor.velocity.y * t - 4.9 * t * t,
 		actor.startPos.z + actor.velocity.z * t,
 	);
+	// Tumble during flight — rapid rotation simulates ragdoll chaos.
+	// X spins forward (somersault), Z wobbles (barrel roll).
+	actor.char.root.rotation.x = -t * 6;
+	actor.char.root.rotation.z = Math.sin(t * 8) * 0.8;
 }
 
 // ─── Chaos actor (Beat 4 — anonymous capsule crew) ───────────────────────────
@@ -496,7 +506,13 @@ export class GateRoomCinematicController {
 
 	private restorePlayerVisual() {
 		if (!this.playerObject) return;
-		this.playerObject.traverse(obj => { obj.visible = true; });
+		// Restore VRM visibility but NOT the capsule-fallback — the player
+		// controller hides it once the VRM loads (line 420). Re-enabling it
+		// here would flash a "pill shadow" for one frame before the
+		// controller's next update hides it again.
+		this.playerObject.traverse(obj => {
+			if (obj.name !== "capsule-fallback") obj.visible = true;
+		});
 	}
 
 	// ── Audio ─────────────────────────────────────────────────────────────────
@@ -905,12 +921,17 @@ export class GateRoomCinematicController {
 		// 2=tj    (T_TJ_ELI)
 		// 3=eli   (T_TJ_ELI)
 		// 4=young (T_YOUNG_IMPACT — hits wall)
+		//
+		// DO NOT clamp to max(0, ...) — a negative beatE means "not yet
+		// entered the gate" and updateThrown correctly returns early when
+		// t < 0. Clamping to 0 made actors ghost-appear at the gate mouth
+		// the moment the first crew throw began.
 		this.thrownActors.forEach((actor, idx) => {
 			const beatE =
-				idx === 0 ? Math.max(0, elapsed - T_SCOTT_EMERGE) :
-				idx === 1 ? Math.max(0, elapsed - T_RUSH) :
-				idx === 2 || idx === 3 ? Math.max(0, elapsed - T_TJ_ELI) :
-				Math.max(0, elapsed - T_YOUNG_IMPACT);
+				idx === 0 ? elapsed - T_SCOTT_EMERGE :
+				idx === 1 ? elapsed - T_RUSH :
+				idx === 2 || idx === 3 ? elapsed - T_TJ_ELI :
+				elapsed - T_YOUNG_IMPACT;
 			updateThrown(actor, beatE);
 		});
 
