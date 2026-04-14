@@ -18,7 +18,7 @@ export const drRushNpc: NpcDefinition = {
 	// spawns at (0, 0.5, 12) facing the gate (−Z); this puts Rush off to
 	// the player's left, slightly behind them so they have to turn to find
 	// him — consistent with the "Dr. Rush is already here, working" beat.
-	position: { x: -7, y: 0, z: 18 },
+	position: { x: -10, y: 0, z: 24 },
 	behavior: {
 		startingState: 'idle',
 		interactionRadius: 2.5,

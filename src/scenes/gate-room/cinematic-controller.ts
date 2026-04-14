@@ -60,14 +60,12 @@ function applyEasing(t: number, mode: Beat["easing"]): number {
 // the gate because the kawoosh geometry didn't align with the ring.)
 const GATE_CENTER = new THREE.Vector3(0, 2.72, 0);
 const GATE_BACK   = new THREE.Vector3(0, 2.72, 0.5);  // just in front of the horizon
-// Overhead shot — high angle from BEHIND the landing zone so we look
-// backward TOWARD the gate. Gate appears at the TOP of the frame (z=0),
-// crew landing zone fills the center/bottom (z=4-10). Camera at z=12
-// (near spawn) looking back at the action.
-const OVERHEAD    = new THREE.Vector3(0, 14, 12);
+// Overhead shot — high angle from behind the landing zone, looking back
+// TOWARD the gate. Gate at z=0, crew land at z=8-18, player at z=25.
+const OVERHEAD    = new THREE.Vector3(0, 18, 16);
 // Wide establishing shot — camera far back and elevated so the whole
-// gate + room silhouette is visible. Pushed further back for the larger room.
-const ESTABLISH   = new THREE.Vector3(0, 7, 28);
+// gate + room silhouette is visible in the much larger room.
+const ESTABLISH   = new THREE.Vector3(0, 8, 35);
 
 // ─── 40-second gate-room arrival ────────────────────────────────────────────
 //
@@ -109,12 +107,15 @@ const BEATS: Beat[] = [
 		lookAt:  GATE_CENTER,
 		easing:  "ease-out",
 	},
-	// Beat 4 — SCOTT EMERGES. Low angle tracking his walk through.
+	// Beat 4 — SCOTT EMERGES. Camera on the PLAYER SIDE of the gate (+Z),
+	// low angle, looking BACK at the gate — so we see Scott come through
+	// with the glowing event horizon behind him. Camera tracks sideways
+	// as he stumbles past.
 	{
 		start: 15, end: 20,
-		camFrom: new THREE.Vector3(2.5, 1.0, -3),
-		camTo:   new THREE.Vector3(3.5, 1.0, -6),
-		lookAt:  GATE_BACK,
+		camFrom: new THREE.Vector3(2.0, 1.2, 6),
+		camTo:   new THREE.Vector3(3.5, 1.2, 10),
+		lookAt:  new THREE.Vector3(0, 1.5, 0),   // look back at gate base
 		easing:  "linear",
 	},
 	// Beat 5 — OVERHEAD. Camera elevated behind the landing zone (z=12)
@@ -129,20 +130,20 @@ const BEATS: Beat[] = [
 		easing:  "linear",
 	},
 	// Beat 6 — DESCENT to Eli prone on the ground; Scott crouches in.
-	// Eli lands at z≈7; camera drops from above to eye-level.
+	// Eli lands at z≈14; camera drops from overhead to eye-level beside him.
 	{
 		start: 32, end: 37,
-		camFrom: new THREE.Vector3(0.4, 6, 6),
-		camTo:   new THREE.Vector3(0.8, 0.9, 5.5),
-		lookAt:  new THREE.Vector3(0.4, 0.3, 7),
+		camFrom: new THREE.Vector3(1.0, 8, 12),
+		camTo:   new THREE.Vector3(1.5, 1.0, 12),
+		lookAt:  new THREE.Vector3(0.5, 0.3, 14),
 		easing:  "ease-out",
 	},
 	// Beat 7 — FADE. Stays close on Eli as the cinematic hands off.
 	{
 		start: 37, end: 40,
-		camFrom: new THREE.Vector3(0.8, 0.9, 5.5),
-		camTo:   new THREE.Vector3(0.8, 0.9, 5.5),
-		lookAt:  new THREE.Vector3(0.4, 0.3, -5),
+		camFrom: new THREE.Vector3(1.5, 1.0, 12),
+		camTo:   new THREE.Vector3(1.5, 1.0, 12),
+		lookAt:  new THREE.Vector3(0.5, 0.3, 14),
 		easing:  "linear",
 	},
 ];
@@ -725,7 +726,7 @@ export class GateRoomCinematicController {
 			// Rush is already in the scene as the main NPC — cinematic version
 			// is positioned at the gate mouth for the throw, separately
 			this.rushNpc = rush.value;
-			this.rushNpc.root.position.set(0.2, 2.72, 0.5);
+			this.rushNpc.root.position.set(0.3, 0.1, 0.8);
 			this.rushNpc.root.visible = false;
 			this.scene.add(this.rushNpc.root);
 		}
@@ -759,21 +760,22 @@ export class GateRoomCinematicController {
 		//
 		// createThrownActor params:
 		//   (char, startPos, velocity, t0, flightTime, landPos)
-		//   startPos:  gate mouth (z≈0.5, y≈2.72 = gate center height)
-		//   velocity:  initial velocity OUT of the gate (+Z = into room)
-		//   t0:        delay within the crew-throw beat before this actor fires
-		//   flightTime: seconds of parabolic arc before snapping to landPos
-		//   landPos:   final resting position (y≈0.1 = on the floor)
+		//
+		// IMPORTANT GEOMETRY RULES:
+		//   - startPos.y ≈ 0.1 (FLOOR level at gate base). Characters walk
+		//     through the gate on the FLOOR, not through the center (y=2.72).
+		//   - startPos.z ≈ 0.8 (+Z = player side of gate = just emerged).
+		//   - velocity.z  >0 = thrown INTO the room (+Z toward player spawn).
+		//   - All land positions at +Z, further from the gate for chaos.
 
 		if (scott.status === "fulfilled") {
-			// Scott is FIRST through — slightly controlled but fast.
-			// He tumbles and slides but recovers quickly.
+			// Scott is FIRST through — controlled but fast, stumbles and slides.
 			actors.push(createThrownActor(
 				scott.value,
-				new THREE.Vector3(0, 2.72, 0.5),
-				new THREE.Vector3(-0.3, 0.8, 8),    // fast +Z, slight arc
-				0, 0.9,
-				new THREE.Vector3(-0.5, 0.1, 5),
+				new THREE.Vector3(0, 0.1, 0.8),
+				new THREE.Vector3(-0.5, 0.3, 14),   // fast +Z, low arc
+				0, 1.0,
+				new THREE.Vector3(-1.0, 0.1, 10),
 			));
 		}
 
@@ -781,10 +783,10 @@ export class GateRoomCinematicController {
 			// Rush — second wave, tumbles forward and rolls.
 			actors.push(createThrownActor(
 				rush.value,
-				new THREE.Vector3(0.2, 2.72, 0.5),
-				new THREE.Vector3(0.4, 1.2, 10),    // higher arc, fast
-				0.2, 0.8,
-				new THREE.Vector3(1.0, 0.1, 6),
+				new THREE.Vector3(0.3, 0.1, 0.8),
+				new THREE.Vector3(0.6, 0.8, 16),    // higher arc, fast
+				0.3, 0.9,
+				new THREE.Vector3(2.0, 0.1, 12),
 			));
 		}
 
@@ -792,10 +794,10 @@ export class GateRoomCinematicController {
 			// TJ — third wave, launched sideways, clutching med kit
 			actors.push(createThrownActor(
 				tj.value,
-				new THREE.Vector3(-0.3, 2.72, 0.5),
-				new THREE.Vector3(-1.5, 1.8, 9),    // arcs left
-				0.4, 0.7,
-				new THREE.Vector3(-2.0, 0.1, 7),
+				new THREE.Vector3(-0.4, 0.1, 0.8),
+				new THREE.Vector3(-2.0, 1.2, 13),   // arcs left hard
+				0.5, 0.8,
+				new THREE.Vector3(-3.5, 0.1, 13),
 			));
 		}
 
@@ -803,22 +805,22 @@ export class GateRoomCinematicController {
 			// Eli (NPC copy) — flailing, crashes hard center-right
 			actors.push(createThrownActor(
 				eli.value,
-				new THREE.Vector3(0.3, 2.72, 0.5),
-				new THREE.Vector3(1.2, 2.0, 11),    // high tumble
-				0.6, 0.8,
-				new THREE.Vector3(1.5, 0.1, 7),
+				new THREE.Vector3(0.2, 0.1, 0.8),
+				new THREE.Vector3(1.5, 1.5, 15),    // high tumble
+				0.7, 0.9,
+				new THREE.Vector3(3.0, 0.1, 14),
 			));
 		}
 
 		if (young.status === "fulfilled") {
 			// Young — LAST through, maximum velocity, slams into the far
-			// wall. He's unconscious after impact. Lands far from gate.
+			// wall. He's unconscious after impact. Farthest from gate.
 			actors.push(createThrownActor(
 				young.value,
-				new THREE.Vector3(-0.1, 2.72, 0.5),
-				new THREE.Vector3(-0.8, 0.5, 18),   // max velocity, low arc → wall slam
-				0, 0.6,
-				new THREE.Vector3(-1.0, 0.1, 10),
+				new THREE.Vector3(-0.2, 0.1, 0.8),
+				new THREE.Vector3(-1.2, 0.4, 24),   // max velocity, flat trajectory → wall
+				0, 0.7,
+				new THREE.Vector3(-2.0, 0.1, 18),
 			));
 		}
 
