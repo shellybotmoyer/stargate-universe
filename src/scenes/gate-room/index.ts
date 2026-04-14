@@ -97,22 +97,22 @@ type GateRuntime = {
 
 function createWallMaterial(): THREE.MeshStandardMaterial {
 	return new THREE.MeshStandardMaterial({
-		color: COLOR_WALL,
-		emissive: 0x0a0a18,
-		emissiveIntensity: 0.8,
-		roughness: 0.92,
-		metalness: 0.2,
+		color: 0x0c0c16,
+		emissive: 0x040408,
+		emissiveIntensity: 0.3,
+		roughness: 0.7,
+		metalness: 0.5,
 		side: THREE.DoubleSide,
 	});
 }
 
 function buildRoom(scene: THREE.Scene): void {
 	const ceilingMat = new THREE.MeshStandardMaterial({
-		color: COLOR_CEILING,
-		emissive: 0x060612,
-		emissiveIntensity: 0.5,
-		roughness: 0.95,
-		metalness: 0.1,
+		color: 0x080810,
+		emissive: 0x020204,
+		emissiveIntensity: 0.2,
+		roughness: 0.8,
+		metalness: 0.3,
 		side: THREE.DoubleSide,
 	});
 
@@ -465,14 +465,15 @@ function buildLighting(scene: THREE.Scene, debugObjects: THREE.Object3D[]): THRE
 	// Room is 100×160×32. Point lights with physical decay can't reach
 	// across 80+ units. Use distance-independent lights for base fill,
 	// then add point-light accents for local colour only.
-	// Moody ambient — the reference is DARK with pools of light, not uniform.
-	const ambientLight = new THREE.AmbientLight(0x1a1a2a, 1.5);
+	// Moody ambient — the SGU gate room is VERY dark with isolated cool pools.
+	// Reference shows near-black walls with only gate glow and minimal fills.
+	const ambientLight = new THREE.AmbientLight(0x080812, 0.8);
 	scene.add(ambientLight);
-	const hemisphereLight = new THREE.HemisphereLight(0x334466, 0x111122, 1.0);
+	const hemisphereLight = new THREE.HemisphereLight(0x0a0a1a, 0x050508, 0.6);
 	scene.add(hemisphereLight);
 
-	// Directional from above — very subtle fill.
-	const dirLight = new THREE.DirectionalLight(0x8899aa, 0.8);
+	// Directional from above — cold, dim fill to barely reveal ceiling geometry.
+	const dirLight = new THREE.DirectionalLight(0x334466, 0.3);
 	dirLight.position.set(0, 25, 10);
 	dirLight.target.position.set(0, 0, 0);
 	scene.add(dirLight);
@@ -504,17 +505,18 @@ function buildLighting(scene: THREE.Scene, debugObjects: THREE.Object3D[]): THRE
 	scene.add(gateTopLight);
 	lights.push(gateTopLight);
 
-	// Overhead room light — subtle warm fill
-	const overheadLight = new THREE.PointLight(0xffeedd, 0.8, 0, 0);
+	// Overhead room light — cool dim fill, NOT warm.
+	const overheadLight = new THREE.PointLight(0x1a2233, 0.4, 0, 0);
 	overheadLight.position.set(0, ROOM_HEIGHT - 3, ROOM_DEPTH / 4);
 	scene.add(overheadLight);
 	lights.push(overheadLight);
 
-	// Warm amber side accents — three rows along Z, both sides
-	const COLOR_WARM_ACCENT = 0xffaa44;
+	// Side accents — very dim cool blue, just enough to hint at wall geometry.
+	// SGU reference shows isolated blue-grey pools, NOT warm amber washes.
+	const COLOR_COOL_ACCENT = 0x1a2244;
 	for (const zOff of [0, ROOM_DEPTH / 3, 2 * ROOM_DEPTH / 3]) {
 		for (const xSign of [-1, 1]) {
-			const side = new THREE.PointLight(COLOR_WARM_ACCENT, 1.5, 0, 0);
+			const side = new THREE.PointLight(COLOR_COOL_ACCENT, 0.5, 0, 0);
 			side.position.set(xSign * (ROOM_WIDTH / 3), 6, zOff);
 			scene.add(side);
 			lights.push(side);
