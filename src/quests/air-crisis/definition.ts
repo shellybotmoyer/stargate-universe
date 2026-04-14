@@ -36,7 +36,7 @@ export const airCrisisDefinition: QuestDefinition = {
 		{
 			id: 'locate-planet',
 			type: 'interact',
-			description: "Use Destiny's sensors to find a planet within dialing range. [Press G to dial]",
+			description: "Use Destiny's sensors to find a planet within dialing range.",
 			targetId: 'gate-console',
 			required: 1,
 			current: 0,

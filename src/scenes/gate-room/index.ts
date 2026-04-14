@@ -534,7 +534,10 @@ function createHUD(): HTMLDivElement {
 
 	const statusEl = document.createElement("div");
 	statusEl.id = "gate-status";
-	statusEl.textContent = "Press G to dial the Stargate";
+	// Status text is driven by quest progress / cinematic state — no static
+	// debug prompt here. Left empty so the HUD strip starts hidden until
+	// something meaningful to say.
+	statusEl.textContent = "";
 
 	const chevronsEl = document.createElement("div");
 	chevronsEl.id = "gate-chevrons";
@@ -564,7 +567,7 @@ function updateHUD(gate: GateRuntime): void {
 
 	switch (gate.state) {
 		case "idle":
-			status.textContent = "Press G to dial the Stargate";
+			status.textContent = "";
 			break;
 		case "dialing":
 			status.textContent = `Dialing... Chevron ${gate.lockedChevrons} of ${CHEVRON_COUNT}`;
@@ -573,7 +576,7 @@ function updateHUD(gate: GateRuntime): void {
 			status.textContent = "Chevron 9 locked!";
 			break;
 		case "active":
-			status.textContent = "Wormhole established \u2014 Press G to shut down";
+			status.textContent = "Wormhole established";
 			break;
 		case "shutdown":
 			status.textContent = "Wormhole disengaged";
@@ -1583,6 +1586,42 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	rushDot.position.set(rushPos.x, rushPos.y + 2.0, rushPos.z);
 	scene.add(rushDot);
 
+	// ─── Ancient consoles (left side workstation row) ───────────────────────
+	// Three stepped consoles at x=-6, running along the −X wall side of the
+	// gate room between the gate and the player-spawn end. Rush stands at
+	// the middle one; the others add environmental read as "this is where
+	// the science team works". Each console is a dark-metallic base with a
+	// glowing top panel + angled monitor.
+	const consoleRoot = new THREE.Group();
+	consoleRoot.name = "rush-consoles";
+	const consoleBaseMat = new THREE.MeshStandardMaterial({
+		color: 0x1a1a24, roughness: 0.35, metalness: 0.85,
+	});
+	const consolePanelMat = new THREE.MeshStandardMaterial({
+		color: 0x2a4a6a, emissive: 0x4488ff, emissiveIntensity: 0.5,
+		roughness: 0.3, metalness: 0.7,
+	});
+	const consoleScreenMat = new THREE.MeshStandardMaterial({
+		color: 0x1a2a3a, emissive: 0x66aaff, emissiveIntensity: 0.9,
+		roughness: 0.15, metalness: 0.1,
+	});
+	for (const cz of [10, 13, 16]) {          // 3 consoles along Z
+		const base = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 0.8), consoleBaseMat);
+		base.position.set(-6.2, 0.45, cz);
+		consoleRoot.add(base);
+		const topPanel = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 0.8), consolePanelMat);
+		topPanel.position.set(-6.2, 0.92, cz);
+		consoleRoot.add(topPanel);
+		// Angled monitor rising from the back of the panel toward the
+		// operator (+X, toward the gate-room aisle).
+		const monitor = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.55, 0.04), consoleScreenMat);
+		monitor.position.set(-6.5, 1.25, cz);
+		monitor.rotation.z = -Math.PI / 2;   // vertical
+		monitor.rotation.x = 0.3;            // tilted forward
+		consoleRoot.add(monitor);
+	}
+	scene.add(consoleRoot);
+
 	// Load Dr. Rush's character model; fall back to capsule on error.
 	// Path matches /assets/characters/manifest.json. The legacy
 	// /assets/characters/dr-rush.vrm at the top level is a byte-identical
@@ -1590,9 +1629,10 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	void loadVRMCharacter("/assets/characters/nicholas-rush/nicholas-rush.vrm")
 		.then((char) => {
 			rushCharacter = char;
-			// Position and face player spawn (+Z)
+			// Position at the middle console and rotate so he faces +X
+			// (toward the center aisle / his workstation monitor).
 			char.root.position.set(rushPos.x, rushPos.y, rushPos.z);
-			char.root.rotation.y = 0; // faces +Z after VRM's built-in π rotation
+			char.root.rotation.y = -Math.PI / 2; // face +X (toward aisle)
 			scene.add(char.root);
 			console.log("[GateRoom] Dr. Rush character loaded (", char.format, ")");
 		})
@@ -1886,8 +1926,12 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const cleanupFullscreen = setupFullscreen(renderer.domElement, menu);
 	const interactPrompt = createInteractionPrompt();
 	cinematicHide.push(interactPrompt);
-	const co2Display = createCO2Display();
-	cinematicHide.push(co2Display);
+	// CO₂ scrubber status belongs to Episode 2 ("Air") — it shouldn't appear
+	// at all during Episode 1. Kept offline until a scrubber-crisis event
+	// reveals it (see episode-scripting todo). Construction is deferred so
+	// the DOM element doesn't even exist on first boot.
+	let co2Display: HTMLDivElement | undefined;
+	void co2Display; // referenced only in conditional block below + disposer
 	const repairBar = createRepairProgressBar3D();
 	scene.add(repairBar.group);
 
@@ -2097,15 +2141,9 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 				cancelRepair();
 			}
 
-			// Dial the gate (KeyG / Gamepad Y).
-			if (input.isActionJustPressed(SguAction.DialGate) && !menu.visible) {
-				if (gate.state === "idle") {
-					startDial(gate);
-					questManager.advanceObjective(AIR_CRISIS_QUEST_ID, "locate-planet");
-				} else if (gate.state === "active") {
-					shutdownGate(gate);
-				}
-			}
+			// Manual gate dial was a debug prototype shortcut — gate state is
+			// now driven entirely by the cinematic + quest scripts. KeyG /
+			// Gamepad Y no longer triggers a dial here.
 
 			// Debug overlay toggle (double-tap Backquote).
 			if (input.isActionJustPressed(SguAction.DebugToggle)) {
@@ -2413,7 +2451,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			debug.element.remove();
 			shipDebugEl.remove();
 			interactPrompt.remove();
-			co2Display.remove();
+			co2Display?.remove();
 			menu.dispose();
 			// Rush and player character cleanup
 			rushCharacter?.dispose();
