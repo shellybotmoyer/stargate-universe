@@ -1660,12 +1660,9 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			console.log("[GateRoom] Dr. Rush character loaded (", char.format, ")");
 		})
 		.catch((err: unknown) => {
-			console.warn("[GateRoom] Dr. Rush VRM load failed — capsule fallback", err);
-			const geo = new THREE.CapsuleGeometry(0.25, 1.1, 4, 8);
-			const mat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.7, metalness: 0.05 });
-			const mesh = new THREE.Mesh(geo, mat);
-			mesh.position.set(rushPos.x, rushPos.y + 0.8, rushPos.z);
-			scene.add(mesh);
+			console.warn("[GateRoom] Dr. Rush VRM load failed:", err);
+			// Rush's VRM IS the standard — if it fails, there's no further fallback.
+			// The scene still works, Rush just won't be visible.
 		});
 
 	// Player VRM loaded via scene definition player.vrmUrl (StarterPlayerController handles it)
@@ -1720,33 +1717,24 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 				.addScaledVector(right, 0.8);     // 0.8 m to the right
 			scottPos.y = 0;  // feet on ground regardless of camera pitch
 
+			// Load Scott's VRM — if his placeholder has no geometry, fall
+			// back to the standard VRoid (Rush's model) instead of a capsule.
 			let scott: Awaited<ReturnType<typeof loadVRMCharacter>> | undefined;
 			try {
 				scott = await loadVRMCharacter("/assets/characters/matthew-scott/matthew-scott.vrm");
-			} catch (err) {
-				console.warn("[GateRoom] Scott VRM load failed, using capsule fallback:", err);
+				const meshes = (() => { let n = 0; scott.root.traverse((o) => { if ((o as THREE.Mesh).isMesh) n++; }); return n; })();
+				if (meshes === 0) {
+					scott.dispose?.();
+					scott = await loadVRMCharacter("/assets/characters/nicholas-rush/nicholas-rush.vrm");
+				}
+			} catch {
+				try {
+					scott = await loadVRMCharacter("/assets/characters/nicholas-rush/nicholas-rush.vrm");
+				} catch (err2) {
+					console.warn("[GateRoom] Scott + fallback VRM both failed:", err2);
+				}
 			}
-			// If the VRM loaded but produced no visible mesh (placeholder file),
-			// replace with a blue-uniform capsule fallback.
-			const hasMesh = scott && (() => { let n = 0; scott.root.traverse((o) => { if ((o as THREE.Mesh).isMesh) n++; }); return n > 0; })();
-			const scottRoot: THREE.Group = hasMesh && scott
-				? scott.root
-				: (() => {
-					const g = new THREE.Group();
-					const body = new THREE.Mesh(
-						new THREE.CapsuleGeometry(0.28, 1.1, 4, 12),
-						new THREE.MeshStandardMaterial({ color: 0x4466aa, roughness: 0.7 }),
-					);
-					body.position.y = 0.85;
-					g.add(body);
-					const head = new THREE.Mesh(
-						new THREE.SphereGeometry(0.16, 14, 10),
-						new THREE.MeshStandardMaterial({ color: 0xf0d2a5, roughness: 0.7 }),
-					);
-					head.position.y = 1.65;
-					g.add(head);
-					return g;
-				})();
+			const scottRoot = scott?.root ?? new THREE.Group();
 			scottRoot.position.copy(scottPos);
 			// Face the player — opposite of the camera's forward.
 			scottRoot.lookAt(pp.x, scottRoot.position.y, pp.z);

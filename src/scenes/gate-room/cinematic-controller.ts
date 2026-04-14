@@ -15,7 +15,7 @@
  */
 
 import * as THREE from "three";
-import { loadCrewMember } from "../../characters/character-loader";
+import { loadCrewMember, loadVRMCharacter } from "../../characters/character-loader";
 import type { CharacterLoadResult } from "../../characters/character-loader";
 import { AudioManager } from "../../systems/audio";
 import { CinematicCamera } from "../../systems/cinematic-camera";
@@ -166,41 +166,6 @@ const T_GATE_SHUTDOWN = 32;
 // ─── Named thrown actor (VRM crew) ────────────────────────────────────────────
 
 /**
- * Build a minimal CharacterLoadResult backed by a colored capsule so the
- * cinematic still has visible crew members even when a named VRM asset is
- * missing or fails to load. Shape is a rough humanoid silhouette — good
- * enough for wide / overhead shots; callers should only hit this path when
- * the real VRM is unavailable.
- */
-function createCapsuleFallback(color: number): CharacterLoadResult {
-	const root = new THREE.Group();
-	const geo = new THREE.CapsuleGeometry(0.25, 1.0, 4, 12);
-	const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.8 });
-	const body = new THREE.Mesh(geo, mat);
-	body.position.y = 0.75;
-	root.add(body);
-	const headGeo = new THREE.SphereGeometry(0.14, 12, 10);
-	const head = new THREE.Mesh(headGeo, new THREE.MeshStandardMaterial({ color: 0xf0d2a5, roughness: 0.7 }));
-	head.position.y = 1.55;
-	root.add(head);
-	const mixer = new THREE.AnimationMixer(root);
-	return {
-		root,
-		vrm: undefined,
-		mixer,
-		format: "glb",
-		update: (_delta: number) => { /* static capsule — no animation */ },
-		dispose: () => {
-			root.parent?.remove(root);
-			geo.dispose();
-			mat.dispose();
-			headGeo.dispose();
-			(head.material as THREE.Material).dispose();
-		},
-	};
-}
-
-/**
  * Count renderable meshes inside a loaded character root. Used to detect
  * "successful" VRM loads that actually produced no geometry (e.g. our
  * 24 KB placeholder .vrm files parse fine but contain zero meshes).
@@ -211,25 +176,30 @@ function countMeshes(root: THREE.Object3D): number {
 	return n;
 }
 
+// Standard VRoid used for all crew when their own model is missing or a
+// placeholder. Rush's VRM is 10 MB and known-good; Eli has his own.
+const STANDARD_VROID_PATH = "/assets/characters/nicholas-rush/nicholas-rush.vrm";
+
 /**
- * Wrap loadCrewMember so cinematic actors always render. Falls back to a
- * capsule when: (a) the VRM network/parse fails entirely, or (b) the VRM
- * parses but contains no meshes (our placeholder .vrm stubs trip this).
+ * Wrap loadCrewMember so cinematic actors always render with a real VRoid
+ * body — no more blocky capsule fallbacks. When a crew member's own VRM
+ * is missing or has no geometry (24 KB placeholder stubs), we load the
+ * standard VRoid model instead. This gives every character a proper
+ * humanoid silhouette for the throw/ragdoll sequence.
  */
-async function loadCrewOrFallback(id: string, fallbackColor: number): Promise<CharacterLoadResult> {
+async function loadCrewOrFallback(id: string, _fallbackColor: number): Promise<CharacterLoadResult> {
 	try {
 		const result = await loadCrewMember(id);
 		const meshes = countMeshes(result.root);
-		if (meshes === 0) {
-			console.warn(`[cinematic] crew "${id}" has 0 meshes, swapping to capsule fallback`);
-			result.dispose?.();
-			return createCapsuleFallback(fallbackColor);
-		}
-		return result;
+		if (meshes > 0) return result;
+		// Placeholder VRM — dispose and fall through to standard VRoid.
+		console.warn(`[cinematic] crew "${id}" has 0 meshes, loading standard VRoid`);
+		result.dispose?.();
 	} catch (err) {
-		console.warn(`[cinematic] crew "${id}" failed to load, using capsule fallback`, err);
-		return createCapsuleFallback(fallbackColor);
+		console.warn(`[cinematic] crew "${id}" failed, loading standard VRoid`, err);
 	}
+	// Load the standard VRoid as fallback — a real humanoid model.
+	return loadVRMCharacter(STANDARD_VROID_PATH);
 }
 
 interface ThrownActor {
@@ -747,12 +717,15 @@ export class GateRoomCinematicController {
 		// Use fallback-wrapped loader so missing VRM placeholders don't leave
 		// the cinematic empty. Colors chosen to visually differentiate the crew
 		// in wide/overhead shots when the real models are unavailable.
+		// Scott/Young/TJ use the standard VRoid fallback (their own VRMs are
+		// placeholders). Rush loads his own (real 10 MB VRM). Eli loads his
+		// own VRM directly — he's the player character with a unique model.
 		const [scott, rush, young, tj, eli] = await Promise.allSettled([
-			loadCrewOrFallback("scott", 0x4466aa),  // blue — military uniform
-			loadCrewOrFallback("rush",  0x444444),  // dark grey — civilian jacket
-			loadCrewOrFallback("young", 0x556677),  // slate — command
-			loadCrewOrFallback("tj",    0x88aabb),  // light blue — medic
-			loadCrewOrFallback("eli",   0x886644),  // tan — civilian hoodie
+			loadCrewOrFallback("scott", 0x4466aa),
+			loadCrewOrFallback("rush",  0x444444),
+			loadCrewOrFallback("young", 0x556677),
+			loadCrewOrFallback("tj",    0x88aabb),
+			loadVRMCharacter("/assets/characters/eli-wallace/eli-wallace.vrm"),
 		]);
 
 		// If the cinematic was disposed while crew was loading (e.g. player
