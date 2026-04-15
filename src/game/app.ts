@@ -14,6 +14,9 @@ import { createThreeRuntimeSceneInstance, type ThreeRuntimeSceneInstance } from 
 import * as THREE from "three";
 import { WebGPURenderer } from "three/webgpu";
 import { frameCameraOnObject } from "./camera";
+import { AudioManager } from "../systems/audio";
+import { installDebugApi, toggleDebugOverlay } from "../systems/debug-api";
+import { pollInput } from "../systems/input";
 import { createDefaultGameplaySystems, createStarterGameplayHost, mergeGameplaySystems } from "./gameplay";
 import { createRuntimePhysicsSession, type RuntimePhysicsSession } from "./runtime-physics";
 import type { GameSceneBootstrapContext, GameSceneDefinition, GameSceneLifecycle } from "./scene-types";
@@ -78,14 +81,46 @@ export async function createGameApp(options: GameAppOptions) {
   // ACESFilmic tone mapping + exposure compensates so legacy intensity values
   // look correct without rewriting every scene's light intensities.
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 3.0;
+  renderer.toneMappingExposure = 3.9;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   shell.append(renderer.domElement);
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 4000);
+  // Attach the shared audio listener to the camera once for the life of the
+  // app. Scenes just call `AudioManager.getInstance().play(id)` to play
+  // cataloged sounds. The listener follows the camera across scene swaps.
+  AudioManager.getInstance().attachListener(camera);
   const clock = new THREE.Clock();
   let activeScene: ActiveScene | undefined;
+
+  // Dev hook surface — exposes window.__sgu for Playwright/MCP/console
+  // automation and renders an on-screen dev overlay. Only live in dev;
+  // the overlay is hidden until the player double-taps Backquote (or
+  // clicks the "open dev tools" hook).
+  const hostHooks = {
+    getCurrentSceneId: () => activeScene?.id,
+    getPlayerPosition: () => {
+      if (!activeScene?.player) return undefined;
+      const p = activeScene.player.object.position;
+      return { x: p.x, y: p.y, z: p.z };
+    },
+    setExternalMove: (forward: number, strafe: number) => {
+      activeScene?.player?.setExternalMoveInput(forward, strafe);
+    },
+    gotoScene: (sceneId: string) => loadScene(sceneId),
+    getCanvas: () => renderer.domElement as unknown as HTMLCanvasElement,
+    getCamera: () => camera,
+    getRenderer: () => renderer,
+    getScene: () => scene,
+  };
+  if (import.meta.env.DEV) {
+    installDebugApi(hostHooks);
+    const toggleDev = (e: KeyboardEvent) => {
+      if (e.code === "Backquote") toggleDebugOverlay(hostHooks);
+    };
+    window.addEventListener("keydown", toggleDev);
+  }
   let currentLoadToken = 0;
   let disposed = false;
 
@@ -129,6 +164,9 @@ export async function createGameApp(options: GameAppOptions) {
     requestAnimationFrame(renderFrame);
     const frameStart = performance.now();
     const delta = Math.min(clock.getDelta(), 0.1);
+
+    // Controller + keyboard snapshot (edge-detection for just-pressed actions)
+    pollInput();
 
     // Physics step
     const physicsStart = performance.now();
@@ -216,65 +254,79 @@ export async function createGameApp(options: GameAppOptions) {
     const loadToken = ++currentLoadToken;
     setStatus(`Loading ${definition.title}...`);
 
-    try {
-      await ensureCrashcatRuntimePhysics();
-      const runtimeManifest = await definition.source.load();
+    await ensureCrashcatRuntimePhysics();
+    const runtimeManifest = await definition.source.load();
 
-      if (disposed || loadToken !== currentLoadToken) {
-        return;
-      }
+    if (disposed || loadToken !== currentLoadToken) {
+      return;
+    }
 
-      const runtimeScene = await createThreeRuntimeSceneInstance(runtimeManifest, {
-        applyToScene: scene,
-        resolveAssetUrl: ({ path }) => path
-      });
-      renderer.setClearColor(runtimeScene.scene.settings.world.fogColor || "#dfe8f2");
-      const physicsWorld = createCrashcatPhysicsWorld(runtimeScene.scene.settings);
-      const runtimePhysics = createRuntimePhysicsSession({
-        runtimeScene,
-        world: physicsWorld
-      });
-      const gameplayHost = createStarterGameplayHost({
-        physicsWorld,
-        runtimePhysics,
-        runtimeScene
-      });
-      const bootstrapContext = createBootstrapContext({
-        camera,
-        gotoScene: loadScene,
-        physicsWorld,
-        preloadScene,
-        renderer,
-        runtimeScene,
-        scene,
-        sceneId,
-        setStatus
-      });
-      const systems = resolveSceneSystems(definition, bootstrapContext);
-      const gameplayRuntime = createGameplayRuntime({
-        host: gameplayHost,
-        scene: createGameplayRuntimeSceneFromRuntimeScene(runtimeScene.scene),
-        systems
-      });
-      const player = createStarterPlayerController({
-        camera,
-        definition,
-        domElement: renderer.domElement,
-        gameplayRuntime,
-        physicsWorld,
-        runtimeScene,
-        scene
-      });
+    const runtimeScene = await createThreeRuntimeSceneInstance(runtimeManifest, {
+      applyToScene: scene,
+      resolveAssetUrl: ({ path }) => path
+    });
+    renderer.setClearColor(runtimeScene.scene.settings.world.fogColor || "#dfe8f2");
+    const physicsWorld = createCrashcatPhysicsWorld(runtimeScene.scene.settings);
+    const runtimePhysics = createRuntimePhysicsSession({
+      runtimeScene,
+      world: physicsWorld
+    });
+    const gameplayHost = createStarterGameplayHost({
+      physicsWorld,
+      runtimePhysics,
+      runtimeScene
+    });
+    const bootstrapContext = createBootstrapContext({
+      camera,
+      gotoScene: loadScene,
+      physicsWorld,
+      preloadScene,
+      renderer,
+      runtimeScene,
+      scene,
+      sceneId,
+      setStatus
+    });
+    const systems = resolveSceneSystems(definition, bootstrapContext);
+    const gameplayRuntime = createGameplayRuntime({
+      host: gameplayHost,
+      scene: createGameplayRuntimeSceneFromRuntimeScene(runtimeScene.scene),
+      systems
+    });
+    const player = createStarterPlayerController({
+      camera,
+      definition,
+      domElement: renderer.domElement,
+      gameplayRuntime,
+      physicsWorld,
+      runtimeScene,
+      scene
+    });
 
-      gameplayRuntime.start();
-      scene.add(runtimeScene.root);
+    gameplayRuntime.start();
+    scene.add(runtimeScene.root);
+    if (player) {
+      scene.add(player.object);
+      player.updateAfterStep(DEFAULT_FIXED_STEP_SECONDS);
+    } else {
+      frameCameraOnObject(camera, runtimeScene.root);
+    }
+
+    // Cleanup helper for both the cancelled-load path and the mount() failure path.
+    const teardownPartialLoad = async (lifecycle?: GameSceneLifecycle) => {
+      scene.remove(runtimeScene.root);
       if (player) {
-        scene.add(player.object);
-        player.updateAfterStep(DEFAULT_FIXED_STEP_SECONDS);
-      } else {
-        frameCameraOnObject(camera, runtimeScene.root);
+        scene.remove(player.object);
       }
+      await lifecycle?.dispose?.();
+      player?.dispose();
+      gameplayRuntime.dispose();
+      runtimeScene.dispose();
+      runtimePhysics.dispose();
+    };
 
+    let lifecycle: GameSceneLifecycle;
+    try {
       const mountedLifecycle = await definition.mount?.({
         camera,
         gameplayRuntime,
@@ -290,47 +342,41 @@ export async function createGameApp(options: GameAppOptions) {
         sceneSettings: runtimeScene.scene.settings,
         setStatus
       });
-      const lifecycle: GameSceneLifecycle = mountedLifecycle ?? {};
-
-      if (disposed || loadToken !== currentLoadToken) {
-        scene.remove(runtimeScene.root);
-        if (player) {
-          scene.remove(player.object);
-        }
-        await lifecycle.dispose?.();
-        player?.dispose();
-        gameplayRuntime.dispose();
-        runtimeScene.dispose();
-        runtimePhysics.dispose();
-        return;
-      }
-
-      const previousScene = activeScene;
-      activeScene = {
-        accumulatorSeconds: 0,
-        gameplayRuntime,
-        id: sceneId,
-        lifecycle,
-        player,
-        physicsWorld,
-        runtimePhysics,
-        runtimeScene
-      };
-
-      if (previousScene) {
-        scene.remove(previousScene.runtimeScene.root);
-        if (previousScene.player) {
-          scene.remove(previousScene.player.object);
-        }
-        await previousScene.lifecycle.dispose?.();
-        previousScene.player?.dispose();
-        previousScene.gameplayRuntime.dispose();
-        previousScene.runtimeScene.dispose();
-        previousScene.runtimePhysics.dispose();
-      }
-
+      lifecycle = mountedLifecycle ?? {};
     } catch (error) {
+      // mount() threw — clean up the partially attached scene before propagating
+      // so we don't leak the runtime scene root, player, or physics world.
+      await teardownPartialLoad();
       throw error;
+    }
+
+    if (disposed || loadToken !== currentLoadToken) {
+      await teardownPartialLoad(lifecycle);
+      return;
+    }
+
+    const previousScene = activeScene;
+    activeScene = {
+      accumulatorSeconds: 0,
+      gameplayRuntime,
+      id: sceneId,
+      lifecycle,
+      player,
+      physicsWorld,
+      runtimePhysics,
+      runtimeScene
+    };
+
+    if (previousScene) {
+      scene.remove(previousScene.runtimeScene.root);
+      if (previousScene.player) {
+        scene.remove(previousScene.player.object);
+      }
+      await previousScene.lifecycle.dispose?.();
+      previousScene.player?.dispose();
+      previousScene.gameplayRuntime.dispose();
+      previousScene.runtimeScene.dispose();
+      previousScene.runtimePhysics.dispose();
     }
   };
 

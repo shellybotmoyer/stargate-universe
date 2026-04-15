@@ -15,8 +15,11 @@
  */
 
 import * as THREE from "three";
-import { loadCrewMember } from "../../characters/character-loader";
+import { loadCrewMember, loadVRMCharacter } from "../../characters/character-loader";
 import type { CharacterLoadResult } from "../../characters/character-loader";
+import { AudioManager } from "../../systems/audio";
+import { CinematicCamera } from "../../systems/cinematic-camera";
+import { Action, getInput } from "../../systems/input";
 
 // ─── Beat definitions ─────────────────────────────────────────────────────────
 
@@ -29,119 +32,166 @@ interface Beat {
 	easing: "linear" | "ease-in" | "ease-out" | "smooth";
 }
 
-function smooth(t: number): number {
-	return t * t * (3 - 2 * t);
-}
+// Camera look-at target — intentionally lower than the actual gate center
+// (y=4.2) to frame the crew landing area on the floor. Do NOT change to
+// match CAMERA_LOOK_TARGET in index.ts — this is a camera framing target.
+const CAMERA_LOOK_TARGET = new THREE.Vector3(0, 2.72, 0);
+const GATE_BACK = new THREE.Vector3(0, 2.72, 0.5);
+// Overhead shot — high angle from behind the landing zone, looking back
+// TOWARD the gate. Gate at z=0, crew land at z=8-18, player at z=50.
+const OVERHEAD    = new THREE.Vector3(0, 24, 20);
+// Establishing shot — LOW and CLOSE like the SGU reference image. Camera
+// at roughly human eye-height (y=1.5) about 12 meters from the gate so
+// the ring fills most of the frame and the room architecture looms above.
+const ESTABLISH   = new THREE.Vector3(0, 1.5, 12);
 
-function easeIn(t: number): number {
-	return t * t;
-}
-
-function easeOut(t: number): number {
-	return 1 - (1 - t) * (1 - t);
-}
-
-function applyEasing(t: number, mode: Beat["easing"]): number {
-	switch (mode) {
-		case "ease-in":  return easeIn(t);
-		case "ease-out": return easeOut(t);
-		case "smooth":   return smooth(t);
-		default:         return t;
-	}
-}
-
-// Gate center in world space (matches gate-room buildStargate placement)
-const GATE_CENTER = new THREE.Vector3(0, 3.2, 0);
-const GATE_BACK   = new THREE.Vector3(0, 3.2, 0.5);  // just behind the horizon
-const OVERHEAD    = new THREE.Vector3(0, 14, -4);
-
+// ─── 40-second gate-room arrival ────────────────────────────────────────────
+//
+// This is act two of the 60-second opening (act one is opening-cinematic
+// 0-20s, this is 0-40s relative = 20-60s absolute). The sgu-theme-song is
+// already playing from act one and runs through to the end of act two.
+// Each beat is independently testable via ?cinstep=N in the URL.
+//
+// BEAT TABLE (seconds relative to cinematic start):
+//    0 - 2s  establishing, dormant gate
+//    2 -12s  chevrons dialing (9 chevron-lock SFX)
+//   12 -15s  kawoosh + event horizon forms
+//   15 -20s  Scott emerges first, "scott-clear" voice line
+//   20 -32s  STATIC OVERHEAD — crew tumble through
+//   32 -37s  descent to Eli on the ground, Scott crouches
+//   37 -40s  fade to gameplay (player prone)
 const BEATS: Beat[] = [
-	// Beat 1 — dormant gate, slow push toward ring
+	// Beat 1 — WIDE ESTABLISHING. Dormant gate, massive empty hall.
 	{
-		start: 0, end: 4,
-		camFrom: new THREE.Vector3(0, 1.7, 16),
-		camTo:   new THREE.Vector3(0, 1.7,  6),
-		lookAt:  GATE_CENTER,
-		easing:  "ease-in",
+		start: 0, end: 2,
+		camFrom: ESTABLISH.clone(),
+		camTo:   ESTABLISH.clone(),
+		lookAt:  CAMERA_LOOK_TARGET,
+		easing:  "linear",
 	},
-	// Beat 2 — gate activates, kawoosh expands
+	// Beat 2 — CHEVRONS DIALING. Same wide shot, 9 chevron-lock SFX.
 	{
-		start: 4, end: 7,
-		camFrom: new THREE.Vector3(0, 1.7, 6),
-		camTo:   new THREE.Vector3(0, 1.7, 4),
-		lookAt:  GATE_CENTER,
+		start: 2, end: 12,
+		camFrom: ESTABLISH.clone(),
+		camTo:   ESTABLISH.clone(),
+		lookAt:  CAMERA_LOOK_TARGET,
+		easing:  "linear",
+	},
+	// Beat 3 — KAWOOSH. Push in slightly for the effect reveal.
+	{
+		start: 12, end: 15,
+		camFrom: ESTABLISH.clone(),
+		camTo:   new THREE.Vector3(0, 4, 14),
+		lookAt:  CAMERA_LOOK_TARGET,
 		easing:  "ease-out",
 	},
-	// Beat 3 — Scott through, low angle toward camera
+	// Beat 4 — SCOTT EMERGES. Camera BEHIND Scott's landing zone (z=14),
+	// low angle, looking back at the gate. Scott flies from gate mouth
+	// (z=0.8) toward and past the camera. We see him emerge from the
+	// event horizon, arc through the air, and crash-land at z=10.
 	{
-		start: 7, end: 11,
-		camFrom: new THREE.Vector3(0.5, 0.6, -2),
-		camTo:   new THREE.Vector3(0.5, 0.6, -4),
-		lookAt:  GATE_BACK,
+		start: 15, end: 20,
+		camFrom: new THREE.Vector3(3, 1.5, 14),
+		camTo:   new THREE.Vector3(4, 1.5, 16),
+		lookAt:  new THREE.Vector3(0, 2.0, 0),   // look back at gate
 		easing:  "linear",
 	},
-	// Beat 4 — evacuation chaos, anonymous crew flying
+	// Beat 5 — OVERHEAD. Camera elevated behind the landing zone (z=12)
+	// looking backward toward the gate (z=0). This frames the gate ring
+	// in the top third and the crew landing area (z=4-10) across the
+	// center and bottom thirds — the classic overhead chaos shot.
 	{
-		start: 11, end: 16,
-		camFrom: new THREE.Vector3(-1.5, 0.4, -5),
-		camTo:   new THREE.Vector3(-2.0, 0.4, -8),
-		lookAt:  new THREE.Vector3(0, 2, 0),
-		easing:  "linear",
-	},
-	// Beat 5 — overhead wide shot, NPCs sprawled
-	{
-		start: 16, end: 20,
+		start: 20, end: 32,
 		camFrom: OVERHEAD.clone(),
-		camTo:   OVERHEAD.clone().add(new THREE.Vector3(0, -1, 0)),
-		lookAt:  new THREE.Vector3(0, 0, -4),
-		easing:  "smooth",
-	},
-	// Beat 6 — Rush lands clean, walks off
-	{
-		start: 20, end: 23,
-		camFrom: new THREE.Vector3(-3, 1.4, -4),
-		camTo:   new THREE.Vector3(-4, 1.4, -8),
-		lookAt:  new THREE.Vector3(-2, 1.4, -6),
-		easing:  "ease-out",
-	},
-	// Beat 7 — Eli and TJ tumble through
-	{
-		start: 23, end: 26,
-		camFrom: new THREE.Vector3(1.5, 0.5, -3),
-		camTo:   new THREE.Vector3(2.0, 0.5, -6),
-		lookAt:  GATE_BACK,
+		camTo:   OVERHEAD.clone(),
+		lookAt:  new THREE.Vector3(0, 0, 3),
 		easing:  "linear",
 	},
-	// Beat 8 — Young last through at high speed, gate flickers shut
+	// Beat 6 — DESCENT to Eli prone on the ground; Scott crouches in.
+	// Eli lands at z≈14; camera drops from overhead to eye-level beside him.
 	{
-		start: 26, end: 31,
-		camFrom: new THREE.Vector3(0, 1.4, -4),
-		camTo:   new THREE.Vector3(0, 1.4, -10),
-		lookAt:  new THREE.Vector3(0, 1.2, -16),
-		easing:  "ease-in",
-	},
-	// Beat 9 — ground level push up near Eli, Scott crouches in
-	{
-		start: 31, end: 36,
-		camFrom: new THREE.Vector3(0.4, 0.15, -2.5),
-		camTo:   new THREE.Vector3(0.4, 0.9,  -2.5),
-		lookAt:  new THREE.Vector3(0.4, 1.0,  -5),
+		start: 32, end: 37,
+		camFrom: new THREE.Vector3(1.0, 8, 12),
+		camTo:   new THREE.Vector3(1.5, 1.0, 12),
+		lookAt:  new THREE.Vector3(0.5, 0.3, 14),
 		easing:  "ease-out",
+	},
+	// Beat 7 — FADE. Stays close on Eli as the cinematic hands off.
+	{
+		start: 37, end: 40,
+		camFrom: new THREE.Vector3(1.5, 1.0, 12),
+		camTo:   new THREE.Vector3(1.5, 1.0, 12),
+		lookAt:  new THREE.Vector3(0.5, 0.3, 14),
+		easing:  "linear",
 	},
 ];
 
-const TOTAL_DURATION = 36;
+const TOTAL_DURATION = 40;
+
+// Timing anchors — centralize so the updateAudio/updateCrew/updateSubtitles
+// stay in sync with the beat structure above.
+const T_DIAL_START = 2;
+const T_DIAL_END   = 12;
+const T_KAWOOSH    = 12;
+const T_SCOTT_EMERGE  = 15;
+const T_OVERHEAD      = 20;
+const T_CHAOS_START   = 22;
+const T_TJ_ELI        = 24.5;
+const T_RUSH          = 26.5;
+const T_YOUNG_IMPACT  = 28.5;
+const T_GATE_SHUTDOWN = 32;
 
 // ─── Named thrown actor (VRM crew) ────────────────────────────────────────────
+
+/**
+ * Count renderable meshes inside a loaded character root. Used to detect
+ * "successful" VRM loads that actually produced no geometry (e.g. our
+ * 24 KB placeholder .vrm files parse fine but contain zero meshes).
+ */
+function countMeshes(root: THREE.Object3D): number {
+	let n = 0;
+	root.traverse((o) => { if ((o as THREE.Mesh).isMesh) n++; });
+	return n;
+}
+
+// Standard VRoid used for all crew when their own model is missing or a
+// placeholder. Rush's VRM is 10 MB and known-good; Eli has his own.
+const STANDARD_VROID_PATH = "/assets/characters/nicholas-rush/nicholas-rush.vrm";
+
+/**
+ * Wrap loadCrewMember so cinematic actors always render with a real VRoid
+ * body — no more blocky capsule fallbacks. When a crew member's own VRM
+ * is missing or has no geometry (24 KB placeholder stubs), we load the
+ * standard VRoid model instead. This gives every character a proper
+ * humanoid silhouette for the throw/ragdoll sequence.
+ */
+async function loadCrewOrFallback(id: string, _fallbackColor: number): Promise<CharacterLoadResult> {
+	try {
+		const result = await loadCrewMember(id);
+		const meshes = countMeshes(result.root);
+		if (meshes > 0) return result;
+		// Placeholder VRM — dispose and fall through to standard VRoid.
+		console.warn(`[cinematic] crew "${id}" has 0 meshes, loading standard VRoid`);
+		result.dispose?.();
+	} catch (err) {
+		console.warn(`[cinematic] crew "${id}" failed, loading standard VRoid`, err);
+	}
+	// Load the standard VRoid as fallback — a real humanoid model.
+	return loadVRMCharacter(STANDARD_VROID_PATH);
+}
 
 interface ThrownActor {
 	char: CharacterLoadResult;
 	startPos: THREE.Vector3;
 	velocity: THREE.Vector3;
-	t0: number;         // time offset within beat window that throw starts
-	flightTime: number;
+	t0: number;           // delay before throw starts (within beat window)
+	flightTime: number;   // seconds of parabolic arc
 	landPos: THREE.Vector3;
 	landed: boolean;
+	landedAt: number;     // beatElapsed when landing occurred
+	standUpDelay: number; // seconds after landing before standing up starts
+	standUpDur: number;   // seconds to lerp from prone to upright
+	staysDown: boolean;   // true = unconscious (Young), never stands up
 }
 
 function createThrownActor(
@@ -151,10 +201,17 @@ function createThrownActor(
 	t0: number,
 	flightTime: number,
 	landPos: THREE.Vector3,
+	standUpDelay = 1.5,
+	standUpDur = 2.0,
+	staysDown = false,
 ): ThrownActor {
 	char.root.position.copy(startPos);
 	char.root.visible = false;
-	return { char, startPos: startPos.clone(), velocity: velocity.clone(), t0, flightTime, landPos: landPos.clone(), landed: false };
+	return {
+		char, startPos: startPos.clone(), velocity: velocity.clone(),
+		t0, flightTime, landPos: landPos.clone(), landed: false,
+		landedAt: 0, standUpDelay, standUpDur, staysDown,
+	};
 }
 
 function updateThrown(actor: ThrownActor, beatElapsed: number) {
@@ -163,20 +220,45 @@ function updateThrown(actor: ThrownActor, beatElapsed: number) {
 
 	actor.char.root.visible = true;
 
-	if (actor.landed) return;
-
-	if (t >= actor.flightTime) {
-		actor.landed = true;
-		actor.char.root.position.copy(actor.landPos);
+	// ── Landed state ─────────────────────────────────────────────────
+	if (actor.landed) {
+		if (actor.staysDown) {
+			// Unconscious (Young) — stays prone permanently.
+			actor.char.root.rotation.x = -Math.PI / 2;
+			return;
+		}
+		const sinceL = beatElapsed - actor.landedAt;
+		if (sinceL < actor.standUpDelay) {
+			// Still on the ground recovering
+			actor.char.root.rotation.x = -Math.PI / 2;
+		} else {
+			// Standing up — lerp from prone (-π/2) to upright (0)
+			const standT = Math.min(1, (sinceL - actor.standUpDelay) / actor.standUpDur);
+			const eased = standT * standT * (3 - 2 * standT); // smoothstep
+			actor.char.root.rotation.x = -Math.PI / 2 * (1 - eased);
+			actor.char.root.rotation.z = 0;
+		}
 		return;
 	}
 
-	// Parabolic arc
+	// ── Landing snap ─────────────────────────────────────────────────
+	if (t >= actor.flightTime) {
+		actor.landed = true;
+		actor.landedAt = beatElapsed;
+		actor.char.root.position.copy(actor.landPos);
+		actor.char.root.rotation.x = -Math.PI / 2;
+		return;
+	}
+
+	// ── In-flight parabolic arc ──────────────────────────────────────
 	actor.char.root.position.set(
 		actor.startPos.x + actor.velocity.x * t,
 		actor.startPos.y + actor.velocity.y * t - 4.9 * t * t,
 		actor.startPos.z + actor.velocity.z * t,
 	);
+	// Tumble during flight — rapid rotation simulates ragdoll chaos.
+	actor.char.root.rotation.x = -t * 6;
+	actor.char.root.rotation.z = Math.sin(t * 8) * 0.8;
 }
 
 // ─── Chaos actor (Beat 4 — anonymous capsule crew) ───────────────────────────
@@ -297,71 +379,14 @@ function createSkipHint(): { setProgress: (p: number) => void; dispose: () => vo
 	};
 }
 
-// ─── Web Audio helpers ────────────────────────────────────────────────────────
-
-function playGateTone(ctx: AudioContext) {
-	const osc = ctx.createOscillator();
-	const gain = ctx.createGain();
-	osc.type = "sine";
-	osc.frequency.setValueAtTime(200, ctx.currentTime);
-	osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.5);
-	gain.gain.setValueAtTime(0.3, ctx.currentTime);
-	gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.0);
-	osc.connect(gain);
-	gain.connect(ctx.destination);
-	osc.start();
-	osc.stop(ctx.currentTime + 2.0);
-}
-
-function playWhoosh(ctx: AudioContext, intensity = 1.0) {
-	const bufSize = Math.floor(ctx.sampleRate * 0.35);
-	const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-	const data = buf.getChannelData(0);
-	for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-
-	const src = ctx.createBufferSource();
-	src.buffer = buf;
-
-	const filter = ctx.createBiquadFilter();
-	filter.type = "highpass";
-	filter.frequency.value = 800;
-
-	const gain = ctx.createGain();
-	gain.gain.setValueAtTime(0.25 * intensity, ctx.currentTime);
-	gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-
-	src.connect(filter);
-	filter.connect(gain);
-	gain.connect(ctx.destination);
-	src.start();
-}
-
-function playBoom(ctx: AudioContext) {
-	const osc = ctx.createOscillator();
-	const gain = ctx.createGain();
-	osc.type = "sine";
-	osc.frequency.setValueAtTime(80, ctx.currentTime);
-	osc.frequency.exponentialRampToValueAtTime(18, ctx.currentTime + 0.5);
-	gain.gain.setValueAtTime(0.5, ctx.currentTime);
-	gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-	osc.connect(gain);
-	gain.connect(ctx.destination);
-	osc.start();
-	osc.stop(ctx.currentTime + 1.2);
-}
-
 // ─── Controller ───────────────────────────────────────────────────────────────
 
 export class GateRoomCinematicController {
 	private elapsed = 0;
+	private frozen = false;   // ?cinfreeze=1 — don't advance elapsed (dev tool)
 	private disposed = false;
-	private shakeIntensity = 0;
-	private readonly shakeOffset = new THREE.Vector3();
+	private cinCam: CinematicCamera;
 	private flickerActive = false;
-	private kawooshDisc: THREE.Mesh | undefined;
-	private kawooshElapsed = 0;
-	private kawooshDone = false;
-	private eventHorizon: THREE.Mesh | undefined;
 	private subtitle = createSubtitle();
 	private subtitleShown = new Set<string>();
 	private thrownActors: ThrownActor[] = [];
@@ -370,18 +395,18 @@ export class GateRoomCinematicController {
 	private rushNpc: CharacterLoadResult | undefined;
 	private scottNpc: CharacterLoadResult | undefined;
 	private youngNpc: CharacterLoadResult | undefined;
+	private tjNpc: CharacterLoadResult | undefined;
+	private eliNpc: CharacterLoadResult | undefined;
 	private camera: THREE.PerspectiveCamera;
 	private scene: THREE.Scene;
 	private readonly onComplete: () => void;
 
-	// Skip mechanism
+	// Skip mechanism (InputManager: Action.Pause = Escape / Gamepad Start)
 	private skipHint = createSkipHint();
 	private skipHoldStart: number | null = null;
 	private readonly SKIP_HOLD_MS = 1500;
 	private skipFadeOverlay: HTMLDivElement | undefined;
 	private skipTriggered = false;
-	private readonly boundKeyDown: (e: KeyboardEvent) => void;
-	private readonly boundKeyUp: (e: KeyboardEvent) => void;
 
 	// Player visual hide/restore
 	private playerObject: THREE.Object3D | undefined;
@@ -391,36 +416,55 @@ export class GateRoomCinematicController {
 	private droneOsc: OscillatorNode | null = null;
 	private audioPlayed = new Set<string>();
 
+	private readonly gateControl: import("./index").GateControl;
+	private readonly registerDisposable: (cleanup: () => void) => void;
+
 	constructor(
 		scene: THREE.Scene,
 		camera: THREE.PerspectiveCamera,
+		gateControl: import("./index").GateControl,
 		onComplete: () => void,
+		registerDisposable: (cleanup: () => void) => void,
 		playerObject?: THREE.Object3D,
 	) {
 		this.scene = scene;
 		this.camera = camera;
+		this.cinCam = new CinematicCamera(camera);
+		this.gateControl = gateControl;
+		this.registerDisposable = registerDisposable;
 		this.onComplete = onComplete;
 		this.playerObject = playerObject;
 
-		this.buildKawoosh();
-		this.buildChaosActors();
+		// ?cinstep=N — jump to elapsed = N seconds for testing. Pair with
+		// the same param on opening-cinematic to step through the whole
+		// 60-second opening one second at a time.
+		// ?cinfreeze=1 — additionally pin the clock to the cinstep value so
+		// frame-by-frame verification tools can inspect a specific beat
+		// without elapsed marching forward while crew VRMs stream in.
+		const params = new URLSearchParams(window.location.search);
+		const cinStepRaw = params.get("cinstep");
+		const cinStep = cinStepRaw !== null ? Number.parseFloat(cinStepRaw) : NaN;
+		if (Number.isFinite(cinStep)) {
+			this.elapsed = Math.max(0, Math.min(TOTAL_DURATION - 0.1, cinStep));
+			this.frozen = params.get("cinfreeze") === "1";
+		}
+
+		// Chaos actors (capsule placeholders) removed — they clashed
+		// visually with the VRM crew. All arrival actors are now the
+		// named thrown crew (Scott/Rush/TJ/Eli/Young).
 		this.loadCrew();
 		this.initAudio();
 		this.hidePlayerVisual();
 
-		this.boundKeyDown = (e: KeyboardEvent) => {
-			if (e.code === "Escape" && this.skipHoldStart === null && !this.skipTriggered) {
-				this.skipHoldStart = performance.now();
-			}
-		};
-		this.boundKeyUp = (e: KeyboardEvent) => {
-			if (e.code === "Escape") {
-				this.skipHoldStart = null;
-				this.skipHint.setProgress(0);
-			}
-		};
-		window.addEventListener("keydown", this.boundKeyDown);
-		window.addEventListener("keyup", this.boundKeyUp);
+		// If the theme song isn't already playing (e.g. player landed
+		// directly on this scene with ?scene=gate-room without going
+		// through opening-cinematic), kick it off now so the arrival
+		// has its score. Force loop:true because the track is shorter
+		// than the 40-second arrival cinematic.
+		const audio = AudioManager.getInstance();
+		if (!audio.isPlaying("sgu-theme-song")) {
+			void audio.play("sgu-theme-song", undefined, { loop: true, volume: 0.8 });
+		}
 	}
 
 	// ── Player visual hide/restore ────────────────────────────────────────────
@@ -434,15 +478,23 @@ export class GateRoomCinematicController {
 
 	private restorePlayerVisual() {
 		if (!this.playerObject) return;
-		this.playerObject.traverse(obj => { obj.visible = true; });
+		// Restore VRM visibility but NOT the capsule-fallback — the player
+		// controller hides it once the VRM loads (line 420). Re-enabling it
+		// here would flash a "pill shadow" for one frame before the
+		// controller's next update hides it again.
+		this.playerObject.traverse(obj => {
+			if (obj.name !== "capsule-fallback") obj.visible = true;
+		});
 	}
 
 	// ── Audio ─────────────────────────────────────────────────────────────────
 
 	private initAudio() {
+		// Real SFX are played via AudioManager (sound-catalog entries on R2).
+		// We keep a tiny AudioContext only for the background drone since
+		// there isn't a looping ship-hum entry in the catalog yet.
 		try {
 			this.audioCtx = new AudioContext();
-			// Low background drone — ship ambient hum
 			const osc = this.audioCtx.createOscillator();
 			const gain = this.audioCtx.createGain();
 			osc.type = "sine";
@@ -458,98 +510,95 @@ export class GateRoomCinematicController {
 	}
 
 	private updateAudio(elapsed: number) {
-		if (!this.audioCtx) return;
+		const audio = AudioManager.getInstance();
 
-		// Beat 2: gate activation tone sweep (200→80 Hz)
-		if (elapsed >= 4 && !this.audioPlayed.has("gate-tone")) {
-			this.audioPlayed.add("gate-tone");
-			playGateTone(this.audioCtx);
+		// Start the real gate dial at T_DIAL_START
+		if (elapsed >= T_DIAL_START && !this.audioPlayed.has("dial-start")) {
+			this.audioPlayed.add("dial-start");
+			this.gateControl.startDial();
 		}
-		// Beat 3: Scott lands
-		if (elapsed >= 9 && !this.audioPlayed.has("whoosh-scott")) {
-			this.audioPlayed.add("whoosh-scott");
-			playWhoosh(this.audioCtx, 0.9);
-		}
-		// Beat 4: chaos landing surge
-		if (elapsed >= 13 && !this.audioPlayed.has("whoosh-chaos")) {
-			this.audioPlayed.add("whoosh-chaos");
-			playWhoosh(this.audioCtx, 1.2);
-		}
-		// Beat 6: Rush lands (quiet, clean)
-		if (elapsed >= 21.2 && !this.audioPlayed.has("whoosh-rush")) {
-			this.audioPlayed.add("whoosh-rush");
-			playWhoosh(this.audioCtx, 0.5);
-		}
-		// Beat 7: TJ/Eli tumble in
-		if (elapsed >= 24.5 && !this.audioPlayed.has("whoosh-tj")) {
-			this.audioPlayed.add("whoosh-tj");
-			playWhoosh(this.audioCtx, 0.8);
-		}
-		// Beat 8: Young hits wall — boom + whoosh
-		if (elapsed >= 27 && !this.audioPlayed.has("boom-young")) {
-			this.audioPlayed.add("boom-young");
-			playBoom(this.audioCtx);
-			playWhoosh(this.audioCtx, 1.4);
-		}
-	}
 
-	// ── Kawoosh effect ────────────────────────────────────────────────────────
-
-	private buildKawoosh() {
-		// Expanding disc (additive blue)
-		const discGeo  = new THREE.CircleGeometry(1, 64);
-		const discMat  = new THREE.MeshBasicMaterial({
-			color: 0x2266ff, transparent: true, opacity: 0.85,
-			blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
-		});
-		this.kawooshDisc = new THREE.Mesh(discGeo, discMat);
-		this.kawooshDisc.position.copy(GATE_CENTER);
-		this.kawooshDisc.scale.setScalar(0);
-		this.kawooshDisc.visible = false;
-		this.scene.add(this.kawooshDisc);
-
-		// Stable event horizon (shown after kawoosh)
-		const horizonGeo = new THREE.CircleGeometry(2.55, 64);
-		const horizonMat = new THREE.MeshStandardMaterial({
-			color: 0x224488, emissive: 0x112244, emissiveIntensity: 1.5,
-			transparent: true, opacity: 0.7, side: THREE.DoubleSide,
-		});
-		this.eventHorizon = new THREE.Mesh(horizonGeo, horizonMat);
-		this.eventHorizon.position.copy(GATE_CENTER);
-		this.eventHorizon.visible = false;
-		this.scene.add(this.eventHorizon);
-	}
-
-	private updateKawoosh(delta: number, globalElapsed: number) {
-		if (this.kawooshDone) {
-			// Flicker at Beat 8 (t≈27-29)
-			if (globalElapsed >= 27 && globalElapsed <= 29) {
-				const flicker = Math.random() > 0.7;
-				if (this.eventHorizon) this.eventHorizon.visible = flicker;
-				this.flickerActive = true;
-			} else if (this.flickerActive && globalElapsed > 29) {
-				this.flickerActive = false;
-				if (this.eventHorizon) this.eventHorizon.visible = false;
+		// Beat 2 — CHEVRONS DIALING. Play chevron-lock once per chevron,
+		// spaced evenly over the 10-second dial window (~1s apart, last
+		// lock fires just before kawoosh). Drives the real gate chevrons.
+		const DIAL_DURATION = T_DIAL_END - T_DIAL_START;
+		for (let i = 0; i < 9; i++) {
+			const chevronTime = T_DIAL_START + (i + 1) * (DIAL_DURATION / 10);
+			const key = `chevron-${i}`;
+			if (elapsed >= chevronTime && !this.audioPlayed.has(key)) {
+				this.audioPlayed.add(key);
+				void audio.play("chevron-lock");
+				this.gateControl.forceLockedChevrons(i + 1);
 			}
-			return;
 		}
 
-		if (globalElapsed < 4) return;  // Before Beat 2
+		// Beat 3 — KAWOOSH. Trigger real gate kawoosh state + audio.
+		if (elapsed >= T_KAWOOSH && !this.audioPlayed.has("kawoosh")) {
+			this.audioPlayed.add("kawoosh");
+			void audio.play("stargate-kawoosh");
+			this.gateControl.forceState("kawoosh");
+		}
 
-		this.kawooshElapsed += delta;
+		// Beat 4 — Scott steps through the gate.
+		if (elapsed >= T_SCOTT_EMERGE && !this.audioPlayed.has("scott-emerge")) {
+			this.audioPlayed.add("scott-emerge");
+			void audio.play("wormhole-transit");
+		}
+		// Scott's radio call — he gets up (flight 1s + delay 1s + stand 1.5s ≈ t=18.5)
+		// then radios "It's clear! Start the evacuation!" with radio clicks.
+		if (elapsed >= 18.5 && !this.audioPlayed.has("scott-radio-click-1")) {
+			this.audioPlayed.add("scott-radio-click-1");
+			void audio.play("radio-click");
+		}
+		if (elapsed >= 19 && !this.audioPlayed.has("scott-clear-voice")) {
+			this.audioPlayed.add("scott-clear-voice");
+			void audio.play("scott-clear");
+		}
+		if (elapsed >= 21.5 && !this.audioPlayed.has("scott-radio-click-2")) {
+			this.audioPlayed.add("scott-radio-click-2");
+			void audio.play("radio-click");
+		}
 
-		if (!this.kawooshDisc) return;
+		// Beat 5 — crew tumble through (overhead). Staggered transits.
+		if (elapsed >= T_CHAOS_START && !this.audioPlayed.has("chaos-emerge")) {
+			this.audioPlayed.add("chaos-emerge");
+			void audio.play("energy-burst");
+		}
+		if (elapsed >= T_TJ_ELI && !this.audioPlayed.has("tj-eli-emerge")) {
+			this.audioPlayed.add("tj-eli-emerge");
+			void audio.play("wormhole-transit");
+		}
+		if (elapsed >= T_RUSH && !this.audioPlayed.has("rush-emerge")) {
+			this.audioPlayed.add("rush-emerge");
+			void audio.play("wormhole-transit");
+		}
+		// Young slams the far wall.
+		if (elapsed >= T_YOUNG_IMPACT && !this.audioPlayed.has("young-impact")) {
+			this.audioPlayed.add("young-impact");
+			void audio.play("debris-impact");
+			void audio.play("low-rumble");
+		}
+		// Gate shutdown energy wind-down.
+		if (elapsed >= T_GATE_SHUTDOWN + 2 && !this.audioPlayed.has("gate-shutdown")) {
+			this.audioPlayed.add("gate-shutdown");
+			void audio.play("power-down");
+			this.gateControl.shutdownGate();
+		}
+		// (Beat 6 — Scott checking on Eli) — voice line goes here once
+		// scott-bark-eli is uploaded to R2. Subtitle-only for now.
+	}
 
-		if (this.kawooshElapsed <= 0.4) {
-			// Expand 0 → 3.5 in 0.4s
-			const s = (this.kawooshElapsed / 0.4) * 3.5;
-			this.kawooshDisc.visible = true;
-			this.kawooshDisc.scale.setScalar(s);
-		} else {
-			// Snap to stable event horizon
-			this.kawooshDisc.visible = false;
-			if (this.eventHorizon) this.eventHorizon.visible = true;
-			this.kawooshDone = true;
+	// ── Gate flicker effect (shutdown beat) ──────────────────────────────────
+
+	private updateGateFlicker(elapsed: number) {
+		// Flicker the real event horizon during shutdown beat (t≈27-29)
+		if (elapsed >= 27 && elapsed <= 29) {
+			const flicker = Math.random() > 0.7;
+			this.gateControl.eventHorizon.visible = flicker;
+			this.flickerActive = true;
+		} else if (this.flickerActive && elapsed > 29) {
+			this.flickerActive = false;
+			this.gateControl.eventHorizon.visible = true;
 		}
 	}
 
@@ -601,101 +650,160 @@ export class GateRoomCinematicController {
 	// ── Crew loading ──────────────────────────────────────────────────────────
 
 	private async loadCrew() {
-		try {
-			const [scott, rush, young, tj, eli] = await Promise.allSettled([
-				loadCrewMember("scott"),
-				loadCrewMember("rush"),
-				loadCrewMember("young"),
-				loadCrewMember("tj"),
-				loadCrewMember("eli"),
-			]);
+		// Use fallback-wrapped loader so missing VRM placeholders don't leave
+		// the cinematic empty. Colors chosen to visually differentiate the crew
+		// in wide/overhead shots when the real models are unavailable.
+		// Scott/Young/TJ use the standard VRoid fallback (their own VRMs are
+		// placeholders). Rush loads his own (real 10 MB VRM). Eli loads his
+		// own VRM directly — he's the player character with a unique model.
+		const [scott, rush, young, tj, eli] = await Promise.allSettled([
+			loadCrewOrFallback("scott", 0x4466aa),
+			loadCrewOrFallback("rush",  0x444444),
+			loadCrewOrFallback("young", 0x556677),
+			loadCrewOrFallback("tj",    0x88aabb),
+			loadVRMCharacter("/assets/characters/eli-wallace/eli-wallace.vrm"),
+		]);
 
-			if (scott.status === "fulfilled") {
-				this.scottNpc = scott.value;
-				this.scene.add(this.scottNpc.root);
-				this.scottNpc.root.visible = false;
+		// If the cinematic was disposed while crew was loading (e.g. player
+		// skipped, or the scene was torn down), discard loaded VRM resources
+		// instead of attaching them to a dead scene.
+		if (this.disposed) {
+			for (const result of [scott, rush, young, tj, eli]) {
+				if (result.status === "fulfilled") {
+					result.value.dispose?.();
+				}
 			}
-
-			if (rush.status === "fulfilled") {
-				// Rush is already in the scene as the main NPC — cinematic version
-				// is positioned at the gate mouth for the throw, separately
-				this.rushNpc = rush.value;
-				this.rushNpc.root.position.set(0.3, 3.2, 0.5);
-				this.rushNpc.root.visible = false;
-				this.scene.add(this.rushNpc.root);
-			}
-
-			if (young.status === "fulfilled") {
-				this.youngNpc = young.value;
-				this.scene.add(this.youngNpc.root);
-				this.youngNpc.root.visible = false;
-			}
-
-			// Set up thrown actors once crew is loaded
-			const actors: ThrownActor[] = [];
-
-			if (scott.status === "fulfilled") {
-				// Beat 3: Scott walks through at t=7, arrives at t=9
-				actors.push(createThrownActor(
-					scott.value,
-					new THREE.Vector3(0, 3.2, 0.3),
-					new THREE.Vector3(-0.3, -0.5, -4),
-					0, 1.8,
-					new THREE.Vector3(-0.5, 0.1, -7),
-				));
-			}
-
-			if (rush.status === "fulfilled") {
-				// Beat 6: Rush lands mostly clean at t=20
-				actors.push(createThrownActor(
-					rush.value,
-					new THREE.Vector3(0.2, 3.2, 0.3),
-					new THREE.Vector3(0.2, 0.2, -5),
-					0, 1.2,
-					new THREE.Vector3(0.3, 0.1, -6),
-				));
-			}
-
-			if (tj.status === "fulfilled") {
-				// Beat 7: TJ tumbles at t=23
-				actors.push(createThrownActor(
-					tj.value,
-					new THREE.Vector3(-0.5, 3.2, 0.3),
-					new THREE.Vector3(-1.2, 2.5, -8),
-					0.3, 1.0,
-					new THREE.Vector3(-1.8, 0.1, -8),
-				));
-			}
-
-			if (eli.status === "fulfilled") {
-				// Beat 7: Eli tumbles (NPC version — player Eli is hidden during cinematic)
-				actors.push(createThrownActor(
-					eli.value,
-					new THREE.Vector3(0.4, 3.2, 0.3),
-					new THREE.Vector3(0.9, 3.0, -7),
-					0.6, 1.1,
-					new THREE.Vector3(1.2, 0.1, -7),
-				));
-				this.scene.add(eli.value.root);
-			}
-
-			if (young.status === "fulfilled") {
-				// Beat 8: Young high-speed, hits far wall unconscious
-				actors.push(createThrownActor(
-					young.value,
-					new THREE.Vector3(-0.2, 3.2, 0.3),
-					new THREE.Vector3(-1.0, 1.5, -14),
-					0, 0.7,
-					new THREE.Vector3(-1.2, 0.1, -17),
-				));
-			}
-
-			this.thrownActors = actors;
 			this.crewLoaded = true;
-		} catch (err) {
-			console.warn("[Cinematic] Crew load error:", err);
-			this.crewLoaded = true; // continue without crew
+			return;
 		}
+
+		if (scott.status === "fulfilled") {
+			this.scottNpc = scott.value;
+			this.scene.add(this.scottNpc.root);
+			this.scottNpc.root.visible = false;
+		}
+
+		if (rush.status === "fulfilled") {
+			// Rush is already in the scene as the main NPC — cinematic version
+			// is positioned at the gate mouth for the throw, separately
+			this.rushNpc = rush.value;
+			this.rushNpc.root.position.set(0.3, 0.1, 0.8);
+			this.rushNpc.root.visible = false;
+			this.scene.add(this.rushNpc.root);
+		}
+
+		if (young.status === "fulfilled") {
+			this.youngNpc = young.value;
+			this.scene.add(this.youngNpc.root);
+			this.youngNpc.root.visible = false;
+		}
+
+		if (tj.status === "fulfilled") {
+			this.tjNpc = tj.value;
+			this.scene.add(this.tjNpc.root);
+			this.tjNpc.root.visible = false;
+		}
+
+		if (eli.status === "fulfilled") {
+			this.eliNpc = eli.value;
+			this.scene.add(this.eliNpc.root);
+			this.eliNpc.root.visible = false;
+		}
+
+		// Set up thrown actors once crew is loaded
+		const actors: ThrownActor[] = [];
+
+		// ── Named crew throw trajectories ────────────────────────────────
+		// Gate is at z=0. Crew emerge from the event horizon and are THROWN
+		// into the room (+Z direction, toward the player at z=12). The first
+		// gate transit in SGU canon is violent — crew are launched at high
+		// speed, tumble, slide, hit things. All land positions are at +Z.
+		//
+		// createThrownActor params:
+		//   (char, startPos, velocity, t0, flightTime, landPos)
+		//
+		// IMPORTANT GEOMETRY RULES:
+		//   - startPos.y ≈ 0.1 (FLOOR level at gate base). Characters walk
+		//     through the gate on the FLOOR, not through the center (y=2.72).
+		//   - startPos.z ≈ 0.8 (+Z = player side of gate = just emerged).
+		//   - velocity.z  >0 = thrown INTO the room (+Z toward player spawn).
+		//   - All land positions at +Z, further from the gate for chaos.
+
+		// createThrownActor extra args: standUpDelay, standUpDur, staysDown
+		// Scott gets up FIRST (fastest) so he can radio "all clear" while standing.
+		// Young NEVER gets up — he's unconscious after hitting the wall.
+
+		if (scott.status === "fulfilled") {
+			// Scott — first through, controlled but fast. Gets up quickly.
+			actors.push(createThrownActor(
+				scott.value,
+				new THREE.Vector3(0, 0.1, 0.8),
+				new THREE.Vector3(-0.5, 0.3, 14),
+				0, 1.0,
+				new THREE.Vector3(-1.0, 0.1, 10),
+				1.0,   // standUpDelay — gets up 1s after landing
+				1.5,   // standUpDur — takes 1.5s to stand
+				false,
+			));
+		}
+
+		if (rush.status === "fulfilled") {
+			// Rush — second wave, slower to recover.
+			actors.push(createThrownActor(
+				rush.value,
+				new THREE.Vector3(0.3, 0.1, 0.8),
+				new THREE.Vector3(0.6, 0.8, 16),
+				0.3, 0.9,
+				new THREE.Vector3(2.0, 0.1, 12),
+				3.0,   // standUpDelay
+				2.5,   // standUpDur — Rush is older, takes longer
+				false,
+			));
+		}
+
+		if (tj.status === "fulfilled") {
+			// TJ — third wave, medic, gets up relatively quickly.
+			actors.push(createThrownActor(
+				tj.value,
+				new THREE.Vector3(-0.4, 0.1, 0.8),
+				new THREE.Vector3(-2.0, 1.2, 13),
+				0.5, 0.8,
+				new THREE.Vector3(-3.5, 0.1, 13),
+				2.0,   // standUpDelay
+				2.0,   // standUpDur
+				false,
+			));
+		}
+
+		if (eli.status === "fulfilled") {
+			// Eli (NPC copy) — hard crash, slow to recover.
+			actors.push(createThrownActor(
+				eli.value,
+				new THREE.Vector3(0.2, 0.1, 0.8),
+				new THREE.Vector3(1.5, 1.5, 15),
+				0.7, 0.9,
+				new THREE.Vector3(3.0, 0.1, 14),
+				4.0,   // standUpDelay — dazed
+				3.0,   // standUpDur — slow
+				false,
+			));
+		}
+
+		if (young.status === "fulfilled") {
+			// Young — LAST through, hits wall at max velocity. UNCONSCIOUS.
+			actors.push(createThrownActor(
+				young.value,
+				new THREE.Vector3(-0.2, 0.1, 0.8),
+				new THREE.Vector3(-1.2, 0.4, 24),
+				0, 0.7,
+				new THREE.Vector3(-2.0, 0.1, 18),
+				0, 0,
+				true,  // staysDown — unconscious, never stands up
+			));
+		}
+
+		this.thrownActors = actors;
+		this.crewLoaded = true;
 	}
 
 	// ── Camera ────────────────────────────────────────────────────────────────
@@ -703,63 +811,59 @@ export class GateRoomCinematicController {
 	private applyCamera(elapsed: number) {
 		const beat = BEATS.find(b => elapsed >= b.start && elapsed < b.end) ?? BEATS[BEATS.length - 1];
 		const rawT = (elapsed - beat.start) / (beat.end - beat.start);
-		const t = applyEasing(Math.min(1, Math.max(0, rawT)), beat.easing);
 
-		const pos = new THREE.Vector3().lerpVectors(beat.camFrom, beat.camTo, t);
-
-		// Camera shake
-		if (this.shakeIntensity > 0.001) {
-			this.shakeOffset.set(
-				(Math.random() - 0.5) * this.shakeIntensity,
-				(Math.random() - 0.5) * this.shakeIntensity,
-				(Math.random() - 0.5) * this.shakeIntensity,
-			);
-			pos.add(this.shakeOffset);
-			this.shakeIntensity *= Math.pow(0.85, 1 / 60);
+		// Kill shake during calm beats (establishing, dial, first second of overhead)
+		if (elapsed < T_OVERHEAD || (elapsed >= T_OVERHEAD && elapsed < T_OVERHEAD + 2)) {
+			this.cinCam.killShake();
 		}
+		this.cinCam.updateShake();
 
-		this.camera.position.copy(pos);
-		this.camera.lookAt(beat.lookAt);
+		// Use CinematicCamera.lerpTo for the beat transition
+		this.cinCam.lerpTo(
+			beat.camFrom, beat.camTo, beat.lookAt,
+			rawT, beat.easing,
+		);
 	}
 
 	// ── Subtitles ─────────────────────────────────────────────────────────────
 
 	private updateSubtitles(elapsed: number) {
-		// Beat 2: ambient — chevrons locking
-		if (elapsed >= 4 && elapsed < 6 && !this.subtitleShown.has("chevrons")) {
+		// Beat 2 — chevrons locking
+		if (elapsed >= T_DIAL_START + 1 && elapsed < T_DIAL_START + 5 && !this.subtitleShown.has("chevrons")) {
 			this.subtitleShown.add("chevrons");
-			this.subtitle.show("Chevrons locking...", 2);
+			this.subtitle.show("Chevrons locking...", 4);
 		}
-		// Beat 3: Scott clears the gate
-		if (elapsed >= 7 && elapsed < 9 && !this.subtitleShown.has("scott-clear")) {
+		// Beat 3 — kawoosh forms
+		if (elapsed >= T_KAWOOSH && elapsed < T_KAWOOSH + 2 && !this.subtitleShown.has("wormhole")) {
+			this.subtitleShown.add("wormhole");
+			this.subtitle.show("Wormhole established.", 2);
+		}
+		// Scott's radio call subtitle — synced with the TTS voice line at t=19
+		// (after he stands up from his landing at ~t=18.5).
+		if (elapsed >= 19 && !this.subtitleShown.has("scott-clear")) {
 			this.subtitleShown.add("scott-clear");
-			this.subtitle.show("It's clear — start the evacuation", 3);
+			this.subtitle.show("[RADIO] It's clear! Start the evacuation!", 3.0);
 		}
-		// Beat 4: chaos begins
-		if (elapsed >= 11 && elapsed < 13.5 && !this.subtitleShown.has("evacuate")) {
+		// Beat 5 — chaos surge starts (overhead)
+		if (elapsed >= T_CHAOS_START && elapsed < T_CHAOS_START + 3 && !this.subtitleShown.has("evacuate")) {
 			this.subtitleShown.add("evacuate");
-			this.subtitle.show("Evacuate! Everyone through now!", 2.5);
+			this.subtitle.show("Everyone through now — GO!", 3);
 		}
-		// Beat 6: Rush observes the ancient ship
-		if (elapsed >= 20 && elapsed < 22 && !this.subtitleShown.has("rush-fascinating")) {
+		// Beat 5 — Rush observes
+		if (elapsed >= T_RUSH && elapsed < T_RUSH + 2 && !this.subtitleShown.has("rush-fascinating")) {
 			this.subtitleShown.add("rush-fascinating");
 			this.subtitle.show("Fascinating...", 2);
 		}
-		// Beat 8: Young is down
-		if (elapsed >= 26 && elapsed < 28 && !this.subtitleShown.has("young-down")) {
+		// "Young's not moving" is the FINAL subtitle — fires just before the
+		// cinematic hands off control (~1s before fade starts at t=37).
+		if (elapsed >= 36 && !this.subtitleShown.has("young-down")) {
 			this.subtitleShown.add("young-down");
-			this.subtitle.show("Get Young — he's not moving!", 2);
+			this.subtitle.show("Young's not moving…", 2.5);
 		}
-		// Beat 9: Scott checks on Eli
-		if (elapsed >= 31 && elapsed < 33 && !this.subtitleShown.has("eli-scott")) {
-			this.subtitleShown.add("eli-scott");
-			this.subtitle.show("Eli... Eli, can you hear me?", 2);
-		}
-		// Beat 9 close: Eli wakes
-		if (elapsed >= 34 && elapsed < 37 && !this.subtitleShown.has("eli-wake")) {
-			this.subtitleShown.add("eli-wake");
-			this.subtitle.show("Eli — where the hell are we?", 4);
-		}
+		// "Eli... Eli, can you hear me?" is intentionally NOT a cinematic
+		// subtitle — it's the first line of the Scott opening dialogue,
+		// which starts as soon as the cinematic ends. Duplicating it here
+		// would show the line twice in a row.
 	}
 
 	// ── Beat-triggered crew visibility ────────────────────────────────────────
@@ -767,40 +871,41 @@ export class GateRoomCinematicController {
 	private updateCrew(elapsed: number) {
 		if (!this.crewLoaded) return;
 
-		// Scott visible from Beat 3 onwards
-		if (this.scottNpc && elapsed >= 7) {
-			this.scottNpc.root.visible = true;
-		}
-		// Rush cinematic NPC visible Beat 6
-		if (this.rushNpc && elapsed >= 20 && elapsed < 23) {
-			this.rushNpc.root.visible = true;
+		// Crew are invisible during beats 1-3 (wide/dial/kawoosh). Scott
+		// is the FIRST to come through at T_SCOTT_EMERGE — his visibility
+		// is driven by updateThrown the moment his throw begins.
+		if (elapsed < T_SCOTT_EMERGE) {
+			return;
 		}
 
 		// Named thrown actors — indexed by order set in loadCrew:
-		// 0=scott(beat3), 1=rush(beat6), 2=tj(beat7), 3=eli(beat7), 4=young(beat8)
-		const beat4E  = Math.max(0, elapsed - 11);
-		const beat7E  = Math.max(0, elapsed - 23);
-		const beat8E  = Math.max(0, elapsed - 26);
-
+		// 0=scott(first through at T_SCOTT_EMERGE)
+		// 1=rush  (clean landing at T_RUSH)
+		// 2=tj    (T_TJ_ELI)
+		// 3=eli   (T_TJ_ELI)
+		// 4=young (T_YOUNG_IMPACT — hits wall)
+		//
+		// DO NOT clamp to max(0, ...) — a negative beatE means "not yet
+		// entered the gate" and updateThrown correctly returns early when
+		// t < 0. Clamping to 0 made actors ghost-appear at the gate mouth
+		// the moment the first crew throw began.
 		this.thrownActors.forEach((actor, idx) => {
 			const beatE =
-				idx === 0 ? Math.max(0, elapsed - 7) :
-				idx === 1 ? Math.max(0, elapsed - 20) :
-				idx === 2 || idx === 3 ? beat7E :
-				beat8E;
+				idx === 0 ? elapsed - T_SCOTT_EMERGE :
+				idx === 1 ? elapsed - T_RUSH :
+				idx === 2 || idx === 3 ? elapsed - T_TJ_ELI :
+				elapsed - T_YOUNG_IMPACT;
 			updateThrown(actor, beatE);
 		});
 
-		// Beat 4 chaos actors
-		this.chaosActors.forEach(actor => updateChaos(actor, beat4E));
+		// Chaos actors removed — nothing to update here.
 
-		// Shake on first landing in Beat 4
-		if (elapsed >= 12 && elapsed < 13 && this.shakeIntensity < 0.05) {
-			this.shakeIntensity = 0.25;
+		// Shake on the chaos-arrival surge and again on Young's impact.
+		if (elapsed >= T_CHAOS_START + 0.3 && elapsed < T_CHAOS_START + 1 && this.cinCam.currentShakeIntensity < 0.05) {
+			this.cinCam.shake(0.22);
 		}
-		// Shake on Young hitting wall in Beat 8
-		if (elapsed >= 27 && elapsed < 27.5 && this.shakeIntensity < 0.05) {
-			this.shakeIntensity = 0.35;
+		if (elapsed >= T_YOUNG_IMPACT && elapsed < T_YOUNG_IMPACT + 0.5 && this.cinCam.currentShakeIntensity < 0.05) {
+			this.cinCam.shake(0.35);
 		}
 	}
 
@@ -809,26 +914,21 @@ export class GateRoomCinematicController {
 	private updateSkip() {
 		if (this.skipTriggered) return;
 
-		// Gamepad Start (standard mapping index 9) as alternative to ESC
-		const gamepads = navigator.getGamepads();
-		let gpStartHeld = false;
-		for (const gp of gamepads) {
-			if (gp?.buttons[9]?.pressed) { gpStartHeld = true; break; }
-		}
+		// Action.Pause is bound to Escape (keyboard) + Start (gamepad) by
+		// default — hold either for SKIP_HOLD_MS to skip.
+		const held = getInput().isAction(Action.Pause);
 
-		if (gpStartHeld && this.skipHoldStart === null) {
+		if (held && this.skipHoldStart === null) {
 			this.skipHoldStart = performance.now();
-		} else if (!gpStartHeld && this.skipHoldStart !== null) {
-			// Only clear if ESC also isn't held (ESC tracking is event-driven)
-			// This path handles gamepad-only release — ESC has its own keyup listener
+		} else if (!held && this.skipHoldStart !== null) {
+			this.skipHoldStart = null;
+			this.skipHint.setProgress(0);
 		}
 
 		if (this.skipHoldStart !== null) {
-			const held = performance.now() - this.skipHoldStart;
-			const progress = Math.min(1, held / this.SKIP_HOLD_MS);
-			this.skipHint.setProgress(progress);
-
-			if (held >= this.SKIP_HOLD_MS) {
+			const elapsed = performance.now() - this.skipHoldStart;
+			this.skipHint.setProgress(Math.min(1, elapsed / this.SKIP_HOLD_MS));
+			if (elapsed >= this.SKIP_HOLD_MS) {
 				this.triggerSkip();
 			}
 		}
@@ -862,9 +962,14 @@ export class GateRoomCinematicController {
 	update(delta: number) {
 		if (this.disposed) return;
 
-		this.elapsed += delta;
+		// `frozen` is a dev/test flag — keep the clock pinned to the cinstep
+		// value so tests can take deterministic screenshots while slow VRM
+		// loads finish in the background.
+		if (!this.frozen) {
+			this.elapsed += delta;
+		}
 		this.applyCamera(this.elapsed);
-		this.updateKawoosh(delta, this.elapsed);
+		this.updateGateFlicker(this.elapsed);
 		this.updateCrew(this.elapsed);
 		this.updateSubtitles(this.elapsed);
 		this.updateAudio(this.elapsed);
@@ -888,9 +993,6 @@ export class GateRoomCinematicController {
 		if (this.disposed) return;
 		this.disposed = true;
 
-		window.removeEventListener("keydown", this.boundKeyDown);
-		window.removeEventListener("keyup", this.boundKeyUp);
-
 		this.subtitle.dispose();
 		this.skipHint.dispose();
 		if (this.skipFadeOverlay) {
@@ -907,20 +1009,49 @@ export class GateRoomCinematicController {
 			void this.audioCtx.close();
 			this.audioCtx = null;
 		}
+		// End the 60-second theme here — it was started in opening-cinematic
+		// and played through the whole sequence. Gameplay starts in silence.
+		AudioManager.getInstance().stop("sgu-theme-song");
 
 		// Restore player visual before anything else
 		this.restorePlayerVisual();
 
-		if (this.kawooshDisc) { this.scene.remove(this.kawooshDisc); this.kawooshDisc = undefined; }
-		if (this.eventHorizon) { this.scene.remove(this.eventHorizon); this.eventHorizon = undefined; }
+		// Crew NPCs — KEEP in scene as gameplay NPCs (except cinematic Eli
+		// copy which would duplicate the player). Stand them upright at their
+		// landing positions so they're visible in the gameplay world.
+		for (const actor of this.thrownActors) {
+			actor.char.root.visible = true;
+			actor.char.root.rotation.set(0, 0, 0); // upright
+		}
+		// Remove cinematic Eli (player takes over)
+		if (this.eliNpc) {
+			this.scene.remove(this.eliNpc.root);
+			this.eliNpc.dispose?.();
+			this.eliNpc = undefined;
+		}
+		// Keep Young down (unconscious)
+		if (this.youngNpc) {
+			this.youngNpc.root.rotation.x = -Math.PI / 2;
+		}
 
-		[this.scottNpc, this.rushNpc, this.youngNpc].forEach(c => {
-			if (c) this.scene.remove(c.root);
-		});
-		this.thrownActors.forEach(a => this.scene.remove(a.char.root));
+		// Register VRM disposal for kept NPCs so scene exit frees
+		// spring bone textures, morph targets, and bone textures.
+		for (const npc of [this.scottNpc, this.rushNpc, this.youngNpc, this.tjNpc]) {
+			if (npc) {
+				this.registerDisposable(() => npc.dispose());
+			}
+		}
+		this.scottNpc = undefined;
+		this.rushNpc = undefined;
+		this.youngNpc = undefined;
+		this.tjNpc = undefined;
 		this.thrownActors = [];
 
-		this.chaosActors.forEach(a => this.scene.remove(a.mesh));
+		for (const a of this.chaosActors) {
+			this.scene.remove(a.mesh);
+			a.mesh.geometry.dispose();
+			(a.mesh.material as THREE.Material).dispose();
+		}
 		this.chaosActors = [];
 	}
 }

@@ -14,8 +14,11 @@ export const drRushNpc: NpcDefinition = {
 	name: 'Dr. Nicholas Rush',
 	role: 'Chief Science Officer',
 	dialogueTreeId: 'dr-rush',
-	// Near Destiny's main console — tune to actual scene node positions
-	position: { x: 0, y: 0, z: -8 },
+	// Left-side gate-room console, on the player's side of the gate. Player
+	// spawns at (0, 0.5, 12) facing the gate (−Z); this puts Rush off to
+	// the player's left, slightly behind them so they have to turn to find
+	// him — consistent with the "Dr. Rush is already here, working" beat.
+	position: { x: -20, y: 0, z: 48 },
 	behavior: {
 		startingState: 'idle',
 		interactionRadius: 2.5,

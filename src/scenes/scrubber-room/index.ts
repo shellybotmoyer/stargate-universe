@@ -19,6 +19,7 @@ import {
 } from "../../game/runtime-scene-sources";
 import type { GameSceneModuleContext, GameSceneLifecycle } from "../../game/scene-types";
 import { emit, scopedBus } from "../../systems/event-bus";
+import { Action, getInput } from "../../systems/input";
 import { createQuestManager } from "../../systems/quest-manager";
 import { registerAirCrisis, QUEST_ID as AIR_CRISIS_QUEST_ID } from "../../quests/air-crisis";
 import { isLimeCollected, setLimeCollected } from "../../systems/scene-transition-state";
@@ -397,6 +398,17 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	let returnReady = false;
 	let nearPanel = false;
 
+	// Pending timers from the repair sequence — cleared on dispose so callbacks
+	// don't fire on a removed DOM or stale scene state after a scene transition.
+	const repairTimers = new Set<ReturnType<typeof setTimeout>>();
+	const schedule = (fn: () => void, ms: number): void => {
+		const id = setTimeout(() => {
+			repairTimers.delete(id);
+			fn();
+		}, ms);
+		repairTimers.add(id);
+	};
+
 	const doRepair = (): void => {
 		if (repaired) return;
 		repaired = true;
@@ -419,12 +431,12 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		co2Display.setNormalizing();
 
 		// Rush dialogue fires after a beat
-		setTimeout(() => {
+		schedule(() => {
 			const dialogue = createRushDialogue("Remarkable. You actually pulled it off.");
 			// Atmosphere fully normal ~4s after dialogue
-			setTimeout(() => co2Display.setNormal(), 4000);
+			schedule(() => co2Display.setNormal(), 4000);
 			// Return prompt appears as dialogue fades
-			setTimeout(() => {
+			schedule(() => {
 				dialogue.dismiss();
 				returnPrompt.style.display = "block";
 				returnReady = true;
@@ -432,13 +444,11 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		}, 1500);
 	};
 
-	// ─── Input ────────────────────────────────────────────────────────
-	const handleKeyDown = (e: KeyboardEvent): void => {
-		if (e.code !== "KeyE" || e.repeat) return;
-
+	// ─── Input (shared InputManager) ──────────────────────────────────
+	const input = getInput();
+	const tryInteract = (): void => {
 		if (nearPanel && !repaired) {
 			if (!isLimeCollected()) {
-				// Guard: player somehow arrived without lime (shouldn't happen via normal flow)
 				interactPrompt.style.display = "block";
 				interactPrompt.textContent = "You need to find a calcium source first.";
 				return;
@@ -448,7 +458,6 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			void context.gotoScene("gate-room");
 		}
 	};
-	window.addEventListener("keydown", handleKeyDown);
 
 	// ─── Test hooks ──────────────────────────────────────────────────────
 	(window as any).__sceneReady = true;
@@ -457,6 +466,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	return {
 		update(delta: number) {
 			elapsed += delta;
+
+			if (input.isActionJustPressed(Action.Interact)) tryInteract();
 
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			compassHud.update(camera as any, delta);
@@ -503,7 +514,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		},
 
 		dispose() {
-			window.removeEventListener("keydown", handleKeyDown);
+			for (const id of repairTimers) clearTimeout(id);
+			repairTimers.clear();
 			co2Display.element.remove();
 			interactPrompt.remove();
 			returnPrompt.remove();
@@ -537,7 +549,7 @@ export const scrubberRoomScene = defineGameScene({
 	}),
 	title: "CO\u2082 Scrubber Room",
 	player: {
-		vrmUrl: "/characters/eli.vrm",
+		vrmUrl: "https://pub-c642ba55d4f641de916d72786545c520.r2.dev/characters/eli.vrm",
 	},
 	mount,
 });

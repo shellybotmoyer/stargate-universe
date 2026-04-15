@@ -348,6 +348,11 @@ function onVrmLoaded(instance: VrmCharacterInstance, result: VrmLoadResult): voi
 	instance.expressionController = new VrmExpressionController(result.vrm);
 	instance.lookAtController = new VrmLookAtController(result.vrm);
 
+	// Default to A-pose so the character looks natural when no animation is
+	// playing (rather than the imported T-pose, which looks broken). The
+	// AnimationMixer will overwrite these bone rotations once a clip plays.
+	applyAPose(result.vrm);
+
 	// Add VRM scene to the character root
 	instance.root.add(result.vrm.scene);
 
@@ -378,11 +383,17 @@ function onVrmFailed(instance: VrmCharacterInstance, error: unknown): void {
 	// Keep fallback capsule visible
 	instance.fallbackMesh.visible = true;
 
+	const message = error instanceof Error ? error.message : String(error);
 	console.error(
 		`[VrmCharacterManager] Failed to load VRM for "${instance.id}". ` +
 		`Falling back to capsule.`,
 		error
 	);
+
+	// Surface to subscribers (loading screen, HUD) — the bus declared this
+	// event but it was never emitted; playtesters without DevTools had no
+	// way to see VRM failures.
+	emit("character:model:failed", { characterId: instance.id, error: message });
 }
 
 // ─── Internal: Per-Frame Updates ────────────────────────────────────────────
@@ -486,6 +497,31 @@ function createFallbackCapsule(): Mesh {
 	mesh.receiveShadow = true;
 	mesh.name = "vrm-fallback-capsule";
 	return mesh;
+}
+
+// ─── Default Pose ───────────────────────────────────────────────────────────
+
+/**
+ * Rotate the upper-arm bones so the character defaults to an A-pose
+ * (arms relaxed at ~60° down from horizontal) instead of the imported
+ * T-pose. Useful when no animation clips are loaded — the character
+ * still looks natural standing still.
+ *
+ * The AnimationMixer overrides these rotations whenever a clip plays,
+ * so this is purely a fallback. VRM 1.0 normalized bone-local axes:
+ * upper-arm bones rotate around local Z to swing the arm down.
+ */
+function applyAPose(vrm: VRM): void {
+	// ~60° in radians. Sign: +Z on leftUpperArm swings the arm UP, so we
+	// need negative for left and positive for right to bring arms down
+	// into a relaxed A-pose.
+	const A_POSE_ANGLE = 1.05;
+
+	const leftArm = vrm.humanoid?.getNormalizedBoneNode("leftUpperArm");
+	const rightArm = vrm.humanoid?.getNormalizedBoneNode("rightUpperArm");
+
+	if (leftArm) leftArm.rotation.z = -A_POSE_ANGLE;
+	if (rightArm) rightArm.rotation.z = A_POSE_ANGLE;
 }
 
 function disposeFallbackCapsule(mesh: Mesh): void {

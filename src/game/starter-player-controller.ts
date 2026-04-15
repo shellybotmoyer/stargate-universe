@@ -119,6 +119,99 @@ export class StarterPlayerController {
     }
   }
 
+  // ── Prone / stand-up state ────────────────────────────────────────────────
+  // Three-phase wake-up driven by the Mixamo "Getting Up" clip:
+  //   'prone'    — getting-up anim paused at frame 0 (supine pose);
+  //                mixer runs but the anim is frozen
+  //   'standing' — getting-up anim playing forward (slow = 0.6x) toward
+  //                its final standing pose; movement still locked
+  //   'none'     — normal gameplay, idle anim has taken over
+  private _pronePhase: "prone" | "standing" | "none" = "none";
+  private _proneStartedAt = 0;   // performance.now() when setProne(true) fired
+  private _standStartedAt = 0;   // performance.now() when phase flipped to 'standing'
+  private readonly PRONE_MIN_HOLD_MS = 2500;   // hold flat for this long before reacting to input
+  private readonly STAND_DURATION_MS = 2200;   // slow-mo get-up lerp time
+
+  get isProne(): boolean { return this._pronePhase !== "none"; }
+
+  /**
+   * Begin the prone wake-up sequence. Cues the Mixamo "Getting Up"
+   * clip paused at frame 0 so the player model is posed supine.
+   * Movement is blocked until the standing clip finishes.
+   *
+   * If the clip isn't loaded (e.g. R2 fetch failed), the controller
+   * falls back to a simple rotation hack so the player still reads
+   * as "on their back".
+   */
+  setProne(prone: boolean): void {
+    if (prone) {
+      this._pronePhase = "prone";
+      this._proneStartedAt = performance.now();
+      this.applyProneRotation();
+      // PAUSE the animation mixer so the idle clip doesn't spin the
+      // character while we've manually rotated the root.
+      this.animController?.setPaused(true);
+      this.keyState.clear();
+    } else {
+      this._pronePhase = "none";
+      if (this.vrmCharacter?.vrm) this.vrmCharacter.root.rotation.x = 0;
+      this.animController?.setPaused(false);
+    }
+  }
+
+  /**
+   * Apply the supine rotation to the VRM root. Idempotent — safe to
+   * call every frame while prone. Also re-applies after VRM finishes
+   * loading if setProne(true) was called before the model was ready.
+   */
+  private applyProneRotation(): void {
+    if (this.vrmCharacter?.vrm) {
+      this.vrmCharacter.root.rotation.x = -Math.PI / 2;
+    }
+  }
+
+  /** Advance the wake-up state machine. Called from updateAfterStep. */
+  private updateProne(): void {
+    if (this._pronePhase === "prone") {
+      // Re-apply supine rotation each frame — updateAfterStep below
+      // writes yaw, and we want X to stay locked at -π/2 regardless.
+      this.applyProneRotation();
+      const now = performance.now();
+      // Hold on the ground for at least PRONE_MIN_HOLD_MS for drama —
+      // the cinematic just ended, Scott's dialogue is about to start.
+      if (now - this._proneStartedAt < this.PRONE_MIN_HOLD_MS) return;
+      // Auto-transition to standing after the hold — the player should be
+      // "slowly getting up" as the dialogue opens, not frozen until they
+      // tap a movement key. Movement intent also works as a fast-forward.
+      this._pronePhase = "standing";
+      this._standStartedAt = now;
+    } else if (this._pronePhase === "standing") {
+      // Manual slow lerp back to upright so the player sees a
+      // 2-second "getting up" motion. Once the Mixamo clip lands
+      // on R2 and we can confirm its frame-0 pose, swap to the
+      // animation-driven path (see old commits).
+      const t = Math.min(1, (performance.now() - this._standStartedAt) / this.STAND_DURATION_MS);
+      const eased = 1 - Math.pow(1 - t, 2);
+      if (this.vrmCharacter?.vrm) {
+        this.vrmCharacter.root.rotation.x = -Math.PI / 2 * (1 - eased);
+      }
+      if (t >= 1) {
+        this._pronePhase = "none";
+        if (this.vrmCharacter?.vrm) this.vrmCharacter.root.rotation.x = 0;
+        this.animController?.setPaused(false);
+      }
+    }
+  }
+
+  /** Detect movement intent — used to auto-stand up from prone. */
+  private hasMovementIntent(): boolean {
+    if (Math.abs(this._extForward) > 0.1 || Math.abs(this._extStrafe) > 0.1) return true;
+    return this.keyState.has("KeyW") || this.keyState.has("KeyA")
+        || this.keyState.has("KeyS") || this.keyState.has("KeyD")
+        || this.keyState.has("ArrowUp") || this.keyState.has("ArrowDown")
+        || this.keyState.has("ArrowLeft") || this.keyState.has("ArrowRight");
+  }
+
   constructor(options: StarterPlayerControllerOptions) {
     this.camera = options.camera;
     this.cameraMode = options.cameraMode;
@@ -173,6 +266,7 @@ export class StarterPlayerController {
     rightPad.castShadow = true; rightPad.receiveShadow = true;
 
     this.visual = new Group();
+    this.visual.name = "capsule-fallback";
     // Offset so feet sit at the bottom of the physics capsule
     this.visual.position.y = -this.footOffset;
     this.visual.add(legMesh, torsoMesh, headMesh, leftPad, rightPad);
@@ -308,15 +402,27 @@ export class StarterPlayerController {
   updateAfterStep(deltaSeconds: number) {
     const translation = this.body.position;
     this.object.position.set(translation[0], translation[1], translation[2]);
+    // Advance the wake-up state machine (prone / standing / none).
+    this.updateProne();
     // Use meshYaw so the character faces movement direction, not camera direction
     this.visual.rotation.set(0, this.meshYaw, 0);
 
-    // VRM character: rotate the VRM root to face movement direction
+    // VRM character: rotate the VRM root to face movement direction.
+    // While prone, the getting-up animation owns the X rotation — only
+    // set the Y yaw so we don't trample the supine pose.
     if (this.vrmCharacter?.vrm) {
-      // VRM models face +Z; the controller's forward is -Z. Add π to align.
-      this.vrmCharacter.root.rotation.set(0, this.meshYaw + Math.PI, 0);
-      // Hide capsule when VRM is loaded
-      this.visual.visible = false;
+      const root = this.vrmCharacter.root;
+      root.rotation.y = this.meshYaw + Math.PI;
+      if (this._pronePhase === "none") {
+        root.rotation.x = 0;
+        root.rotation.z = 0;
+      }
+      // Permanently remove capsule fallback once VRM is loaded — setting
+      // visible=false was unreliable because restorePlayerVisual and other
+      // traversals could re-enable children. Removing from parent is final.
+      if (this.visual.parent) {
+        this.visual.parent.remove(this.visual);
+      }
       // Handle first-person head hiding
       setFirstPersonMode(this.cameraMode === "fps", this.camera);
 
@@ -359,13 +465,27 @@ export class StarterPlayerController {
     );
     const viewDirection = resolveViewDirection(this.yaw, this.pitch, new Vector3());
 
+    // Skip camera follow entirely when input is disabled (e.g. photo/capture
+    // mode). Without this, the spring-lerp below clobbers any externally set
+    // camera position (debug API, automated screenshots) every physics step.
+    if (!this._inputEnabled) {
+      this.gameplayRuntime.updateActor({
+        height: this.standingHeight,
+        id: "player",
+        position: vec3(translation[0], translation[1], translation[2]),
+        radius: this.radius,
+        tags: ["player"]
+      });
+      return;
+    }
+
     if (this.cameraMode === "fps") {
       this.camera.position.copy(eyePosition);
       this.camera.lookAt(eyePosition.clone().add(viewDirection));
     } else if (this.cameraMode === "third-person") {
       // Over-the-shoulder orbit: pivot at chest/shoulder height, 3.5 units back.
       // Camera orbits freely via yaw/pitch; character mesh faces movement direction.
-      const ORBIT_DISTANCE = 3.5;
+      const ORBIT_DISTANCE = 7.0;
       const lookTarget = scratchLookTarget.set(
         translation[0],
         translation[1] + this.standingHeight * 0.72, // chest/shoulder pivot
@@ -381,7 +501,7 @@ export class StarterPlayerController {
       this.camera.position.lerp(targetCameraPosition, 1 - Math.exp(-deltaSeconds * 8));
       this.camera.lookAt(lookTarget);
     } else {
-      const followDistance = Math.max(8, this.standingHeight * 5.2);
+      const followDistance = Math.max(14, this.standingHeight * 10);
       const targetCameraPosition = eyePosition.clone().addScaledVector(viewDirection, -followDistance);
       targetCameraPosition.y += this.standingHeight * 1.8;
       this.camera.position.lerp(targetCameraPosition, 1 - Math.exp(-deltaSeconds * 8));
@@ -424,6 +544,14 @@ export class StarterPlayerController {
     // Pick whichever source has higher magnitude on each axis
     this.strafeInput = Math.abs(this._extStrafe) > Math.abs(kbStrafe) ? this._extStrafe : kbStrafe;
     this.forwardInput = Math.abs(this._extForward) > Math.abs(kbForward) ? this._extForward : kbForward;
+
+    // Prone / standing — zero movement axes so the character doesn't
+    // slide on the floor during the wake-up animation. The phase
+    // machine in updateProne() handles the transition out.
+    if (this._pronePhase !== "none") {
+      this.strafeInput = 0;
+      this.forwardInput = 0;
+    }
 
     const moveDirection = scratchMoveDirection
       .set(0, 0, 0)
