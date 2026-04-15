@@ -142,8 +142,8 @@ function createGateControl(gate: GateRuntime): GateControl {
 
 function createWallMaterial(): THREE.MeshStandardMaterial {
 	return new THREE.MeshStandardMaterial({
-		color: 0x080810,
-		emissive: 0x020204,
+		color: 0x100e0a,
+		emissive: 0x040302,
 		emissiveIntensity: 0.15,
 		roughness: 0.75,
 		metalness: 0.5,
@@ -153,8 +153,8 @@ function createWallMaterial(): THREE.MeshStandardMaterial {
 
 function buildRoom(scene: THREE.Scene): void {
 	const ceilingMat = new THREE.MeshStandardMaterial({
-		color: 0x080810,
-		emissive: 0x020204,
+		color: 0x100e0a,
+		emissive: 0x040302,
 		emissiveIntensity: 0.2,
 		roughness: 0.8,
 		metalness: 0.3,
@@ -164,8 +164,8 @@ function buildRoom(scene: THREE.Scene): void {
 	// Back wall (behind gate) — darker than side walls so the gate ring
 	// silhouette stands out. The reference shows the back wall as near-black.
 	const backWallMat = new THREE.MeshStandardMaterial({
-		color: 0x050508,
-		emissive: 0x010102,
+		color: 0x080604,
+		emissive: 0x020101,
 		emissiveIntensity: 0.1,
 		roughness: 0.8,
 		metalness: 0.4,
