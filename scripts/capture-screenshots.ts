@@ -46,7 +46,7 @@ const CAMERA_PRESETS: CameraPreset[] = [
 	{
 		name: "gate-active",
 		scene: "gate-room",
-		position: { x: 0, y: 2.5, z: 16 },
+		position: { x: 0, y: 4.5, z: 13 },
 		target: { x: 0, y: 6.2, z: 0 },
 		description: "Floor-level view looking at gate, matching active stargate reference",
 		gateActive: true,
