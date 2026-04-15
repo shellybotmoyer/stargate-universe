@@ -93,6 +93,47 @@ type GateRuntime = {
 	state: GateState;
 };
 
+// ─── Gate control interface (for cinematic to drive the real gate) ───────────
+
+export interface GateControl {
+	startDial(): void;
+	shutdownGate(): void;
+	forceLockedChevrons(count: number): void;
+	forceState(state: GateState): void;
+	getState(): GateState;
+	readonly eventHorizon: THREE.Mesh;
+}
+
+function createGateControl(gate: GateRuntime): GateControl {
+	return {
+		startDial: () => startDial(gate),
+		shutdownGate: () => {
+			// Allow shutdown from active OR kawoosh (cinematic may force shutdown early)
+			if (gate.state === "active" || gate.state === "kawoosh") {
+				gate.state = "shutdown";
+				gate.kawooshElapsed = 0;
+			}
+		},
+		forceLockedChevrons: (count: number) => {
+			while (gate.lockedChevrons < count) {
+				lockChevron(gate, gate.lockedChevrons);
+				gate.lockedChevrons++;
+			}
+		},
+		forceState: (state: GateState) => {
+			gate.state = state;
+			gate.dialElapsed = 0;
+			gate.kawooshElapsed = 0;
+			if (state === "kawoosh") {
+				gate.eventHorizon.visible = true;
+				(gate.eventHorizon.material as THREE.MeshStandardMaterial).opacity = 0;
+			}
+		},
+		getState: () => gate.state,
+		get eventHorizon() { return gate.eventHorizon; },
+	};
+}
+
 // ─── Room construction ───────────────────────────────────────────────────────
 
 function createWallMaterial(): THREE.MeshStandardMaterial {
@@ -1545,6 +1586,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	wallMeshes.length = 0;
 	const debugObjects: THREE.Object3D[] = [];
 	let debugMode = false;
+	let cinematicDrivingGate = false;
 
 	// ─── Build the gate room (existing prototype) ────────────────────────
 	buildRoom(scene);
@@ -2124,27 +2166,15 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		// Hide every registered HUD element for the cinematic's lifetime.
 		for (const el of cinematicHide) el.style.display = "none";
 
+		const gateControl = createGateControl(gate);
+		cinematicDrivingGate = true;
 		cinematicController = new GateRoomCinematicController(
 			scene,
 			camera as import("three").PerspectiveCamera,
-			(i) => {
-				// Gate runtime callback — cinematic asks us to light
-				// up chevrons 1..9 during its dial beat. We drive the
-				// actual in-scene gate state so the chevrons glow for
-				// real instead of the cinematic faking it.
-				if (gate) {
-					gate.lockedChevrons = Math.min(9, i);
-					for (let k = 0; k < gate.chevronMeshes.length; k++) {
-						const mat = gate.chevronMeshes[k].material as THREE.MeshStandardMaterial;
-						const lit = k < gate.lockedChevrons;
-						mat.color.setHex(lit ? COLOR_CHEVRON_ON : COLOR_CHEVRON_OFF);
-						mat.emissive.setHex(lit ? COLOR_CHEVRON_ON : COLOR_CHEVRON_OFF);
-						mat.emissiveIntensity = lit ? 1.5 : 0.1;
-					}
-				}
-			},
+			gateControl,
 			() => {
 				// Cinematic complete — restore HUD, gameplay NPCs, input.
+				cinematicDrivingGate = false;
 				for (const el of cinematicHide) el.style.display = "";
 				if (player) {
 					player.inputEnabled = true;
@@ -2155,6 +2185,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 				cinematicController = undefined;
 				void triggerOpeningDialogue();
 			},
+			(cleanup) => gateRoomExtraDisposables.push(cleanup),
 			player?.object ?? undefined,
 		);
 
@@ -2307,7 +2338,11 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			npcManager.update(delta);
 			// ─── VRM/GLB character physics + animation ──────────────────────
 			if (rushCharacter) rushCharacter.update(delta);
-						updateGate(gate, delta);
+						// During cinematic, skip auto-dialing — cinematic drives chevron timing.
+						// Kawoosh/active/shutdown still auto-advance via the real state machine.
+						if (!(cinematicDrivingGate && gate.state === "dialing")) {
+							updateGate(gate, delta);
+						}
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			if (cinematicController) cinematicController.update(delta);
 			compassHud.update(camera as any, delta);

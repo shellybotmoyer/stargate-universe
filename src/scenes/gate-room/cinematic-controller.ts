@@ -32,13 +32,11 @@ interface Beat {
 	easing: "linear" | "ease-in" | "ease-out" | "smooth";
 }
 
-// Gate center in world space — MUST match gate-room/index.ts:
-//   GATE_RADIUS=2.8, GATE_TUBE=0.22, so y = 2.72
-// (Previously hard-coded 3.2 here which put the kawoosh ~0.5 above
-// the real event horizon — players saw the portal floating behind
-// the gate because the kawoosh geometry didn't align with the ring.)
-const GATE_CENTER = new THREE.Vector3(0, 2.72, 0);
-const GATE_BACK   = new THREE.Vector3(0, 2.72, 0.5);  // just in front of the horizon
+// Camera look-at target — intentionally lower than the actual gate center
+// (y=4.2) to frame the crew landing area on the floor. Do NOT change to
+// match CAMERA_LOOK_TARGET in index.ts — this is a camera framing target.
+const CAMERA_LOOK_TARGET = new THREE.Vector3(0, 2.72, 0);
+const GATE_BACK = new THREE.Vector3(0, 2.72, 0.5);
 // Overhead shot — high angle from behind the landing zone, looking back
 // TOWARD the gate. Gate at z=0, crew land at z=8-18, player at z=50.
 const OVERHEAD    = new THREE.Vector3(0, 24, 20);
@@ -68,7 +66,7 @@ const BEATS: Beat[] = [
 		start: 0, end: 2,
 		camFrom: ESTABLISH.clone(),
 		camTo:   ESTABLISH.clone(),
-		lookAt:  GATE_CENTER,
+		lookAt:  CAMERA_LOOK_TARGET,
 		easing:  "linear",
 	},
 	// Beat 2 — CHEVRONS DIALING. Same wide shot, 9 chevron-lock SFX.
@@ -76,7 +74,7 @@ const BEATS: Beat[] = [
 		start: 2, end: 12,
 		camFrom: ESTABLISH.clone(),
 		camTo:   ESTABLISH.clone(),
-		lookAt:  GATE_CENTER,
+		lookAt:  CAMERA_LOOK_TARGET,
 		easing:  "linear",
 	},
 	// Beat 3 — KAWOOSH. Push in slightly for the effect reveal.
@@ -84,7 +82,7 @@ const BEATS: Beat[] = [
 		start: 12, end: 15,
 		camFrom: ESTABLISH.clone(),
 		camTo:   new THREE.Vector3(0, 4, 14),
-		lookAt:  GATE_CENTER,
+		lookAt:  CAMERA_LOOK_TARGET,
 		easing:  "ease-out",
 	},
 	// Beat 4 — SCOTT EMERGES. Camera BEHIND Scott's landing zone (z=14),
@@ -389,10 +387,6 @@ export class GateRoomCinematicController {
 	private disposed = false;
 	private cinCam: CinematicCamera;
 	private flickerActive = false;
-	private kawooshDisc: THREE.Mesh | undefined;
-	private kawooshElapsed = 0;
-	private kawooshDone = false;
-	private eventHorizon: THREE.Mesh | undefined;
 	private subtitle = createSubtitle();
 	private subtitleShown = new Set<string>();
 	private thrownActors: ThrownActor[] = [];
@@ -422,19 +416,22 @@ export class GateRoomCinematicController {
 	private droneOsc: OscillatorNode | null = null;
 	private audioPlayed = new Set<string>();
 
-	private readonly onChevronLock: (lockedCount: number) => void;
+	private readonly gateControl: import("./index").GateControl;
+	private readonly registerDisposable: (cleanup: () => void) => void;
 
 	constructor(
 		scene: THREE.Scene,
 		camera: THREE.PerspectiveCamera,
-		onChevronLock: (lockedCount: number) => void,
+		gateControl: import("./index").GateControl,
 		onComplete: () => void,
+		registerDisposable: (cleanup: () => void) => void,
 		playerObject?: THREE.Object3D,
 	) {
 		this.scene = scene;
 		this.camera = camera;
 		this.cinCam = new CinematicCamera(camera);
-		this.onChevronLock = onChevronLock;
+		this.gateControl = gateControl;
+		this.registerDisposable = registerDisposable;
 		this.onComplete = onComplete;
 		this.playerObject = playerObject;
 
@@ -452,7 +449,6 @@ export class GateRoomCinematicController {
 			this.frozen = params.get("cinfreeze") === "1";
 		}
 
-		this.buildKawoosh();
 		// Chaos actors (capsule placeholders) removed — they clashed
 		// visually with the VRM crew. All arrival actors are now the
 		// named thrown crew (Scott/Rush/TJ/Eli/Young).
@@ -516,10 +512,15 @@ export class GateRoomCinematicController {
 	private updateAudio(elapsed: number) {
 		const audio = AudioManager.getInstance();
 
+		// Start the real gate dial at T_DIAL_START
+		if (elapsed >= T_DIAL_START && !this.audioPlayed.has("dial-start")) {
+			this.audioPlayed.add("dial-start");
+			this.gateControl.startDial();
+		}
+
 		// Beat 2 — CHEVRONS DIALING. Play chevron-lock once per chevron,
 		// spaced evenly over the 10-second dial window (~1s apart, last
-		// lock fires just before kawoosh). Also drives the real gate
-		// runtime's chevron lighting via the onChevronLock callback.
+		// lock fires just before kawoosh). Drives the real gate chevrons.
 		const DIAL_DURATION = T_DIAL_END - T_DIAL_START;
 		for (let i = 0; i < 9; i++) {
 			const chevronTime = T_DIAL_START + (i + 1) * (DIAL_DURATION / 10);
@@ -527,14 +528,15 @@ export class GateRoomCinematicController {
 			if (elapsed >= chevronTime && !this.audioPlayed.has(key)) {
 				this.audioPlayed.add(key);
 				void audio.play("chevron-lock");
-				this.onChevronLock(i + 1);
+				this.gateControl.forceLockedChevrons(i + 1);
 			}
 		}
 
-		// Beat 3 — KAWOOSH. The signature gate activation sound.
+		// Beat 3 — KAWOOSH. Trigger real gate kawoosh state + audio.
 		if (elapsed >= T_KAWOOSH && !this.audioPlayed.has("kawoosh")) {
 			this.audioPlayed.add("kawoosh");
 			void audio.play("stargate-kawoosh");
+			this.gateControl.forceState("kawoosh");
 		}
 
 		// Beat 4 — Scott steps through the gate.
@@ -580,69 +582,23 @@ export class GateRoomCinematicController {
 		if (elapsed >= T_GATE_SHUTDOWN + 2 && !this.audioPlayed.has("gate-shutdown")) {
 			this.audioPlayed.add("gate-shutdown");
 			void audio.play("power-down");
+			this.gateControl.shutdownGate();
 		}
 		// (Beat 6 — Scott checking on Eli) — voice line goes here once
 		// scott-bark-eli is uploaded to R2. Subtitle-only for now.
 	}
 
-	// ── Kawoosh effect ────────────────────────────────────────────────────────
+	// ── Gate flicker effect (shutdown beat) ──────────────────────────────────
 
-	private buildKawoosh() {
-		// Expanding disc (additive blue)
-		const discGeo  = new THREE.CircleGeometry(1, 64);
-		const discMat  = new THREE.MeshBasicMaterial({
-			color: 0x2266ff, transparent: true, opacity: 0.85,
-			blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
-		});
-		this.kawooshDisc = new THREE.Mesh(discGeo, discMat);
-		this.kawooshDisc.position.copy(GATE_CENTER);
-		this.kawooshDisc.scale.setScalar(0);
-		this.kawooshDisc.visible = false;
-		this.scene.add(this.kawooshDisc);
-
-		// Stable event horizon (shown after kawoosh)
-		const horizonGeo = new THREE.CircleGeometry(2.55, 64);
-		const horizonMat = new THREE.MeshStandardMaterial({
-			color: 0x224488, emissive: 0x112244, emissiveIntensity: 1.5,
-			transparent: true, opacity: 0.7, side: THREE.DoubleSide,
-		});
-		this.eventHorizon = new THREE.Mesh(horizonGeo, horizonMat);
-		this.eventHorizon.position.copy(GATE_CENTER);
-		this.eventHorizon.visible = false;
-		this.scene.add(this.eventHorizon);
-	}
-
-	private updateKawoosh(delta: number, globalElapsed: number) {
-		if (this.kawooshDone) {
-			// Flicker during shutdown beat (t≈27-29)
-			if (globalElapsed >= 27 && globalElapsed <= 29) {
-				const flicker = Math.random() > 0.7;
-				if (this.eventHorizon) this.eventHorizon.visible = flicker;
-				this.flickerActive = true;
-			} else if (this.flickerActive && globalElapsed > 29) {
-				this.flickerActive = false;
-				if (this.eventHorizon) this.eventHorizon.visible = false;
-			}
-			return;
-		}
-
-		// Kawoosh starts at the top of Beat 3
-		if (globalElapsed < T_KAWOOSH) return;
-
-		this.kawooshElapsed += delta;
-
-		if (!this.kawooshDisc) return;
-
-		if (this.kawooshElapsed <= 0.4) {
-			// Expand 0 → 3.5 in 0.4s
-			const s = (this.kawooshElapsed / 0.4) * 3.5;
-			this.kawooshDisc.visible = true;
-			this.kawooshDisc.scale.setScalar(s);
-		} else {
-			// Snap to stable event horizon
-			this.kawooshDisc.visible = false;
-			if (this.eventHorizon) this.eventHorizon.visible = true;
-			this.kawooshDone = true;
+	private updateGateFlicker(elapsed: number) {
+		// Flicker the real event horizon during shutdown beat (t≈27-29)
+		if (elapsed >= 27 && elapsed <= 29) {
+			const flicker = Math.random() > 0.7;
+			this.gateControl.eventHorizon.visible = flicker;
+			this.flickerActive = true;
+		} else if (this.flickerActive && elapsed > 29) {
+			this.flickerActive = false;
+			this.gateControl.eventHorizon.visible = true;
 		}
 	}
 
@@ -1013,7 +969,7 @@ export class GateRoomCinematicController {
 			this.elapsed += delta;
 		}
 		this.applyCamera(this.elapsed);
-		this.updateKawoosh(delta, this.elapsed);
+		this.updateGateFlicker(this.elapsed);
 		this.updateCrew(this.elapsed);
 		this.updateSubtitles(this.elapsed);
 		this.updateAudio(this.elapsed);
@@ -1060,19 +1016,6 @@ export class GateRoomCinematicController {
 		// Restore player visual before anything else
 		this.restorePlayerVisual();
 
-		if (this.kawooshDisc) {
-			this.scene.remove(this.kawooshDisc);
-			this.kawooshDisc.geometry.dispose();
-			(this.kawooshDisc.material as THREE.Material).dispose();
-			this.kawooshDisc = undefined;
-		}
-		if (this.eventHorizon) {
-			this.scene.remove(this.eventHorizon);
-			this.eventHorizon.geometry.dispose();
-			(this.eventHorizon.material as THREE.Material).dispose();
-			this.eventHorizon = undefined;
-		}
-
 		// Crew NPCs — KEEP in scene as gameplay NPCs (except cinematic Eli
 		// copy which would duplicate the player). Stand them upright at their
 		// landing positions so they're visible in the gameplay world.
@@ -1090,6 +1033,18 @@ export class GateRoomCinematicController {
 		if (this.youngNpc) {
 			this.youngNpc.root.rotation.x = -Math.PI / 2;
 		}
+
+		// Register VRM disposal for kept NPCs so scene exit frees
+		// spring bone textures, morph targets, and bone textures.
+		for (const npc of [this.scottNpc, this.rushNpc, this.youngNpc, this.tjNpc]) {
+			if (npc) {
+				this.registerDisposable(() => npc.dispose());
+			}
+		}
+		this.scottNpc = undefined;
+		this.rushNpc = undefined;
+		this.youngNpc = undefined;
+		this.tjNpc = undefined;
 		this.thrownActors = [];
 
 		for (const a of this.chaosActors) {
