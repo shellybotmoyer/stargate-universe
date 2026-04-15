@@ -454,24 +454,9 @@ function buildStargate(scene: THREE.Scene): GateRuntime {
 		innerRingMat,
 	);
 
-	// ── Subtle glow halo — just barely extends beyond the ring, NOT the
-	// massive blue disc we had before. The reference shows the gate as a
-	// dark metallic ring against a dark wall, not a glowing blue portal.
-	const glowRingMat = new THREE.MeshBasicMaterial({
-		color: 0x101828,
-		transparent: true,
-		opacity: 0.25,
-		side: THREE.DoubleSide,
-		depthWrite: false,
-		fog: false,
-	});
-	const glowRing = new THREE.Mesh(
-		new THREE.RingGeometry(GATE_RADIUS - 0.5, GATE_RADIUS + 1.0, 64),
-		glowRingMat,
-	);
-	glowRing.position.copy(GATE_CENTER);
-	glowRing.position.z -= 0.15;
-	scene.add(glowRing);
+	// No glow halo — the SGU reference shows the gate as a dark metallic
+	// ring against a dark wall, not a glowing blue portal. The halo was
+	// creating a spurious oval edge in the similarity comparison.
 	innerRing.position.copy(GATE_CENTER);
 	scene.add(innerRing);
 
