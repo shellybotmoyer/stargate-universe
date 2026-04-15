@@ -13,6 +13,11 @@ import type { SceneSettings } from "@ggez/shared";
  * Returns the default set of gameplay systems used by every scene.
  * Scene definitions can override individual systems by including an entry
  * with the same id via mergeGameplaySystems().
+ *
+ * @param sceneSettings - Scene configuration including path resolvers for
+ *   navigation and other path-dependent systems.
+ * @returns Array of gameplay runtime system registrations for trigger,
+ *   sequence, openable, mover, and path-mover systems.
  */
 export function createDefaultGameplaySystems(
   sceneSettings: Pick<SceneSettings, "paths">
