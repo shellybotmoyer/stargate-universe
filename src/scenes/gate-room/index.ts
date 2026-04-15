@@ -158,10 +158,19 @@ function buildRoom(scene: THREE.Scene): void {
 		side: THREE.DoubleSide,
 	});
 
-	// Back wall (behind gate)
+	// Back wall (behind gate) — darker than side walls so the gate ring
+	// silhouette stands out. The reference shows the back wall as near-black.
+	const backWallMat = new THREE.MeshStandardMaterial({
+		color: 0x050508,
+		emissive: 0x010102,
+		emissiveIntensity: 0.1,
+		roughness: 0.8,
+		metalness: 0.4,
+		side: THREE.DoubleSide,
+	});
 	const backWall = new THREE.Mesh(
 		new THREE.BoxGeometry(ROOM_WIDTH, ROOM_HEIGHT, 0.5),
-		createWallMaterial()
+		backWallMat,
 	);
 	backWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
 	scene.add(backWall);
