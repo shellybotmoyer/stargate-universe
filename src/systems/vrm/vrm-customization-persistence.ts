@@ -72,7 +72,7 @@ export async function saveCustomization(customization: VrmCustomization): Promis
 			console.error(`[VrmCustomizationPersistence] API save failed (${response.status})`);
 		}
 	} catch {
-		console.error(\"[VrmCustomizationPersistence] API not available, saved to localStorage only\");
+		console.error("[VrmCustomizationPersistence] API not available, saved to localStorage only");
 	}
 
 	emit("character:customization:saved", { characterId });
