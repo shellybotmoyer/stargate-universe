@@ -800,7 +800,7 @@ function updateCameraPullIn(camera: THREE.PerspectiveCamera, playerPos: THREE.Ve
 
 // ─── Debug overlay ───────────────────────────────────────────────────────────
 
-function createDebugOverlay(): { element: HTMLDivElement; update: () => void } {
+function createDebugOverlay(renderer: THREE.WebGLRenderer): { element: HTMLDivElement; update: (delta: number) => void } {
 	const el = document.createElement("div");
 	el.id = "debug-overlay";
 	Object.assign(el.style, {
@@ -822,20 +822,26 @@ function createDebugOverlay(): { element: HTMLDivElement; update: () => void } {
 	document.body.appendChild(el);
 
 	let frameCount = 0;
-	const update = () => {
-		frameCount++;
-		if (frameCount % 10 !== 0) return; // update text every 10 frames
+	let fps = 60;
+	let lastTime = performance.now();
 
-		const m = { fps: 60, frameMs: 16.6, physicsMs: 2.0, physicsHz: 60, physicsSteps: 1, renderMs: 8.0, drawCalls: 0, triangles: 0 };
-		const fpsColor = m.fps >= 50 ? "#44ff88" : m.fps >= 30 ? "#ffaa44" : "#ff4444";
+	const update = (_delta: number) => {
+		frameCount++;
+		if (frameCount % 10 !== 0) return;
+
+		const now = performance.now();
+		fps = Math.round(1000 / (now - lastTime) * 10) / 10;
+		lastTime = now;
+
+		const info = renderer.info;
+		const fpsColor = fps >= 50 ? "#44ff88" : fps >= 30 ? "#ffaa44" : "#ff4444";
 
 		el.textContent = [
-			`FPS: ${m.fps}`,
-			`Frame: ${m.frameMs.toFixed(1)}ms`,
-			`Physics: ${m.physicsMs.toFixed(1)}ms (${m.physicsHz}Hz, ${m.physicsSteps} steps)`,
-			`Render: ${m.renderMs.toFixed(1)}ms`,
-			`Draw calls: ${m.drawCalls}`,
-			`Triangles: ${m.triangles.toLocaleString()}`,
+			`FPS: ${fps}`,
+			`Draw calls: ${info.render.calls}`,
+			`Triangles: ${info.render.triangles.toLocaleString()}`,
+			`Geometries: ${info.memory.geometries}`,
+			`Textures: ${info.memory.textures}`,
 		].join("\n");
 		el.style.whiteSpace = "pre";
 		el.style.color = fpsColor;
@@ -1506,7 +1512,7 @@ async function mount(context: GameSceneContext): Promise<GameSceneLifecycle> {
 
 	// ─── UI elements ─────────────────────────────────────────────────────
 	const hud = createHUD();
-	const debug = createDebugOverlay();
+	const debug = createDebugOverlay(renderer);
 	debug.element.style.display = "none";
 	const menu = createEscapeMenu(renderer.domElement);
 	const cleanupFullscreen = setupFullscreen(renderer.domElement, menu);
