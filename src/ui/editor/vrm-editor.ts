@@ -13,13 +13,13 @@
 import type { VRM } from "@pixiv/three-vrm";
 
 import {
-    applyCustomization,
-    removeCustomization,
-} from "../../../src/systems/vrm/vrm-customizer";
-import type { VrmCustomization } from "../../../src/systems/vrm/vrm-customization-types";
-import { saveCustomization, loadCustomization } from "../../../src/systems/vrm/vrm-customization-persistence";
-import { createEmptyCustomization } from "../../../src/systems/vrm/vrm-customization-types";
-import type { MaterialOverride, GearAttachment, MeshVisibilityOverride } from "../../../src/systems/vrm/vrm-customization-types";
+	applyCustomization,
+	removeCustomization,
+	type VrmCustomization,
+} from "../../systems/vrm";
+import { saveCustomization, loadCustomization } from "../../systems/vrm/vrm-customization-persistence";
+import { createEmptyCustomization } from "../../systems/vrm/vrm-customization-types";
+import type { MaterialOverride, GearAttachment, MeshVisibilityOverride } from "../../systems/vrm/vrm-customization-types";
 import { createEditorPreview, type EditorPreview } from "./vrm-editor-preview";
 import { createMaterialsTab, type MaterialsTab } from "./tabs/materials-tab";
 import { createVisibilityTab, type VisibilityTab } from "./tabs/visibility-tab";
@@ -92,30 +92,9 @@ export function openVrmEditor(characterId: string, vrm: VRM): void {
 	// Load existing customization
 	loadCustomization(characterId).then((saved) => {
 		if (saved && activeEditor) {
-			const editor = activeEditor;
-			// Apply saved customization to the VRM immediately
-			applyCustomization(editor.characterId, editor.vrm, saved).catch((err) => {
-				console.info("[VrmEditor] Saved customization not applied on load (using defaults)", err);
-			});
-
-			// Populate tab UI state from saved customization
-			if (saved.materials) {
-				saved.materials.forEach((ov) => {
-					editor.materialsTab.state.overrides.set(ov.target, ov);
-					// Note: We can't easily update the DOM elements of the tab without a re-render
-					// or a set-state mechanism, but the internal state is now synced.
-				});
-			}
-			if (saved.gear) {
-				saved.gear.forEach((att) => {
-					editor.gearTab.state.equipped.set(att.slotId, att);
-				});
-			}
-			if (saved.meshVisibility) {
-				saved.meshVisibility.forEach((ov) => {
-					editor.visibilityTab.state.overrides.set(ov.meshName, ov);
-				});
-			}
+			// Pending Implementation: UI state population from saved customization
+			// Integration requires mapping VrmCustomization keys to specific tab internals.
+			// For now, the tabs start from current VRM state
 		}
 	}).catch(() => {
 		// No saved customization — start fresh

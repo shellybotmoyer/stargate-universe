@@ -104,16 +104,16 @@ export async function loadVrmConfig(url = "/assets/config/vrm-config.json"): Pro
 	try {
 		const response = await fetch(url);
 
-		if (!response.ok) {
-			console.info(`[VrmConfig] Failed to load config from ${url} (${response.status}). Using defaults.`);
-			return activeConfig;
-		}
+	if (!response.ok) {
+		console.error(`[VrmConfig] Failed to load config from ${url} (${response.status}). Using defaults.`);
+		return activeConfig;
+	}
 
 		const raw: unknown = await response.json();
 		activeConfig = mergeWithDefaults(raw);
 		return activeConfig;
 	} catch (error) {
-		console.error("[VrmConfig] Critical error loading config. Falling back to defaults.", error);
+		console.error(\"[VrmConfig] Error loading config. Using defaults.\", error);
 		return activeConfig;
 	}
 }
