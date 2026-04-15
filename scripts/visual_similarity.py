@@ -514,9 +514,69 @@ def main():
 	# validate: self-test
 	subparsers.add_parser("validate", help="Run self-validation tests")
 
+	# shapes: B&W edge comparison focused on structure, not color
+	p_shapes = subparsers.add_parser("shapes", help="Shape/structure comparison (grayscale edge maps)")
+	p_shapes.add_argument("reference", help="Path to reference image")
+	p_shapes.add_argument("screenshot", help="Path to game screenshot")
+	p_shapes.add_argument("-o", "--output", help="Save side-by-side edge comparison image")
+
 	args = parser.parse_args()
 
-	if args.command == "compare":
+	if args.command == "shapes":
+		ref = load_and_normalize(args.reference)
+		shot = load_and_normalize(args.screenshot)
+
+		# Convert to grayscale
+		ref_gray = to_grayscale_array(ref)
+		shot_gray = to_grayscale_array(shot)
+
+		# Extract edges
+		edges_ref = extract_edges(ref)
+		edges_shot = extract_edges(shot)
+
+		# SSIM on grayscale (structure only, no color)
+		gray_ssim = ssim(ref_gray, shot_gray, data_range=255.0) * 100
+
+		# Edge cross-correlation
+		edge_sim = compute_edge_similarity(ref, shot)
+
+		# Grayscale histogram (brightness distribution only)
+		hist_ref, _ = np.histogram(ref_gray, bins=64, range=(0, 256))
+		hist_shot, _ = np.histogram(shot_gray, bins=64, range=(0, 256))
+		hist_ref = hist_ref / hist_ref.sum()
+		hist_shot = hist_shot / hist_shot.sum()
+		gray_hist = np.minimum(hist_ref, hist_shot).sum() * 100
+
+		# Perceptual hash on grayscale
+		ref_bw = ref.convert("L")
+		shot_bw = shot.convert("L")
+		ahash_sim = 1.0 - (imagehash.average_hash(ref_bw, 16) - imagehash.average_hash(shot_bw, 16)) / 256
+		whash_sim = 1.0 - (imagehash.whash(ref_bw, 16) - imagehash.whash(shot_bw, 16)) / 256
+		bw_hash = (0.4 * ahash_sim + 0.6 * whash_sim) * 100
+
+		composite = 0.3 * gray_ssim + 0.2 * gray_hist + 0.3 * edge_sim + 0.2 * bw_hash
+
+		print(f"\n  SHAPE COMPARISON (color removed)")
+		print(f"  ─────────────────────────────────")
+		print(f"  Grayscale SSIM:     {gray_ssim:6.1f}%")
+		print(f"  Brightness hist:    {gray_hist:6.1f}%")
+		print(f"  Edge structure:     {edge_sim:6.1f}%")
+		print(f"  B&W perceptual:     {bw_hash:6.1f}%")
+		print(f"  ─────────────────────────────────")
+		print(f"  SHAPE COMPOSITE:    {composite:6.1f}%")
+
+		if args.output:
+			# Save side-by-side: ref edges | shot edges
+			edge_ref_img = Image.fromarray(edges_ref.astype(np.uint8))
+			edge_shot_img = Image.fromarray(edges_shot.astype(np.uint8))
+			w, h = COMPARE_SIZE
+			combined = Image.new("L", (w * 2 + 4, h), 128)
+			combined.paste(edge_ref_img, (0, 0))
+			combined.paste(edge_shot_img, (w + 4, 0))
+			combined.save(args.output)
+			print(f"\n  Edge comparison saved: {args.output}")
+
+	elif args.command == "compare":
 		result = compare_images(args.reference, args.screenshot)
 		if args.json:
 			print(json.dumps(result.to_dict(), indent=2))
