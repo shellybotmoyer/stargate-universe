@@ -54,7 +54,7 @@ const CAMERA_PRESETS: CameraPreset[] = [
 	{
 		name: "gate-closeup",
 		scene: "gate-room",
-		position: { x: 1.5, y: 5.5, z: 10 },
+		position: { x: 0, y: 6.2, z: 9 },
 		target: { x: 0, y: 6.2, z: 0 },
 		description: "Close-up of gate ring, matching Stargate.jpeg reference",
 		gateActive: true,
