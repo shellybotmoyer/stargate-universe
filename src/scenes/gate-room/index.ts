@@ -1642,12 +1642,26 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	// ─── Photo mode ─────────────────────────────────────────────────────
 	// ?photo=1 — disable player character, lock camera at specified position.
 	// ?camx=0&camy=2&camz=15&lookx=0&looky=4&lookz=0 — camera placement.
+	// ?gate=active — force the gate into fully-active state (all chevrons
+	// locked, event horizon visible + glowing) for reference comparison.
 	// Designed for visual comparison screenshots without the player character.
 	const photoParams = new URLSearchParams(window.location.search);
 	const photoMode = photoParams.has("photo");
 	if (photoMode && player) {
 		player.object.visible = false;
 		player.inputEnabled = false;
+	}
+	if (photoMode && photoParams.get("gate") === "active") {
+		// Lock all chevrons + snap to active without running the dial sequence.
+		for (let i = 0; i < CHEVRON_COUNT; i++) {
+			lockChevron(gate, i);
+		}
+		gate.lockedChevrons = CHEVRON_COUNT;
+		gate.state = "active";
+		gate.eventHorizon.visible = true;
+		const horizonMat = gate.eventHorizon.material as THREE.MeshStandardMaterial;
+		horizonMat.opacity = 0.8;
+		horizonMat.emissiveIntensity = 1.2;
 	}
 
 	// ─── Player-attached ambient light (Eli's subtle glow) ──────────────

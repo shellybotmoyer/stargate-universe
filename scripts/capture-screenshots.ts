@@ -29,6 +29,8 @@ type CameraPreset = {
 	position: { x: number; y: number; z: number };
 	target: { x: number; y: number; z: number };
 	description: string;
+	/** If true, append ?gate=active to URL so the gate starts fully open. */
+	gateActive?: boolean;
 };
 
 const CAMERA_PRESETS: CameraPreset[] = [
@@ -47,6 +49,7 @@ const CAMERA_PRESETS: CameraPreset[] = [
 		position: { x: 0, y: 2.5, z: 16 },
 		target: { x: 0, y: 6.2, z: 0 },
 		description: "Floor-level view looking at gate, matching active stargate reference",
+		gateActive: true,
 	},
 	{
 		name: "gate-closeup",
@@ -54,6 +57,7 @@ const CAMERA_PRESETS: CameraPreset[] = [
 		position: { x: 1.5, y: 5.5, z: 10 },
 		target: { x: 0, y: 6.2, z: 0 },
 		description: "Close-up of gate ring, matching Stargate.jpeg reference",
+		gateActive: true,
 	},
 	{
 		name: "gate-room-wide",
@@ -145,21 +149,27 @@ async function main() {
 	});
 	const page = await context.newPage();
 
-	// Group presets by scene to minimize scene loads
-	const byScene = new Map<string, CameraPreset[]>();
+	// Group presets by (scene + gateActive) so URL params are consistent
+	// across all presets in a group and we only reload when params change.
+	const byGroup = new Map<string, CameraPreset[]>();
 	for (const preset of CAMERA_PRESETS) {
-		const existing = byScene.get(preset.scene) ?? [];
+		const key = `${preset.scene}:${preset.gateActive ? "active" : "idle"}`;
+		const existing = byGroup.get(key) ?? [];
 		existing.push(preset);
-		byScene.set(preset.scene, existing);
+		byGroup.set(key, existing);
 	}
 
 	const results: Array<{ name: string; path: string; success: boolean; error?: string }> = [];
 
-	for (const [sceneId, presets] of byScene) {
-		console.log(`\nLoading scene: ${sceneId}`);
+	for (const [groupKey, presets] of byGroup) {
+		const sceneId = presets[0].scene;
+		const gateActive = presets[0].gateActive ?? false;
+		console.log(`\nLoading scene: ${sceneId} (gate=${gateActive ? "active" : "idle"})`);
 		// ?photo=1 hides the player + disables input so the preset camera isn't
 		// overridden each frame by third-person follow.
-		await page.goto(`${BASE_URL}/?scene=${sceneId}&webgl=1&photo=1`);
+		const gateParam = gateActive ? "&gate=active" : "";
+		await page.goto(`${BASE_URL}/?scene=${sceneId}&webgl=1&photo=1${gateParam}`);
+		void groupKey;
 
 		try {
 			await waitForSceneReady(page);
