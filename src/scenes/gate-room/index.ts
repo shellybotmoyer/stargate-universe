@@ -838,7 +838,7 @@ function lockChevron(gate: GateRuntime, index: number): void {
 	const mat = chevron.material as THREE.MeshStandardMaterial;
 	mat.color.set(COLOR_CHEVRON_ON);
 	mat.emissive.set(COLOR_CHEVRON_ON);
-	mat.emissiveIntensity = 1.2;
+	mat.emissiveIntensity = 2.0;
 }
 
 function updateKawoosh(gate: GateRuntime, delta: number): void {
@@ -1660,8 +1660,8 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 		gate.state = "active";
 		gate.eventHorizon.visible = true;
 		const horizonMat = gate.eventHorizon.material as THREE.MeshStandardMaterial;
-		horizonMat.opacity = 0.8;
-		horizonMat.emissiveIntensity = 1.2;
+		horizonMat.opacity = 0.9;
+		horizonMat.emissiveIntensity = 1.8;
 	}
 
 	// ─── Player-attached ambient light (Eli's subtle glow) ──────────────
