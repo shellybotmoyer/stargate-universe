@@ -1598,10 +1598,21 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	const lights = buildLighting(scene, debugObjects);
 	gate.pointLights = lights;
 
+	// ─── Photo mode ─────────────────────────────────────────────────────
+	// ?photo=1 — disable player character, lock camera at specified position.
+	// ?camx=0&camy=2&camz=15&lookx=0&looky=4&lookz=0 — camera placement.
+	// Designed for visual comparison screenshots without the player character.
+	const photoParams = new URLSearchParams(window.location.search);
+	const photoMode = photoParams.has("photo");
+	if (photoMode && player) {
+		player.object.visible = false;
+		player.inputEnabled = false;
+	}
+
 	// ─── Player-attached ambient light (Eli's subtle glow) ──────────────
 	const playerLight = new THREE.PointLight(0xccddff, 2.5, 15, 1.5);
 	playerLight.position.set(0, 2, 0);
-	if (player) {
+	if (player && !photoMode) {
 		player.object.add(playerLight);
 	}
 
@@ -1793,7 +1804,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 	// Declared here; constructed AFTER the HUD is built below so we can
 	// collect HUD refs for cinematic hide/show.
 	let cinematicController: GateRoomCinematicController | undefined;
-	const isCinematicBoot = Boolean(sessionStorage.getItem("sgu-new-game"));
+	const isCinematicBoot = !photoMode && Boolean(sessionStorage.getItem("sgu-new-game"));
 	if (isCinematicBoot) {
 		sessionStorage.removeItem("sgu-new-game");
 		if (player) player.inputEnabled = false;
@@ -2347,6 +2358,18 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			if (cinematicController) cinematicController.update(delta);
 			compassHud.update(camera as any, delta);
+
+			// ─── Photo mode camera override ──────────────────────────────
+			if (photoMode) {
+				const cx = Number(photoParams.get("camx") ?? "0");
+				const cy = Number(photoParams.get("camy") ?? "2");
+				const cz = Number(photoParams.get("camz") ?? "15");
+				const lx = Number(photoParams.get("lookx") ?? "0");
+				const ly = Number(photoParams.get("looky") ?? "4");
+				const lz = Number(photoParams.get("lookz") ?? "0");
+				camera.position.set(cx, cy, cz);
+				camera.lookAt(lx, ly, lz);
+			}
 
 			// ─── Ship State driven lighting ──────────────────────────────
 			// Recalculate power distribution so section power reflects repairs
