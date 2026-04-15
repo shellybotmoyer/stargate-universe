@@ -285,8 +285,8 @@ function updateFirstPersonFade(delta: number): void {
 			if (mesh.layers.test(testLayers)) {
 				const mat = mesh.material as MeshStandardMaterial;
 				if (mat.isMeshStandardMaterial) {
-					mat.transparent = headOpacity < 1;
-					mat.opacity = headOpacity;
+				mat.transparent = headOpacity < 1;
+				mat.opacity = headOpacity;
 				}
 			}
 		});
@@ -381,7 +381,7 @@ function onVrmLoaded(instance: VrmCharacterInstance, result: VrmLoadResult): voi
 	loadCustomization(instance.id).then((customization) => {
 		if (customization && instance.vrm) {
 			applyCustomization(instance.id, instance.vrm, customization).catch((err) => {
-\t\t\t\tconsole.error(`[VrmCharacterManager] Failed to apply customization for "${instance.id}"`, err);
+				console.error(`[VrmCharacterManager] Failed to apply customization for "${instance.id}"`, err);
 			});
 		}
 	}).catch(() => {

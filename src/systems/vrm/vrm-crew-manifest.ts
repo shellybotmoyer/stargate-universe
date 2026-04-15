@@ -135,14 +135,14 @@ export async function loadCrewRoster(
 		const response = await fetch(url);
 
 		if (!response.ok) {
-\t\t\tconsole.info(`[CrewManifest] Failed to load roster from ${url} (${response.status}). Using defaults.`);
+			console.info(`[CrewManifest] Failed to load roster from ${url} (${response.status}). Using defaults.`);
 			return roster;
 		}
 
 		const raw: unknown = await response.json();
 
 		if (!Array.isArray(raw)) {
-\\t\\t\\tconsole.info(\\\"[CrewManifest] Roster JSON is not an array. Using defaults.\\\");
+			console.info("[CrewManifest] Roster JSON is not an array. Using defaults.");
 			return roster;
 		}
 
