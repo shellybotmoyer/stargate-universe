@@ -129,7 +129,7 @@ function convertSingleMaterial(
 		const msg = `Failed to convert material "${material.name}": ${error}`;
 		result.errors.push(msg);
 		// Log only in development; avoid console noise in production builds
-		if (process.env.NODE_ENV !== 'production') {
+		if (import.meta.env.PROD === false) {
 			console.warn(`[MToonConverter] ${msg}`);
 		}
 		return material; // Keep original on failure

@@ -92,27 +92,28 @@ export function openVrmEditor(characterId: string, vrm: VRM): void {
 	// Load existing customization
 	loadCustomization(characterId).then((saved) => {
 		if (saved && activeEditor) {
+			const editor = activeEditor;
 			// Apply saved customization to the VRM immediately
-			applyCustomization(activeEditor.characterId, activeEditor.vrm, saved).catch((err) => {
+			applyCustomization(editor.characterId, editor.vrm, saved).catch((err) => {
 				console.info("[VrmEditor] Saved customization not applied on load (using defaults)", err);
 			});
 
 			// Populate tab UI state from saved customization
 			if (saved.materials) {
 				saved.materials.forEach((ov) => {
-					activeEditor.materialsTab.state.overrides.set(ov.target, ov);
-					// Note: We can't easily update the DOM elements of the tab without a re-render 
+					editor.materialsTab.state.overrides.set(ov.target, ov);
+					// Note: We can't easily update the DOM elements of the tab without a re-render
 					// or a set-state mechanism, but the internal state is now synced.
 				});
 			}
 			if (saved.gear) {
 				saved.gear.forEach((att) => {
-					activeEditor.gearTab.state.equipped.set(att.id, att);
+					editor.gearTab.state.equipped.set(att.slotId, att);
 				});
 			}
 			if (saved.meshVisibility) {
 				saved.meshVisibility.forEach((ov) => {
-					activeEditor.visibilityTab.state.overrides.set(ov.target, ov);
+					editor.visibilityTab.state.overrides.set(ov.meshName, ov);
 				});
 			}
 		}
