@@ -282,41 +282,49 @@ export class VrmPlayerController implements PlayerController {
 		}
 	}
 
-	/** Fixed-rate update — sync visual to physics, update animator. */
-	updateAfterStep(deltaSeconds: number): void {
-		const t = this.body.position;
-		this.object.position.set(t[0], t[1], t[2]);
+  /** Fixed-rate update — sync visual to physics, update animator. */
+  updateAfterStep(deltaSeconds: number): void {
+    const t = this.body.position;
+    this.object.position.set(t[0], t[1], t[2]);
 
-		// Rotate VRM model root to face movement direction
-		this.characterInstance.root.rotation.set(0, this.yaw + Math.PI, 0);
+    // Rotate VRM model root to face movement direction
+    this.characterInstance.root.rotation.set(0, this.yaw + Math.PI, 0);
 
-		// Offset VRM model so feet align with capsule bottom
-		this.characterInstance.root.position.set(0, -this.footOffset, 0);
+    // Offset VRM model so feet align with capsule bottom
+    this.characterInstance.root.position.set(0, -this.footOffset, 0);
 
-		// Show/hide based on camera mode
-		this.characterInstance.root.visible = this.camera.showPlayerBody;
+    // Show/hide based on camera mode
+    this.characterInstance.root.visible = this.camera.showPlayerBody;
 
-		// Drive animation parameters from movement state
-		if (this.animatorBridge) {
-			const velocity = this.body.motionProperties.linearVelocity;
-			const horizontalSpeed = Math.hypot(velocity[0], velocity[2]);
+    // Drive animation parameters from movement state
+    if (this.animatorBridge) {
+      const velocity = this.body.motionProperties.linearVelocity;
+      const horizontalSpeed = Math.hypot(velocity[0], velocity[2]);
 
-			this.animatorBridge.animator.setFloat("speed", horizontalSpeed);
-			this.animatorBridge.animator.setBool("isGrounded", this.grounded);
-			this.animatorBridge.animator.setBool("isRunning", this.isRunning());
-			this.animatorBridge.animator.setBool("isJumping", !this.grounded && velocity[1] > 0.5);
-			this.animatorBridge.update(deltaSeconds);
-		}
+      this.animatorBridge.animator.setFloat("speed", horizontalSpeed);
+      this.animatorBridge.animator.setBool("isGrounded", this.grounded);
+      this.animatorBridge.animator.setBool("isRunning", this.isRunning());
+      this.animatorBridge.animator.setBool("isJumping", !this.grounded && velocity[1] > 0.5);
+      this.animatorBridge.update(deltaSeconds);
+    }
 
-		// Report actor to gameplay runtime
-		this.gameplayRuntime.updateActor({
-			height: this.standingHeight,
-			id: "player",
-			position: vec3(t[0], t[1], t[2]),
-			radius: this.radius,
-			tags: ["player"],
-		});
-	}
+    // Report actor to gameplay runtime
+    this.gameplayRuntime.updateActor({
+      height: this.standingHeight,
+      id: "player",
+      position: vec3(t[0], t[1], t[2]),
+      radius: this.radius,
+      tags: ["player"]
+    });
+  }
+
+  /** Called when player starts/stops repairing a subsystem. */
+  setRepairing(isRepairing: boolean): void {
+    // Drive animation parameters for repair state
+    if (this.animatorBridge) {
+      this.animatorBridge.animator.setBool("isRepairing", isRepairing);
+    }
+  }
 
 	/** Variable-rate update — camera. */
 	updateCamera(deltaSeconds: number): void {

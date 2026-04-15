@@ -312,6 +312,12 @@ export class StarterPlayerController implements PlayerController {
     });
   }
 
+  /** Called when player starts/stops repairing a subsystem. */
+  setRepairing(isRepairing: boolean): void {
+    // Starter player controller doesn't have specific repair visuals
+    // This is a no-op for the basic controller, but VRM controller may use it for animations
+  }
+
   /**
    * Variable-rate update — called once per rendered frame after onUpdate.
    * Consumes accumulated mouse deltas, computes the final eye position and view

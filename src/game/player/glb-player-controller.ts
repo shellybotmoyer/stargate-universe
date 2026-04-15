@@ -50,7 +50,7 @@ const JUMP_GROUND_LOCK_SECONDS = 0.12;
 const MOUSE_SENSITIVITY_X = 0.0024;
 const MOUSE_SENSITIVITY_Y = 0.0018;
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────
 
 export type GlbPlayerControllerOptions = {
 	input: InputManager;
@@ -133,6 +133,7 @@ export class GlbPlayerController implements PlayerController {
 		this.radius = MathUtils.clamp(this.standingHeight * 0.18, 0.24, 0.42);
 		this.halfHeight = Math.max(0.12, this.standingHeight * 0.5 - this.radius);
 		this.footOffset = this.halfHeight + this.radius;
+
 		this.yaw = options.spawn.rotationY;
 		this.pitch = defaultPitchForCameraMode(this.camera.mode);
 
@@ -172,7 +173,13 @@ export class GlbPlayerController implements PlayerController {
 		this.loadModel(options.modelUrl, options.walkAnimationUrl);
 	}
 
-	// ─── Public ─────────────────────────────────────────────────────────────
+	// ─── Public ─────────────────────────────────────────────────
+
+	setRepairing(isRepairing: boolean): void {
+		// TODO: Implement repairing visual feedback if needed
+		// For now, this is a no-op as repairing functionality
+		// is not yet implemented for GLB player controllers
+	}
 
 	setCameraMode(mode: CameraMode): void {
 		this.camera = createCameraController(mode, this.threeCamera);
@@ -194,7 +201,7 @@ export class GlbPlayerController implements PlayerController {
 		this.mixer?.stopAllAction();
 	}
 
-	// ─── Update Hooks ───────────────────────────────────────────────────────
+	// ─── Update Hooks ──────────────────────────────────────────────
 
 	updateBeforeStep(deltaSeconds: number): void {
 		this.jumpGroundLockRemaining = Math.max(0, this.jumpGroundLockRemaining - deltaSeconds);
@@ -219,10 +226,8 @@ export class GlbPlayerController implements PlayerController {
 		const rx = -fz;
 		const rz = fx;
 
-		const moveX =
-			this.input.axis("KeyD", "KeyA") + this.input.axis("ArrowRight", "ArrowLeft");
-		const moveZ =
-			this.input.axis("KeyW", "KeyS") + this.input.axis("ArrowUp", "ArrowDown");
+		const moveX = this.input.axis("KeyD", "KeyA") + this.input.axis("ArrowRight", "ArrowLeft");
+		const moveZ = this.input.axis("KeyW", "KeyS") + this.input.axis("ArrowUp", "ArrowDown");
 
 		let wishX = rx * moveX + fx * moveZ;
 		let wishZ = rz * moveX + fz * moveZ;
@@ -349,7 +354,7 @@ export class GlbPlayerController implements PlayerController {
 		this.camera.update(this._eyePosition, this._viewDirection, deltaSeconds);
 	}
 
-	// ─── Model Loading ──────────────────────────────────────────────────────
+	// ─── Model Loading ──────────────────────────────────────────────
 
 	private async loadModel(modelUrl: string, walkAnimationUrl?: string): Promise<void> {
 		const loader = new GLTFLoader();
@@ -411,7 +416,7 @@ export class GlbPlayerController implements PlayerController {
 		}
 	}
 
-	// ─── Ground Detection ───────────────────────────────────────────────────
+	// ─── Ground Detection ───────────────────────────────────────────
 
 	private isRunning(): boolean {
 		return this.input.isKeyDown("ShiftLeft") || this.input.isKeyDown("ShiftRight");
@@ -487,7 +492,9 @@ export class GlbPlayerController implements PlayerController {
 	}
 }
 
-// ─── Module Helpers ─────────────────────────────────────────────────────────
+// ─── Module Helpers ────────────────────────────────────────────────
+
+const DOWN_DIRECTION: [number, number, number] = [0, -1, 0];
 
 function defaultPitchForCameraMode(mode: CameraMode): number {
 	if (mode === "fps") return 0;
@@ -502,5 +509,3 @@ function resolveViewDirection(yaw: number, pitch: number, target: Vector3): Vect
 		-Math.cos(yaw) * Math.cos(pitch),
 	);
 }
-
-const DOWN_DIRECTION: [number, number, number] = [0, -1, 0];
