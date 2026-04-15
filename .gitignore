@@ -23,3 +23,6 @@ test-reports/
 # Visual similarity tool output
 scripts/screenshots/
 scripts/reports/
+
+# Python
+__pycache__
