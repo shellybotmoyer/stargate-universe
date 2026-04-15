@@ -1,3 +1,11 @@
+/**
+ * Third-person follow camera.
+ *
+ * Trails the player at a configurable distance with exponential smoothing
+ * toward the target position computed from `eye` and `viewDir`. The eye height
+ * offset and follow distance are derived from the standing height each time
+ * `setStandingHeight()` is called (e.g. on crouch/stand transitions).
+ */
 import { PerspectiveCamera, Vector3 } from "three";
 import type { CameraController, CameraMode } from "./controller";
 

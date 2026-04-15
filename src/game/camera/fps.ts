@@ -1,3 +1,10 @@
+/**
+ * First-Person Shooter camera controller.
+ *
+ * Locks the camera to the player's eye position with no smoothing.
+ * The player body is hidden. Mouse look controls pitch; horizontal
+ * rotation is driven by the view direction passed to `update()`.
+ */
 import { PerspectiveCamera, Vector3 } from "three";
 import type { CameraController, CameraMode } from "./controller";
 

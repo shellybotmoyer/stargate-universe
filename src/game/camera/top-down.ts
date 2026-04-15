@@ -1,3 +1,13 @@
+/**
+ * Top-down bird's-eye camera.
+ *
+ * Positions itself above the player using `eye` as the look-at target and
+ * `viewDir` to determine which way the camera faces on the horizontal plane.
+ * Smoothing is exponential with a configurable time constant.
+ *
+ * Standing height drives both the vertical offset and thefollow distance so
+ * crouch/stand transitions feel natural from above.
+ */
 import { PerspectiveCamera, Vector3 } from "three";
 import type { CameraController, CameraMode } from "./controller";
 
