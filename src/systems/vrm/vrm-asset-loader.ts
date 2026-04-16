@@ -149,10 +149,6 @@ async function loadVrmInternal(entry: QueueEntry): Promise<void> {
 			lastError = error instanceof Error ? error : new Error(String(error));
 
 			if (attempt < config.loading.maxRetries) {
-				console.warn(
-					`[VrmAssetLoader] Attempt ${attempt + 1} failed for ${entry.url}, retrying...`,
-					lastError.message
-				);
 				await new Promise((r) => setTimeout(r, config.loading.retryDelayMs));
 			}
 		}

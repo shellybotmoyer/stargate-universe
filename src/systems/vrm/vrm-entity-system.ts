@@ -57,7 +57,7 @@ export function createVrmEntitySystem(options: VrmEntitySystemOptions): VrmEntit
 		const vrmUrl = entity.properties["vrmUrl"] as string | undefined;
 
 		if (!vrmUrl) {
-			console.warn(`[VrmEntitySystem] Entity "${entity.id}" has no vrmUrl property, skipping`);
+			// Not every entity is a VRM character — skip silently
 			continue;
 		}
 
