@@ -282,8 +282,8 @@ function applyCurrentState(): void {
 	if (!activeEditor) return;
 
 	const customization = collectCustomization();
-	applyCustomization(activeEditor.characterId, activeEditor.vrm, customization).catch((err) => {
-		console.warn("[VrmEditor] Failed to apply preview customization", err);
+	applyCustomization(activeEditor.characterId, activeEditor.vrm, customization).catch(() => {
+		// Preview application failed — user is actively editing, non-fatal
 	});
 }
 
