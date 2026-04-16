@@ -1,3 +1,8 @@
+/**
+ * @file Animation Sources — Runtime animation bundle loading (GLTF/FBX) with cache and preload.
+ * @see {@link https://github.com/kopertop/stargate-universe/tree/main/src/game/loaders}
+ * @see @ggez/anim-core
+ */
 import type { AnimationClipAsset, RigDefinition } from "@ggez/anim-core";
 import { loadClipsFromArtifact, loadRigFromArtifact, parseAnimationArtifactJson } from "@ggez/anim-exporter";
 import { parseAnimationBundle, type AnimationArtifact, type AnimationBundle } from "@ggez/anim-schema";

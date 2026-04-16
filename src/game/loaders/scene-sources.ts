@@ -1,3 +1,8 @@
+/**
+ * @file Scene Runtime Sources — Load and cache runtime scenes from external manifests or colocated JSON.
+ * @see {@link https://github.com/kopertop/stargate-universe/tree/main/src/game/loaders}
+ * @see src/game/scene/types.ts
+ */
 import { parseRuntimeScene, type RuntimeScene } from "@ggez/runtime-format";
 import type { GameSceneDefinition, RuntimeSceneSource } from "../scene/types";
 
