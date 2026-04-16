@@ -1,3 +1,15 @@
+/**
+ * Gameplay Host — Bridge Between Gameplay Systems and Scene Physics
+ *
+ * Implements GameplayRuntimeHost: the glue layer that lets gameplay systems
+ * move scene nodes and physics bodies by calling applyNodeWorldTransform().
+ *
+ * Key design:
+ *   - Single function export: createStarterGameplayHost()
+ *   - Uses module-level scratch objects to avoid allocation in fixed-step loop
+ *   - Handles both Three.js Object3D and Crashcat physics body transforms
+ */
+
 import { type GameplayRuntimeHost } from "@ggez/gameplay-runtime";
 import { MotionType, rigidBody, type CrashcatPhysicsWorld } from "@ggez/runtime-physics-crashcat";
 import type { Transform } from "@ggez/shared";
