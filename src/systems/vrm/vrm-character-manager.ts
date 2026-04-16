@@ -25,7 +25,7 @@ import { VrmExpressionController } from "./vrm-expression-controller";
 import { VrmLookAtController } from "./vrm-lookat-controller";
 import { applyCustomization } from "./vrm-customizer";
 import { loadCustomization } from "./vrm-customization-persistence";
-import { loadVrm, type VrmLoadResult } from "./vrm-loader";
+import { loadVrm, type VrmLoadResult } from "./vrm-asset-loader";
 import { convertMToonToPBR, flattenVrmMaterials } from "./vrm-mtoon-converter";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
