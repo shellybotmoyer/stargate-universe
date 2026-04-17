@@ -175,10 +175,9 @@ export class GlbPlayerController implements PlayerController {
 
 	// ─── Public ─────────────────────────────────────────────────
 
-	setRepairing(isRepairing: boolean): void {
-		// TODO: Implement repairing visual feedback if needed
-		// For now, this is a no-op as repairing functionality
-		// is not yet implemented for GLB player controllers
+	setRepairing(_isRepairing: boolean): void {
+		// GLB player controller does not support repairing animation state.
+		// VRM controllers drive isRepairing via animatorBridge.
 	}
 
 	setCameraMode(mode: CameraMode): void {
