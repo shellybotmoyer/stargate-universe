@@ -64,11 +64,13 @@ export function createVrmEntitySystem(options: VrmEntitySystemOptions): VrmEntit
 		const characterId = (entity.properties["characterId"] as string) || entity.id;
 		const resolvedUrl = resolveAssetUrl(vrmUrl);
 
+		const priority = (entity.properties["priority"] as number) ?? 1;
+
 		const instance = characterManager.addCharacter({
 			id: characterId,
 			vrmUrl: resolvedUrl,
 			isPlayer: false,
-			priority: 1,
+			priority,
 		});
 
 		// Position at entity transform
@@ -86,10 +88,6 @@ export function createVrmEntitySystem(options: VrmEntitySystemOptions): VrmEntit
 		scene.add(instance.root);
 		npcInstances.push(instance);
 		npcRoots.push(instance.root);
-	}
-
-	if (npcInstances.length > 0) {
-		// NPCs spawned.
 	}
 
 	return {
