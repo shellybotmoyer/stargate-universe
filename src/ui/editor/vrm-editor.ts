@@ -89,11 +89,12 @@ export function openVrmEditor(characterId: string, vrm: VRM): void {
 		activeTabId: "materials",
 	};
 
-	// Load existing customization
+	// Load existing customization and hydrate all three tabs
 	loadCustomization(characterId).then((saved) => {
 		if (saved && activeEditor) {
-			// TODO: Populate tab UI state from saved customization
-			// For now, the tabs start from current VRM state
+			activeEditor.materialsTab.hydrateOverrides(saved.materials);
+			activeEditor.visibilityTab.hydrateOverrides(saved.meshVisibility);
+			activeEditor.gearTab.hydrateOverrides(saved.gear);
 		}
 	}).catch(() => {
 		// No saved customization — start fresh
