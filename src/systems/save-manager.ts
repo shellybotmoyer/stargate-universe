@@ -172,7 +172,6 @@ export const createSaveManager = (options: SaveManagerOptions): SaveManager => {
 			writeIndex(existing);
 
 			emit('save:completed', { slotId });
-			console.log(`[SaveManager] Saved to slot "${slotId}" (${label})`);
 			return data;
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
