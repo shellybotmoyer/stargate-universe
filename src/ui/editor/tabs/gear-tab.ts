@@ -15,6 +15,7 @@ export type GearTabState = {
 export type GearTab = {
 	readonly element: HTMLElement;
 	readonly state: GearTabState;
+	hydrateOverrides(saved: readonly GearAttachment[]): void;
 	dispose(): void;
 };
 
@@ -47,6 +48,11 @@ export function createGearTab(
 	return {
 		element: container,
 		state: { equipped },
+		hydrateOverrides() {
+			// Gear loads async from catalog — no DOM state to populate here.
+			// The equipped Map is populated at construction from the save file
+			// via the gear customizer's existing load path.
+		},
 		dispose() {
 			container.remove();
 		},
