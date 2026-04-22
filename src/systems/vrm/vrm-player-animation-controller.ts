@@ -286,7 +286,7 @@ export class VrmPlayerAnimationController {
 		}
 
 		if (this.idleVariants.length > 0) {
-			console.info(`[VrmPlayerAnimController] Loaded ${this.idleVariants.length} idle variants`);
+			// Idle variants loaded
 		}
 	}
 

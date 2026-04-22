@@ -362,8 +362,6 @@ function onVrmLoaded(instance: VrmCharacterInstance, result: VrmLoadResult): voi
 	// Emit load event
 	emit("character:model:loaded", { characterId: instance.id });
 
-	console.info(`[VrmCharacterManager] Loaded VRM for "${instance.id}" from ${result.url}`);
-
 	// Auto-apply saved customization (async, non-blocking)
 	loadCustomization(instance.id).then((customization) => {
 		if (customization && instance.vrm) {
