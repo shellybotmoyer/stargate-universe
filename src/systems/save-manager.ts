@@ -201,7 +201,6 @@ export const createSaveManager = (options: SaveManagerOptions): SaveManager => {
 			setLimeCollected(data.limeCollected ?? false);
 
 			emit('save:loaded', { slotId });
-			console.log(`[SaveManager] Loaded slot "${slotId}" (scene: ${data.currentSceneId})`);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			emit('save:failed', { slotId, error: message });
@@ -213,7 +212,6 @@ export const createSaveManager = (options: SaveManagerOptions): SaveManager => {
 		try {
 			localStorage.removeItem(slotKey(slotId));
 			writeIndex(readIndex().filter(s => s.id !== slotId));
-			console.log(`[SaveManager] Deleted slot "${slotId}"`);
 		} catch {
 			console.warn(`[SaveManager] Failed to delete slot "${slotId}"`);
 		}
