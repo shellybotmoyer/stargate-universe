@@ -32,6 +32,7 @@ import { emit, on } from './event-bus.js';
 import type { ShipState } from './ship-state.js';
 import type { QuestManager } from './quest-manager.js';
 import type { DialogueManager } from './dialogue-manager.js';
+import type { DialogueSaveData } from '@kopertop/vibe-game-engine';
 import { deserialize as deserializeResources, serialize as serializeResources } from './resources.js';
 import { isLimeCollected, setLimeCollected } from './scene-transition-state.js';
 import {
@@ -150,7 +151,7 @@ export const createSaveManager = (options: SaveManagerOptions): SaveManager => {
 				shipState: shipState.serialize(),
 				resources: resourcesRaw as unknown as ResourceSnapshot,
 				questState: questManager.serialize(),
-				dialogueState: dialogueManager.serialize(),
+				dialogueState: dialogueManager.serialize() as DialogueSaveData,
 				unlockedScenes: [...ctx.unlockedScenes],
 				limeCollected: isLimeCollected(),
 			};

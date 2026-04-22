@@ -29,7 +29,7 @@ describe("Air Crisis quest definition", () => {
 	});
 
 	it("offers XP as a reward", () => {
-		expect(airCrisisDefinition.reward.xp).toBeGreaterThan(0);
+		expect(airCrisisDefinition.reward!.xp).toBeGreaterThan(0);
 	});
 });
 

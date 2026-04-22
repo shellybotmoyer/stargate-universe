@@ -2504,7 +2504,7 @@ async function mount(context: GameSceneModuleContext): Promise<GameSceneLifecycl
 					const { position, behavior } = npc.definition;
 					const npcVec = new THREE.Vector3(position.x, position.y, position.z);
 					const dist = npcVec.distanceTo(pp);
-					if (dist < behavior.interactionRadius && dist < nearestDist) {
+					if (dist < behavior.interactionRadius! && dist < nearestDist) {
 						nearestNpc = npc;
 						nearestSub = null;
 						nearestCrate = null;
