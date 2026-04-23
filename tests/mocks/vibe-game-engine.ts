@@ -328,12 +328,14 @@ function makeQuestManager(opts?: { emit?: unknown }): QuestManager {
 			for (const obj of state.objectives) {
 				if (!obj.completed && obj.visible && obj.type === 'collect' && obj.targetId === type) {
 					obj.current = (obj.current ?? 0) + 1;
-					if (obj.required && obj.current >= obj.required) obj.completed = true;
-					bus.emit('quest:objective-complete', { questId: state.definition.id, objectiveId: obj.id });
-					if (isQuestComplete(state.definition, state)) {
-						log.active.delete(state.definition.id);
-						log.completed.set(state.definition.id, state);
-						bus.emit('quest:completed', { questId: state.definition.id });
+					if (obj.required && obj.current >= obj.required) {
+						obj.completed = true;
+						bus.emit('quest:objective-complete', { questId: state.definition.id, objectiveId: obj.id });
+						if (isQuestComplete(state.definition, state)) {
+							log.active.delete(state.definition.id);
+							log.completed.set(state.definition.id, state);
+							bus.emit('quest:completed', { questId: state.definition.id });
+						}
 					}
 				}
 			}
