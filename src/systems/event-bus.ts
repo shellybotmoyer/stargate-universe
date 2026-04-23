@@ -146,8 +146,6 @@ export type GameEventName = keyof GameEventMap;
 // ─── Event Bus Implementation ────────────────────────────────────────────────
 
 const MAX_REENTRY_DEPTH = 8;
-const DEBUG_LOG_EVENTS = false;
-const DEBUG_LOG_FILTER: string = "*";
 
 const emitter = mitt<GameEventMap>();
 let reentryDepth = 0;
@@ -167,12 +165,6 @@ export function emit<K extends GameEventName>(event: K, payload: GameEventMap[K]
 		);
 		reentryDepth--;
 		return;
-	}
-
-	if (DEBUG_LOG_EVENTS) {
-		if (DEBUG_LOG_FILTER === "*" || event.startsWith(DEBUG_LOG_FILTER.replace("*", ""))) {
-			console.debug(`[EventBus] ${event}`, payload);
-		}
 	}
 
 	// mitt's emit is synchronous — handlers run immediately
