@@ -193,7 +193,7 @@ export function on<K extends GameEventName>(
 		try {
 			handler(payload);
 		} catch (error) {
-			console.error(`[EventBus] Handler error for "${event}":`, error);
+			console.error(`[EventBus] Handler error for "${event}":`, error instanceof Error ? error.message : String(error));
 		}
 	};
 
