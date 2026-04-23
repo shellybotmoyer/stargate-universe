@@ -302,7 +302,10 @@ function makeQuestManager(opts?: { emit?: unknown }): QuestManager {
 	let unsubCollected: (() => void) | null = null;
 
 	function advanceFromRepair(subsystemId: string) {
-		for (const state of log.active.values()) {
+		// Snapshot active quests before iteration in case quest completion
+		// deletes the quest mid-iteration.
+		const states = [...log.active.values()];
+		for (const state of states) {
 			for (const obj of state.objectives) {
 				if (!obj.completed && obj.visible && obj.type === 'repair' && obj.targetId === subsystemId) {
 					obj.current = (obj.current ?? 0) + 1;
@@ -412,38 +415,44 @@ function makeQuestManager(opts?: { emit?: unknown }): QuestManager {
 				id: 'quest-save',
 				stage: 0,
 				objectives: [...log.active.values()].flatMap((s) =>
-					s.objectives.map((o) => ({ id: o.id, completed: o.completed })),
+					s.objectives.map((o) => ({ id: o.id, completed: o.completed, current: o.current })),
 				),
 			};
 		},
 
 		deserialize(data: unknown) {
-			// Re-run startQuest + advanceObjective for each serialized objective
-			const d = data as { objectives: Array<{ id: string; completed: boolean }> };
+			// Rehydrate quest state from serialized save data.
+			const d = data as { objectives: Array<{ id: string; completed: boolean; current?: number }> };
 			if (!d.objectives) return;
 			for (const obj of d.objectives) {
-				// Find which quest this objective belongs to by looking through definitions
+				// Find which quest owns this objective
 				for (const [qid, def] of definitions.entries()) {
 					const has = def.objectives.some((o) => o.id === obj.id);
-					if (has && !log.active.has(qid) && !log.completed.has(qid)) {
-						this.startQuest(qid);
-					}
-				}
-				// Advance to the correct completion state
-				if (obj.completed) {
-					// Find the quest with this objective and advance it
-					for (const [qid, def] of definitions.entries()) {
-						if (def.objectives.some((o) => o.id === obj.id)) {
-							const state = log.active.get(qid);
-							if (state) {
-								const o = state.objectives.find((x) => x.id === obj.id);
-								if (o && o.required) {
-									this.advanceObjective(qid, obj.id, o.required);
-								} else if (o) {
-									this.advanceObjective(qid, obj.id, 1);
+					if (has) {
+						// Start the quest if not already active or completed
+						if (!log.active.has(qid) && !log.completed.has(qid)) {
+							this.startQuest(qid);
+						}
+						// Restore objective state
+						const state = log.active.get(qid);
+						if (state) {
+							const o = state.objectives.find((x) => x.id === obj.id);
+							if (o) {
+								// Restore current progress if serialized (partial completion)
+								if (obj.current !== undefined && obj.current < (o.required ?? 1)) {
+									o.current = obj.current;
+									o.progress = o.required ? obj.current / o.required : 0;
+									o.completed = obj.completed;
+								} else {
+									// For fully-completed objectives, use advanceObjective to
+									// set current to required (completing the objective)
+									if (obj.completed && o.required) {
+										this.advanceObjective(qid, obj.id, o.required);
+									}
 								}
 							}
 						}
+						break;
 					}
 				}
 			}
