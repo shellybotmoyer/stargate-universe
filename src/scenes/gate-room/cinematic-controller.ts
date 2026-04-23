@@ -174,7 +174,7 @@ async function loadCrewOrFallback(id: string, _fallbackColor: number): Promise<C
 		console.warn(`[cinematic] crew "${id}" has 0 meshes, loading standard VRoid`);
 		result.dispose?.();
 	} catch (err) {
-		console.warn(`[cinematic] crew "${id}" failed, loading standard VRoid`, err);
+		console.warn(`[cinematic] crew "${id}" failed, loading standard VRoid: ${err instanceof Error ? err.message : String(err)}`);
 	}
 	// Load the standard VRoid as fallback — a real humanoid model.
 	return loadVRMCharacter(STANDARD_VROID_PATH);
