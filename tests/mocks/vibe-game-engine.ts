@@ -73,8 +73,7 @@ function makeDialogueManager(opts?: { emit?: unknown }): DialogueManager {
 	const trees = new Map<string, DialogueTree>();
 	const sessions = new Map<string, DialogueSession>();
 	const metNpcs = new Set<string>();
-	// Track the affinity value at the START of each dialogue session so we can
-	// emit the per-session delta rather than the running total.
+	// Track affinity at session start to compute per-session delta.
 	const affinitySessionStart: Record<string, number> = {};
 	const affinity: Record<string, number> = {};
 
@@ -84,9 +83,10 @@ function makeDialogueManager(opts?: { emit?: unknown }): DialogueManager {
 
 	function checkAutoEnd(session: DialogueSession) {
 		const opts = getVisibleOptions(session.state);
+		// Only mark inactive — do NOT emit ended here. The advance() caller
+		// is responsible for emitting ended so it can emit affinity delta first.
 		if (opts.length === 0 && session.active) {
 			session.active = false;
-			bus.emit('crew:dialogue:ended', { speakerId: session.tree.id });
 		}
 	}
 
@@ -123,17 +123,18 @@ function makeDialogueManager(opts?: { emit?: unknown }): DialogueManager {
 				if (!opt) continue;
 				bus.emit('crew:choice:made', { responseId: optionId });
 				if (opt.onSelect) opt.onSelect(session.state);
-				// Handle affinity delta: accumulate into running total, emit the
-				// per-session delta to listeners. Emit at session-end (terminal node)
-				// rather than per-advance so multi-node dialogues emit once.
+
+				// Accumulate affinity delta into running total. After each choice, if the
+				// session is ending (no next node OR auto-end after advancing), emit the
+				// per-session delta. Otherwise the delta stays in state for next advance.
 				const delta = session.state.affinityDelta;
-				console.log('[DEBUG advance] delta=', delta, 'nextNodeId=', opt.nextNodeId, 'session.active=', session.active);
 				if (delta !== 0) {
 					affinity[session.tree.id] = (affinity[session.tree.id] ?? 0) + delta;
 					session.state.affinityDelta = 0;
 				}
+
 				if (opt.nextNodeId) {
-					// Non-terminal node: advance session but don't emit relationship:changed yet.
+					// Non-terminal: advance, check auto-end, emit ended only if session ended.
 					const next = getNode(session.tree, opt.nextNodeId);
 					if (next) {
 						session.state.current = next;
@@ -143,24 +144,33 @@ function makeDialogueManager(opts?: { emit?: unknown }): DialogueManager {
 							nodeId: next.id,
 							options: getVisibleOptions(session.state),
 						});
+						const wasActive = session.active;
 						checkAutoEnd(session);
+						if (wasActive && !session.active) {
+							// Session auto-ended after advancing to a node with no options.
+							// Emit ended, then relationship delta.
+							bus.emit('crew:dialogue:ended', { speakerId: session.tree.id });
+							if (delta !== 0) {
+								bus.emit('crew:relationship:changed', {
+									characterId: session.tree.id,
+									affinity: delta,
+								});
+							}
+							affinitySessionStart[session.tree.id] = affinity[session.tree.id] ?? 0;
+						}
 					}
 				} else {
-					// Terminal node: session is ending — emit accumulated affinity delta.
+					// Terminal node: explicit end.
 					session.active = false;
 					session.state.options = [];
 					bus.emit('crew:dialogue:ended', { speakerId: session.tree.id });
-					const prev = affinitySessionStart[session.tree.id] ?? 0;
-					const total = affinity[session.tree.id] ?? 0;
-					const sessionDelta = total - prev;
-					if (sessionDelta !== 0) {
+					if (delta !== 0) {
 						bus.emit('crew:relationship:changed', {
 							characterId: session.tree.id,
-							affinity: sessionDelta,
+							affinity: delta,
 						});
 					}
-					// Update snapshot so next session starts from correct baseline.
-					affinitySessionStart[session.tree.id] = total;
+					affinitySessionStart[session.tree.id] = affinity[session.tree.id] ?? 0;
 				}
 				return;
 			}
