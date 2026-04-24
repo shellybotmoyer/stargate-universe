@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [createWebHammerGamePlugin({ initialSceneId: "start-screen", projectName: "stargate-universe" })],
   resolve: {
     alias: {
-      "@kopertop/vibe-game-engine": resolve(__dirname, "src/types/vibe-game-engine"),
+      "@kopertop/vibe-game-engine": resolve(__dirname, "src/types/vibe-game-engine/index"),
     },
   },
   server: {

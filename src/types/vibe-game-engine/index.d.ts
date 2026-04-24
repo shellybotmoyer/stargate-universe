@@ -45,11 +45,28 @@ declare module "@kopertop/vibe-game-engine" {
 		icons: Array<{ src: string; sizes: string; type: string; purpose?: string }>;
 	}): string;
 
-	// ── Input ──────────────────────────────────────────────────────────────
+	// ── Input ───────────────────────────────────────────────────────────────
 
 	export const DEFAULT_KEY_BINDINGS: Record<string, number>;
-	export const DEFAULT_GAMEPAD_BINDINGS: Record<number, number[]>;
-	export class InputManager { /* ... */ }
+	export const DEFAULT_GAMEPAD_BINDINGS: Partial<Record<number, number[]>>;
+
+	export class InputManager {
+		bind(): () => void;
+		setKeyBindings(bindings: Record<string, number>): void;
+		setGamepadBindings(bindings: Partial<Record<number, number[]>>): void;
+		poll(): void;
+		isAction(action: number): boolean;
+		isActionJustPressed(action: number): boolean;
+		isActionJustReleased(action: number): boolean;
+		readonly gamepad: GamepadLike;
+	}
+
+	export interface GamepadLike {
+		readonly isConnected: boolean;
+		getAxis(index: number): number;
+		getMovement(): { x: number; z: number };
+		getLook(): { x: number; y: number };
+	}
 
 	// ── Cross-cutting event bus ────────────────────────────────────────────
 
@@ -212,27 +229,6 @@ declare module "@kopertop/vibe-game-engine" {
 		B = 1,
 		X = 2,
 		Y = 3,
-	}
-
-	export const DEFAULT_KEY_BINDINGS: Record<string, number>;
-	export const DEFAULT_GAMEPAD_BINDINGS: Partial<Record<number, number[]>>;
-
-	export class InputManager {
-		bind(): () => void;
-		setKeyBindings(bindings: Record<string, number>): void;
-		setGamepadBindings(bindings: Partial<Record<number, number[]>>): void;
-		poll(): void;
-		isAction(action: number): boolean;
-		isActionJustPressed(action: number): boolean;
-		isActionJustReleased(action: number): boolean;
-		readonly gamepad: GamepadLike;
-	}
-
-	export interface GamepadLike {
-		readonly isConnected: boolean;
-		getAxis(index: number): number;
-		getMovement(): { x: number; z: number };
-		getLook(): { x: number; y: number };
 	}
 
 	// ── Quest system ────────────────────────────────────────────────────────
