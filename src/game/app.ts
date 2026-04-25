@@ -45,7 +45,7 @@ import type {
   PlayerController
 } from "./scene";
 import { StarterPlayerController, VrmPlayerController } from "./player";
-import { VrmCharacterManager, findPlayerVrmEntity, createVrmAnimatorBridge, loadVrm } from "../systems/vrm";
+import { VrmCharacterManager } from "../systems/vrm";
 
 // ------------------------------------------------------------------
 // Types
@@ -389,14 +389,14 @@ export async function createGameApp(options: GameAppOptions) {
   };
 }
 
-function buildPlayer(options: {
+async function buildPlayer(options: {
   camera: THREE.PerspectiveCamera;
   definition: GameSceneDefinition;
   gameplayRuntime: GameplayRuntime;
   input: InputManager;
   physicsWorld: CrashcatPhysicsWorld;
   runtimeScene: ThreeRuntimeSceneInstance;
-}) {
+}): Promise<PlayerController | null> {
   if (options.definition.player === false) {
     return null;
   }
@@ -416,33 +416,51 @@ function buildPlayer(options: {
     rotationY: playerSpawn.transform.rotation.y
   };
 
-  // VRM character path — check if the scene config or player config specifies a VRM URL.
-  const vrmUrl = playerConfig.vrmUrl || options.runtimeScene.scene.settings.player?.vrmUrl;
+  const cameraMode = playerConfig.cameraMode ?? options.runtimeScene.scene.settings.player.cameraMode;
+
+  // Build camera controller — needed by both VRM and starter controllers.
+  const cameraController = createCameraController(cameraMode, options.camera);
+
+  // VRM character path — check if the player config specifies a VRM URL.
+  const vrmUrl = playerConfig.vrmUrl;
 
   if (vrmUrl) {
-    return VrmPlayerController.create({
-      camera: options.camera,
-      input: options.input,
-      scene: options.runtimeScene.scene,
-      spawn,
+    // Create VRM character manager and register the player character.
+    const characterManager = new VrmCharacterManager(options.camera);
+    const characterInstance = characterManager.addCharacter({
+      id: "player",
       vrmUrl,
-      world: options.physicsWorld
+      isPlayer: true,
+      priority: 0
+    });
+
+    return new VrmPlayerController({
+      camera: cameraController,
+      input: options.input,
+      threeCamera: options.camera,
+      gameplayRuntime: options.gameplayRuntime,
+      sceneSettings: options.runtimeScene.scene.settings,
+      spawn,
+      world: options.physicsWorld,
+      characterManager,
+      characterInstance
     });
   }
 
-  // Fall back to starter controller.
+  // Fall back to starter controller (capsule physics only).
   return new StarterPlayerController({
-    camera: options.camera,
-    cameraMode: playerConfig.cameraMode ?? options.runtimeScene.scene.settings.player.cameraMode,
+    camera: cameraController,
     input: options.input,
-    scene: options.runtimeScene.scene,
+    threeCamera: options.camera,
+    gameplayRuntime: options.gameplayRuntime,
+    sceneSettings: options.runtimeScene.scene.settings,
     spawn,
     world: options.physicsWorld
   });
 }
 
 function resolveSceneSystems(definition: GameSceneDefinition, context: GameSceneLoaderContext): GameplayRuntimeSystemRegistration[] {
-  const starterSystems = createDefaultGameplaySystems();
+  const starterSystems = createDefaultGameplaySystems(context.sceneSettings);
 
   if (!definition.systems) {
     return starterSystems;
