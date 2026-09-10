@@ -1,6 +1,6 @@
 # Technical Debt Register
 
-Last updated: 2026-06-26 · Sprint: sprint-005
+Last updated: 2026-09-10 · Sprint: sprint-005 (re-evaluated 2026-09-10 heartbeat)
 Total open items: 5 | Estimated total effort: ~XL (one large refactor + three doc writes)
 
 Tracks **conscious** technical-debt decisions for the Godot 4.6 Stargate Universe project.
@@ -11,8 +11,8 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
 
 | ID | Category | Description | Files | Effort | Impact | Priority | Added | Sprint |
 |----|----------|-------------|-------|--------|--------|----------|-------|--------|
-| TD-001 | Architecture | `gate_room.gd` is a 4,603-line god object — procedural scene build + cold-open cinematic + throw mechanics in one file. Plan: extract `GateThrowKit` (mechanics) + `GatePrologueDirector` (cinematic) as `Node` helpers (no `class_name`, preload pattern). | `scripts/gate_room.gd` | L | Med | Med | 2026-06-26 | Backlog |
-| TD-002 | Architecture | `room.gd` is a 2,657-line god object — base room + standoff choreography cluster (~1117–1763). Plan: extract `RushStandoffDirector`, keep `_spawn_dr_rush` + a thin `_run_standoff_cinematic` forwarder. Lowest-risk extraction (tested behaviorally, not by source-text). | `scripts/room.gd` | M | Med | Med-High | 2026-06-26 | Backlog |
+| TD-001 | Architecture | `gate_room.gd` is a 4,692-line god object — procedural scene build + cold-open cinematic + throw mechanics in one file. Plan: extract `GateThrowKit` (mechanics) + `GatePrologueDirector` (cinematic) as `Node` helpers (no `class_name`, preload pattern). | `scripts/gate_room.gd` | L | Med | Med | 2026-06-26 | Backlog |
+| TD-002 | Architecture | `room.gd` is a 2,676-line god object — base room + standoff choreography cluster (~1117–1763). Plan: extract `RushStandoffDirector`, keep `_spawn_dr_rush` + a thin `_run_standoff_cinematic` forwarder. Lowest-risk extraction (tested behaviorally, not by source-text). | `scripts/room.gd` | M | Med | Med-High | 2026-06-26 | Backlog |
 | TD-003 | Documentation | Missing architecture docs flagged "not blocking" in CLAUDE.md. 4 ADRs + a dependency graph exist; the synthesis docs do not. Generate via `/create-architecture`, `/create-control-manifest`. | `docs/architecture/architecture.md`, `docs/architecture/control-manifest.md`, `design/accessibility-requirements.md` | M | Low | Low | 2026-06-26 | Backlog |
 | TD-005 | Dependency | VRM addon carries 15 FIXMEs / 13 TODOs around mesh/material/spring-bone handling. **Consciously accepted:** third-party plugin we do not maintain; touching it risks breaking VRM import for marginal gain. Re-evaluate only if we upgrade the addon. | `addons/vrm/*` | L | Low | Low | 2026-06-26 | Accepted |
 | TD-007 | Test | Smoke suite (`tests/smoke/`) is SceneTree-based, not GDUnit4, and centred on the E1 vertical slice. Newer systems (planet gen, biomes, equipment) have lighter coverage; no real input-event simulation. Accept for slice scope; revisit if the suite outgrows the framework. | `tests/smoke/`, `tests/README.md` | M | Low | Low | 2026-06-26 | Accepted |
@@ -31,3 +31,10 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
   third-party, slice scope) and what would trigger a re-evaluation.
 - `@no-save:` / `@collection-ok:` opt-out markers (35 across `scripts/`) were audited during
   the 2026-06-26 scan and are all justified — not tracked as debt.
+- **2026-09-10 re-evaluation (heartbeat):** All 5 open items consciously re-accepted.
+  TD-001/TD-002 god-object refactors remain backlog (no sprint allocated; line counts grew
+  slightly: gate_room.gd 4,603→4,692, room.gd 2,657→2,676 — growth is feature work, not
+  sprawl). TD-003 synthesis docs still not generated (low impact, no sprint slot). TD-005
+  VRM addon still third-party, still accepted. TD-007 smoke suite still SceneTree-based,
+  still accepted for slice scope. Next re-evaluation: 2026-12-10 or when any item's trigger
+  fires.
