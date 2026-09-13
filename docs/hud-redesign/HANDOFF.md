@@ -1,5 +1,13 @@
 # HANDOFF — WoW-style HUD Redesign (Epic)
 
+## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
+
+This brief targets the removed Godot HUD (`scripts/hud.gd` + `objects/hud.tscn`).
+The web-era HUD lives in `src/ui.js` / `src/console.js` (and related `src/*.js`);
+all GDScript file/line references in this doc are dead. The redesign goals and
+gold-on-dark palette may still inform the web UI, but acceptance criteria must be
+re-mapped to `src/*.js` before use.
+
 > **Purpose:** A complete, self-contained brief for the code agent who implements the
 > WoW-style HUD. Read this top-to-bottom before touching code. Every phase lists
 > concrete tasks, the exact files to touch (with current line refs), and **testable
