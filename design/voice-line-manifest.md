@@ -691,14 +691,14 @@ Lines triggered automatically by game systems, not player-initiated.
 Scene-specific lines for the E1 prologue: the Icarus evac crashing through the gate onto
 Destiny. Authored against `design/sgu-opening-reference.md`. Delivery is **loud, panicked,
 overlapping** — these layer over the arrival choreography in
-`scripts/gate_room.gd::_play_prologue_cinematic()`. Many lines are short and meant to stack.
+`src/main.js::arriveAt(destiny)` (chapter cold open — the E1 arrival choreography, see also `startChapter()`). Many lines are short and meant to stack.
 
 ### 18.1 Marshalling / Command (Scott, Greer)
 
 > **E1 staging note:** Colonel Young lands **unconscious** in wave 2 (thrown off-screen,
 > face-down) and stays down for the whole cold open, so the shipped cinematic routes all
 > marshalling through **Scott and Greer**. The `open-young-*` lines below are reserved for
-> a variant where Young is conscious; they are not wired into `_play_prologue_cinematic()`.
+> a variant where Young is conscious; they are not wired into the cold-open `arriveAt()` flow.
 
 | ID | Character | Text | Trigger | Priority | Status |
 |----|-----------|------|---------|----------|--------|
