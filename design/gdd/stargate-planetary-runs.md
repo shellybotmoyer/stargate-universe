@@ -1,5 +1,12 @@
 # Stargate & Planetary Runs
 
+> **⚠️ STALE engine references — ggez-era mapping, superseded by the 2026-09-08 Three.js re-pivot**
+
+> References to `planet.gd`, `kino_drone.gd`, and ggez scene loading describe an
+> engine that no longer exists — the Three.js-era repo runs `src/*.js` + `data/`.
+> The design (planet catalog, gate flow, mission triage) remains reference until
+> re-mapped onto the web implementation.
+
 > **Status**: Designed
 > **Author**: User + Claude
 > **Last Updated**: 2026-03-31

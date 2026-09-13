@@ -1,5 +1,13 @@
 # Save/Load Interface Contract
 
+> **⚠️ STALE implementation pointers — Godot-era mapping, superseded by the 2026-09-08 Three.js re-pivot**
+
+> The engine-mapped sections below (`tests/save/*.gd`, `.tscn` orchestration
+> harnesses, `title.gd`) reference Godot files that no longer exist — the
+> Three.js-era repo has no `tests/` or `scripts/` directories (runtime is
+> `src/*.js` + `data/`). The interface contract and the TS profile/checkpoint
+> model remain canonical reference until re-mapped onto the web implementation.
+
 > **Status**: Implemented — profile/checkpoint model (issues #77/#79/#80/#81/#82)
 > layered over the original Godot slot system (#44). The TS interface at the
 > bottom is the engine-agnostic origin; the Godot mapping is in "Profile +
