@@ -1,5 +1,14 @@
 # Technical Debt Register
 
+## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
+
+This register tracks debt for the removed Godot stack: `scripts/*.gd`, `addons/vrm`,
+`gate_room.gd`, `room.gd`, GDScript conventions and `sprint-005` no longer exist in the
+repo (web era: `src/*.js`, `tools/`). TD-001/TD-002/TD-005 reference Godot files that
+were deleted; TD-003's `docs/architecture/` does not exist in the web tree. Treat as
+historical intent only — re-scan the web-era codebase (`src/*.js`) before rebuilding a
+register. The current forward queue lives in git history of main and the open PR stack.
+
 Last updated: 2026-06-26 · Sprint: sprint-005
 Total open items: 5 | Estimated total effort: ~XL (one large refactor + three doc writes)
 
