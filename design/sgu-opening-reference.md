@@ -1,11 +1,23 @@
 # SGU Opening Scene — Atmosphere & Dialog Reference
 
+## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
+
+This reference describes the removed Godot cold-open cinematic
+(`scripts/gate_room.gd::_play_prologue_cinematic()`, `scripts/cinematic.gd`,
+`scripts/standoff_camera.gd`, `scripts/audio.gd`, `scripts/tts_client.gd`,
+`sounds/*.ogg`). Web-era repo drives the opening declaratively from
+`data/chapters.json` (chapter `e1_air`, step `arrive`) via `src/autoplay.js`,
+`src/gate-room.js`, and `src/main.js` (see `src/main.js` cold-open start at
+line ~443); the GDScript call sites and Godot assets do not exist. The
+atmosphere notes, dialog transcript, and voice-line additions below are still
+canonical reference material — re-map the implementation pointers before use.
+
 > **Source:** transcribed from the reference recording `SGU Openning.m4a` (the *Stargate
 > Universe* "Air, Part 1" cold open — the Icarus Base evacuation through the gate onto
 > Destiny). Used as the authoring target for the E1 prologue cinematic.
 > **Status:** reference doc — feeds GitHub issue "E1 cold-open: replicate the SGU opening
 > atmosphere + dialog → *Find Rush*".
-> **Last updated:** 2026-06-16
+> **Last updated:** 2026-06-16 (marked STALE 2026-09-13)
 
 ## How this was captured
 
