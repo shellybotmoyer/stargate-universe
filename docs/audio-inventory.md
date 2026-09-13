@@ -1,5 +1,19 @@
 # Audio Inventory — What's on R2 vs What the Catalog Promises
 
+## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
+
+This describes R2-bucket hosting (`sgu-assets`, `pub-c642ba55…r2.dev`) for the removed
+Godot engine stack — `src/systems/audio/sound-catalog.ts` and `src/dialogues/scott-opening.ts`
+do not exist in the web-era tree (no TS, no `src/systems/`; audio is plain JS). Web-era
+audio loads from the repo-local `sounds/` directory via `SFX_FILES` in `src/main.js`
+(lines ~106-112: `AudioLoader` → `ASSETS/sounds/…`), the cold-open dialog voice lines live
+under `sounds/dialog/prologue/` as `.wav` files (e.g. `open-scott-*.wav`), and TTS generation
+was re-built for the web era as `tools/tts-bake/`. The R2 bucket names, `sound-catalog.ts`
+IDs, and Scott `.mp3` "missing" list below are historical — re-map file names and hosting
+notes before use. The core lesson (verify SFX exist before playing; missing audio fails
+silently, e.g. `EncodingError: Unable to decode audio data`) still applies to web-era
+`AudioLoader` setup.
+
 Generated 2026-04-13 after playtesting the opening cinematic. The sound
 catalog at `src/systems/audio/sound-catalog.ts` declares many voice
 lines that don't exist on R2 yet — playing them fails silently (404 →
