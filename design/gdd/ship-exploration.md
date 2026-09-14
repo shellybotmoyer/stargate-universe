@@ -151,7 +151,9 @@ layer** placed on top of the shared shell by `RoomBuilder._add_authored_setdress
 | `infirmary` | quarters-template | 2x bed-single, computer-system (medical), container-tall (supplies) | "INFIRMARY" on -Z wall |
 | `weapons_control` | control-room-template | computer-wide (main board), 2x computer-system, chair-armrest | "WEAPONS CONTROL" on -Z wall |
 
-All prop GLBs live under `res://models/props/space_station_kit/`.
+All prop GLBs lived under `models/props/space_station_kit/` (directory
+removed in the 2026-09-08 Three.js re-pivot; `data/room_types.json` no
+longer mounts set-dressing GLBs — props are authored inline).
 
 **Doorway-clearance rule:** `RoomBuilder` runs before `room.gd` stamps doors.
 Props are authored at centre/back-wall positions (>= 3 m from wall midpoints

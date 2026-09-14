@@ -97,7 +97,8 @@ only declares a handful of legacy `Label`/`NinePatchRect` nodes.
 
 Create a single source of truth for the skin so every widget shares it (the current
 `_make_wow_stylebox` is close but per-widget constants drift). **Recommended:** extract a
-small static helper `res://scripts/ui/hud_theme.gd` (`class_name HudTheme`) holding the
+small static helper module (Godot-era `scripts/ui/hud_theme.gd` with
+`class_name HudTheme` was removed in the 2026-09-08 re-pivot) holding the
 palette + stylebox factories; `hud.gd` and all new widgets read from it. (Duck-type via
 `preload` path in tests to dodge the `class_name` headless race — see §11.)
 
