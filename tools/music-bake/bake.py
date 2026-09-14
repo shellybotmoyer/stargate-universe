@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ElevenLabs music-stem baker. Generates the composable SGU loop library — isolated,
 seamlessly-looping textures (drones, pads, solo strings/piano, pulses) plus short one-shot
-stings — that the runtime MusicDirector (scripts/music_director.gd) layers into moods.
+stings — that the runtime mixer (src/music.js) layers into moods.
 
 Why the SFX API for stems: text_to_sound_effects.convert(loop=True) makes a SINGLE seamless
 looping texture you can stack — exactly one stem. music.compose() makes a fully-mixed track
@@ -10,8 +10,8 @@ you can't pull stems back out of, so it's reserved for `kind: bed` standalone pi
 Reads a job (tools/music-bake/jobs/<name>.json): { out_dir, stems: [<id> | {id, ...overrides}] }.
 Stem definitions live in palette.py; jobs just SELECT ids. For each stem: call the right API,
 write a temp mp3, ffmpeg-transcode to <out_dir>/<id>.ogg (project loop convention), record a
-bake_report. Loop POINTS aren't baked in — the .ogg loops because MusicDirector sets
-stream.loop = true at load (robust across Godot OGG-import defaults).
+bake_report. Loop POINTS aren't baked in — the .ogg loops because the runtime mixer
+sets loop=true on load (see src/music.js).
 
 Run via tools/music-bake/run.sh (handles uv env + ffmpeg + godot --import). Direct:
   ELEVENLABS_API_KEY=... uv run --python-preference only-managed --with elevenlabs \\
