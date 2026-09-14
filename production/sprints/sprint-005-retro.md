@@ -1,5 +1,12 @@
 # Sprint 5 Retrospective — 2026-05-21 → 2026-05-28
 
+> **STALE — Godot ERA DOC (pre-2026-09-08 re-pivot).** The repo re-pivoted to
+> Three.js (web) on 2026-09-08. This retro documents the Godot-era Episode 1
+> air-crisis arc (`.gd` files, `.tscn` scenes, Godot autoloads) which was
+> removed in the re-pivot. The web-era game supersedes it; ship-lists for the
+> current stack live in `production/sprints/` (web-era) and
+> `production/next-development-plan.md`.
+
 ## Result: SCOPE COMPLETE — ORIGINAL PLAN + 7 PHASES OF EXPANSION
 
 The original sprint-005 plan targeted **Mission 1 only**: connect rooms via
