@@ -2,92 +2,92 @@
 	"_comment": "Character registry (legacy Godot-era data, kept for the cast/aliasing reference; the web runtime no longer loads this file — dialog/NPC setup lives in src/main.js). Maps display name → portrait + metadata. Add new characters here, not in the script. NOTE: 'Lt James' is her official name but everyone calls her 'TJ' — all of 'Lt James' / 'Dr James' / 'TJ' / 'TJ Johansen' are ONE character and resolve to the same portrait + short_name 'TJ'.",
 
 	"Eli": {
-		"portrait": "res://sprites/portraits/eli-wallace.png",
+		"portrait": "sprites/portraits/eli-wallace.png",
 		"role": "civilian",
 		"short_name": "Eli"
 	},
 	"Eli Wallace": {
-		"portrait": "res://sprites/portraits/eli-wallace.png",
+		"portrait": "sprites/portraits/eli-wallace.png",
 		"role": "civilian",
 		"short_name": "Eli"
 	},
 	"Lt Scott": {
-		"portrait": "res://sprites/portraits/lt-scott.png",
+		"portrait": "sprites/portraits/lt-scott.png",
 		"role": "military",
 		"short_name": "Scott"
 	},
 	"Dr Rush": {
-		"portrait": "res://sprites/portraits/dr-rush.png",
+		"portrait": "sprites/portraits/dr-rush.png",
 		"role": "civilian",
 		"short_name": "Rush"
 	},
 	"Colonel Young": {
-		"portrait": "res://sprites/portraits/colonel-young.png",
+		"portrait": "sprites/portraits/colonel-young.png",
 		"role": "military",
 		"short_name": "Young"
 	},
 	"Chloe Armstrong": {
-		"portrait": "res://sprites/portraits/chloe-armstrong.png",
+		"portrait": "sprites/portraits/chloe-armstrong.png",
 		"role": "civilian",
 		"short_name": "Chloe"
 	},
 	"Dr James": {
-		"portrait": "res://sprites/portraits/tj-johansen.png",
+		"portrait": "sprites/portraits/tj-johansen.png",
 		"role": "military",
 		"short_name": "TJ"
 	},
 	"Lt James": {
-		"portrait": "res://sprites/portraits/tj-johansen.png",
+		"portrait": "sprites/portraits/tj-johansen.png",
 		"role": "military",
 		"short_name": "TJ"
 	},
 	"Dr Park": {
-		"portrait": "res://sprites/portraits/dr-park.png",
+		"portrait": "sprites/portraits/dr-park.png",
 		"role": "civilian",
 		"short_name": "Park"
 	},
 	"Sgt Greer": {
-		"portrait": "res://sprites/portraits/greer.png",
+		"portrait": "sprites/portraits/greer.png",
 		"role": "military",
 		"short_name": "Greer"
 	},
 	"Soldier": {
-		"portrait": "res://sprites/portraits/soldier.png",
+		"portrait": "sprites/portraits/soldier.png",
 		"role": "military",
 		"short_name": "Soldier"
 	},
 	"Dr Brody": {
-		"portrait": "res://sprites/portraits/brody.png",
+		"portrait": "sprites/portraits/brody.png",
 		"role": "civilian",
 		"short_name": "Brody"
 	},
 	"Brody": {
-		"portrait": "res://sprites/portraits/brody.png",
+		"portrait": "sprites/portraits/brody.png",
 		"role": "civilian",
 		"short_name": "Brody"
 	},
 	"TJ": {
-		"portrait": "res://sprites/portraits/tj-johansen.png",
+		"portrait": "sprites/portraits/tj-johansen.png",
 		"role": "military",
 		"short_name": "TJ"
 	},
 	"TJ Johansen": {
-		"portrait": "res://sprites/portraits/tj-johansen.png",
+		"portrait": "sprites/portraits/tj-johansen.png",
 		"role": "military",
 		"short_name": "TJ"
 	},
 	"Dr Volker": {
-		"portrait": "res://sprites/portraits/volker.png",
+		"portrait": "sprites/portraits/volker.png",
 		"role": "civilian",
 		"short_name": "Volker"
 	},
 	"Camile Wray": {
-		"portrait": "res://sprites/portraits/wray.png",
+		"portrait": "sprites/portraits/wray.png",
 		"role": "civilian",
 		"short_name": "Wray"
 	},
 	"Varro": {
-		"portrait": "res://sprites/portraits/varro.png",
+		"portrait": "sprites/portraits/varro.png",
 		"role": "military",
 		"short_name": "Varro"
 	}
