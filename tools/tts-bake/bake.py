@@ -7,7 +7,7 @@ Reads a job (tools/tts-bake/jobs/<name>.json): each line has voice (-> voices.js
 clip), text, and an emotion preset (emotions.py) or free-text emo_text override. Clones
 the character timbre, applies the emotion, writes <out_dir>/<id>.wav under the repo.
 
-Run via tools/tts-bake/run.sh (handles uv py3.11 + godot --import). Direct:
+Run via tools/tts-bake/run.sh (handles uv py3.11). Direct:
   uv run --python-preference only-managed --python 3.11 \\
     --with "git+https://github.com/index-tts/index-tts" --with huggingface_hub --with soundfile \\
     python bake.py [job_name]      # default job: cold_open

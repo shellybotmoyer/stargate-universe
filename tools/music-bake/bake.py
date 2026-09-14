@@ -13,7 +13,7 @@ write a temp mp3, ffmpeg-transcode to <out_dir>/<id>.ogg (project loop conventio
 bake_report. Loop POINTS aren't baked in — the .ogg loops because the runtime mixer
 sets loop=true on load (see src/music.js).
 
-Run via tools/music-bake/run.sh (handles uv env + ffmpeg + godot --import). Direct:
+Run via tools/music-bake/run.sh (handles uv env + ffmpeg). Direct:
   ELEVENLABS_API_KEY=... uv run --python-preference only-managed --with elevenlabs \\
     python bake.py [job_name]      # default job: sgu_sample
 """
