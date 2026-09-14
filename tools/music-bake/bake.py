@@ -149,8 +149,8 @@ def main() -> int:
 	(HERE / f"bake_report_{job_name}.json").write_text(json.dumps(report, indent=2))
 	ok = sum(1 for r in report if r["ok"])
 	print(f"[bake] done: {ok}/{len(report)} ok -> {out_dir.relative_to(REPO)}")
-	print("[bake] NEXT: run `godot --headless --import` so the OGGs get .import sidecars "
-	      "(else AudioStream load() returns null in-game), then `python build_index.py` to audition.")
+	print("[bake] NEXT: run `python build_index.py` to audition. OGGs load directly via "
+	      "src/music.js AudioLoader + build.sh cp (no Godot .import sidecars in the web-era pipeline).")
 	return 0 if ok == len(report) else 2
 
 
