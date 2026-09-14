@@ -1,5 +1,5 @@
 // In-game level editor ("leveledit" console command). Takes over the running game: free-fly camera with no collision or
-// gravity, HUD/quests/interactables off, and a build menu that edits the same JSON the game and Godot read
+// gravity, HUD/quests/interactables off, and a build menu that edits the same JSON the game reads
 // (data/ship_layout.json, data/room_connections.json, data/chapters.json). Every change rebuilds the ship in
 // place through ctx.rebuildShip; leaving the editor reloads the game on the edited layout (?layout=live).
 import * as THREE from 'three';

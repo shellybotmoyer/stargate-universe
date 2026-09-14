@@ -1,4 +1,4 @@
-// Hotwire mini-game (port of the Godot hotwire_minigame.gd / DOOR_HACK concept): three coloured jacks on the left must be
+// Hotwire mini-game (three coloured jacks on the left must be
 // patched to their protocol ports on the right; one port is a VOID decoy. The ports flash their colour for a moment at the
 // start, then go dark — after that you work from memory. A wrong patch faults the panel and clears every connection.
 // play() pauses nothing itself; main.js treats an open panel like the Kino Remote. Resolves true on success, false on Esc.

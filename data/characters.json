@@ -1,5 +1,5 @@
 {
-	"_comment": "Character registry. Maps display name → portrait + metadata. dialog_screen.gd looks up the speaker name when rendering a dialog node. Add new characters here, not in the script. NOTE: 'Lt James' is her official name but everyone calls her 'TJ' — all of 'Lt James' / 'Dr James' / 'TJ' / 'TJ Johansen' are ONE character and resolve to the same portrait + short_name 'TJ'.",
+	"_comment": "Character registry (legacy Godot-era data, kept for the cast/aliasing reference; the web runtime no longer loads this file — dialog/NPC setup lives in src/main.js). Maps display name → portrait + metadata. Add new characters here, not in the script. NOTE: 'Lt James' is her official name but everyone calls her 'TJ' — all of 'Lt James' / 'Dr James' / 'TJ' / 'TJ Johansen' are ONE character and resolve to the same portrait + short_name 'TJ'.",
 
 	"Eli": {
 		"portrait": "res://sprites/portraits/eli-wallace.png",

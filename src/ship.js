@@ -1,5 +1,5 @@
-// Destiny deck 0, generated from the repo's canonical layout (data/ship_layout.json + data/room_connections.json — the same
-// data the Godot build uses). JSON plan units → metres at 0.05 (gate room 800×400 → 40×20 m). JSON X runs along the ship;
+// Destiny deck 0, generated from the repo's canonical layout (data/ship_layout.json + data/room_connections.json).
+// JSON plan units → metres at 0.05 (gate room 800×400 → 40×20 m). JSON X runs along the ship;
 // we map X → -Z so the gate sits at the far (-Z) end of the gate room and the East Connector leaves toward +Z. JSON Y → X.
 // Rooms are AABB shells with door gaps cut where two rooms share an edge; doors slide open when powered + unlocked + near.
 import * as THREE from 'three';
