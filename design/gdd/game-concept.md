@@ -1,5 +1,14 @@
 # Game Concept: Stargate Universe — The Destiny Mission
 
+> **⚠️ STALE engine mapping — ggez-era platform config superseded by the 2026-09-08 Three.js re-pivot**
+>
+> The engine/physics config block (`Engine: ggez (Three.js 0.181 framework)`,
+> `Physics: Crashcat`) references the ggez framework removed in `abfb5ed` —
+> the Three.js-era repo runs plain `src/*.js` + `index.html` (`build.sh`).
+> The concept itself (Eli aboard Destiny, exploration-survival pillars,
+> episode arcs) remains canonical reference until the tech sections are
+> re-mapped onto the web implementation.
+
 *Created: 2026-03-29*
 *Status: Draft*
 

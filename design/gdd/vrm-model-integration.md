@@ -1,5 +1,14 @@
 # VRM Character Model Integration
 
+> **⚠️ STALE engine mapping — ggez-era sections superseded by the 2026-09-08 Three.js re-pivot**
+>
+> Engine-specific sections below (`@pixiv/three-vrm` on Three.js 0.181,
+> skeleton retargeting into `ggez RigDefinition`/`@ggez/anim-*`) reference the
+> ggez framework removed in `abfb5ed` — the Three.js-era repo runs plain
+> `src/*.js` + `index.html` with no VRM pipeline (`grep @pixiv` = 0 in the web
+> tree). The character visual design intent remains reference until a web-era
+> VRM path is defined, but every animation-pipeline mapping below is dead.
+
 > **Status**: Designed
 > **Author**: User + Claude
 > **Last Updated**: 2026-04-03

@@ -1,5 +1,13 @@
 # Kino Remote (Diegetic Menu)
 
+> **⚠️ STALE engine mapping — ggez-era dependency superseded by the 2026-09-08 Three.js re-pivot**
+>
+> The `ggez Scene Mgmt` dependency (overlay rendering) references the ggez
+> framework removed in `abfb5ed` — the Three.js-era repo runs plain `src/*.js` +
+> `index.html` (`build.sh`). The diegetic menu design (tabs, hold-to-open,
+> ship-state/resource readouts) remains reference until re-mapped onto the web
+> implementation.
+
 > **Status**: Designed
 > **Author**: User + Claude
 > **Last Updated**: 2026-04-01

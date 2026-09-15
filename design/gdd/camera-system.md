@@ -1,5 +1,14 @@
 # Camera System (Third-Person)
 
+> **⚠️ STALE engine mapping — ggez-era sections superseded by the 2026-09-08 Three.js re-pivot**
+>
+> Engine-specific sections below (`ggez Physics (Crashcat)` spherecast,
+> `ggez Gameplay Runtime` registration) reference the ggez framework removed in
+> `abfb5ed` — the Three.js-era repo runs plain `src/*.js` + `index.html`
+> (`build.sh`). The third-person camera design (arm compression, cinematic
+> framing, scene-transition rules) remains reference until re-mapped onto the
+> web implementation.
+
 > **Status**: Designed
 > **Author**: User + Claude
 > **Last Updated**: 2026-03-30
