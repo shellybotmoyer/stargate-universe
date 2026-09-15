@@ -94,7 +94,11 @@ Uses the diffuse texture as the bump map when no dedicated bump exists. Saves te
 - Animates rig position, camera local offset, and look-at target simultaneously
 - `duration: 2.5, ease: "power3.inOut"` (cubic ease-in-out)
 - Always calls `gsap.killTweensOf()` before starting new animations
-- **Translate to**: ggez tween system with equivalent easing
+- **Translate to**: web-era equivalents — hand-rolled `ease()` in `src/components.js` for
+  discrete open/close/tween chains (crates, lids), `THREE.Vector3.lerp` for continuous
+  camera/velocity blends (`src/kino.js` `state.vel.lerp(...)`), with an EasingFunctions-style
+  helper (smoothstep `k*k*(3-2*k)` already in `src/components.js:71`) for power3-inOut-style
+  curves. No ggez tween system exists post-2026-09-08 re-pivot (`abfb5ed`).
 
 ### 9. Drag-vs-Click Disambiguation
 - Track `mousedown` position, compare to `mouseup`
