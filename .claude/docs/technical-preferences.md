@@ -2,20 +2,20 @@
 
 ## Engine & Language
 
-- **Engine**: ggez (Three.js game framework)
-- **Language**: TypeScript (strict mode, ESM)
-- **Rendering**: WebGPU via `three/webgpu` (WebGL fallback)
-- **Physics**: Crashcat (`@ggez/runtime-physics-crashcat`)
-- **3D Runtime**: Three.js 0.181 + `@ggez/three-runtime`
+- **Engine**: Three.js 0.180 (vanilla, via import map — no framework wrapper)
+- **Language**: JavaScript (ES modules, no transpile)
+- **Rendering**: `THREE.WebGLRenderer` (WebGL; no WebGPU path)
+- **Physics**: Built-in colliders (Box3 / axis-aligned boxes from `src/components.js`, `src/destination.js`, `src/gate-room.js`) — no physics engine
+- **3D Runtime**: Three.js 0.180 via jsdelivr import map (three.module.js + examples/jsm addons), vendored by `build.sh` for the itch.io zip
 
 ## Naming Conventions
 
-- **Classes**: PascalCase (`StarterPlayerController`)
-- **Variables**: camelCase (`activeScene`)
-- **Events**: camelCase with past tense (`sceneLoaded`, `playerDied`)
-- **Files**: kebab-case (`runtime-physics.ts`)
-- **Scenes**: kebab-case directory (`src/scenes/gate-room/`)
-- **Constants**: UPPER_SNAKE_CASE (`FIXED_STEP_SECONDS`)
+- **Classes**: PascalCase (`THREE.Scene`, imported constructor functions)
+- **Variables**: camelCase (`activeScene`, `roomColliders`)
+- **Events**: camelCase with past tense (`loaded`, `interacted`, `questChanged`)
+- **Files**: kebab-case (`src/gate-room.js`, `src/ship.js`)
+- **Scenes**: one module per scene/world (`src/gate-room.js`, `src/destination.js`, `src/ship.js`)
+- **Constants**: UPPER_SNAKE_CASE (`PLAYER`, `MODEL_URL`, `FIXED_STEP_SECONDS`)
 
 ## Performance Budgets
 
@@ -23,31 +23,28 @@
 - **Frame Budget**: 16.6ms
 - **Draw Calls**: < 200 per frame
 - **Memory Ceiling**: 512MB
+- **Asset loading**: GLBs (Quaternius rigs) + audio streamed from `assets/` / `sounds/`; keep build zip lean
 
 ## Testing
 
-- **Framework**: Vitest
-- **Test Files**: `*.spec.ts` alongside source
-- **Minimum Coverage**: Core gameplay systems must have tests
-- **Required Tests**: Balance formulas, gameplay systems, scene loading
+- **Approach**: manual playtesting + `src/leveledit.js` dev recorder (`recorder.js` removed from dist by `build.sh`); no unit-test harness in the web-era tree
+- **Test Files**: manual scripts under `src/` when needed; syntax-checked by CI (`node --check`)
+- **Required Checks**: game boots to first playable room (`src/main.js` → `src/gate-room.js`), interaction + quest transitions work, audio cues play, ship status rows render correctly
 
 ## Forbidden Patterns
 
-- No `require()` — ESM only
+- No bundler/transpiler requirements — keep plain ES modules working from CDN import map
 - No `.then()` chains — use async/await
 - No `var` — use `const` / `let`
-- No hardcoded gameplay values — data-driven config
+- No hardcoded gameplay values in render logic — data-driven config (`data/items.json`, `data/ship_layout.json`, `PLAYER` consts)
 
 ## Allowed Libraries / Addons
 
-- `@ggez/*` — ggez framework packages
-- `three` — 3D rendering
-- `zustand` — State management (if needed)
-- `zod` — Runtime validation
-- `vitest` — Testing
+- `three@0.180` (build + examples/jsm addons)
+- `@tweenjs/tween.js` style helpers only if vendored by `build.sh`
+- No React / R3F in the runtime path
 
 ## Architecture Decisions Log
 
-- [ADR-001] Use ggez + vanilla Three.js (not React Three Fiber) for direct scene control
-- [ADR-002] Use Crashcat physics (ggez built-in) — no Rapier
-- [ADR-003] WebGPU renderer with WebGL fallback for modern performance
+- [ADR-001] Plain vanilla Three.js (no React Three Fiber) — direct scene control, zero framework indirection
+- [ADR-002] Hand-rolled colliders (Box3 / axis-aligned boxes) — no physics engine; gameplay tuning lives in `src/*.js` constants
