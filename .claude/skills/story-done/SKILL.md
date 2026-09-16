@@ -124,7 +124,7 @@ For each acceptance criterion in the story:
 ```
 | Criterion | Test | Status |
 |-----------|------|--------|
-| AC-1: [criterion text] | tests/unit/test_foo.gd::test_bar | COVERED |
+| AC-1: [criterion text] | tests/unit/test_foo.test.js::test_bar | COVERED |
 | AC-2: [criterion text] | Manual playtest confirmation | COVERED |
 | AC-3: [criterion text] | — | UNTESTED |
 ```

@@ -61,27 +61,26 @@ For each content type found in Phase 1, scan the relevant directories to count
 what has been implemented. Use Glob and Grep to locate files.
 
 **Levels / Areas / Maps:**
-- Glob `assets/**/*.tscn`, `assets/**/*.unity`, `assets/**/*.umap`
-- Glob `src/**/*.tscn`, `src/**/*.unity`
-- Look for scene files in subdirectories named `levels/`, `areas/`, `maps/`,
-  `worlds/`, `stages/`
+- Glob `assets/**/*.glb`, `assets/**/*.gltf`
+- Look for scene/level entry points in subdirectories named `levels/`, `areas/`,
+  `maps/`, `worlds/`, `stages/` (web-era scenes live in `src/*.js`)
 - Count unique files that appear to be level/scene definitions (not UI scenes)
 
 **Enemies / Characters / NPCs:**
 - Glob `assets/data/**/enemies/**`, `assets/data/**/characters/**`
 - Glob `src/**/enemies/**`, `src/**/characters/**`
-- Look for `.json`, `.tres`, `.asset`, `.yaml` data files defining entity stats
+- Look for `.json`, `.yaml` data files defining entity stats
 - Look for scene/prefab files in character subdirectories
 
 **Items / Equipment / Loot:**
 - Glob `assets/data/**/items/**`, `assets/data/**/equipment/**`,
   `assets/data/**/loot/**`
-- Look for `.json`, `.tres`, `.asset` data files
+- Look for `.json`, `.yaml` data files
 
 **Abilities / Skills / Spells:**
 - Glob `assets/data/**/abilities/**`, `assets/data/**/skills/**`,
   `assets/data/**/spells/**`
-- Look for `.json`, `.tres`, `.asset` data files
+- Look for `.json`, `.yaml` data files
 
 **Dialogue / Conversations / Cutscenes:**
 - Glob `assets/**/*.dialogue`, `assets/**/*.csv`, `assets/**/*.ink`
