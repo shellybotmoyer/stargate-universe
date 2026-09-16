@@ -1,7 +1,8 @@
 # A PR "full of conflicts" usually means the branch was cut from the wrong base
 
-**Symptom.** PR #180 to `main` showed conflicts in a dozen Godot files this branch never touched
-(`scripts/power_grid.gd`, `scripts/room.gd`, `tests/run.sh`, …).
+**Symptom.** PR #180 to `main` showed conflicts in a dozen files this branch never touched
+(`scripts/power_grid.gd`, `scripts/room.gd`, `tests/run.sh`, … — Godot-era paths that existed at the
+time; the 2026-09-08 re-pivot later removed the whole `scripts/` tree).
 
 **Cause.** The worktree branch was created from `develop`, which carried two commits (`a6e16eb`,
 `9395f4f`) that `main` had received as *rebased copies* with different SHAs. Our commits only touched
