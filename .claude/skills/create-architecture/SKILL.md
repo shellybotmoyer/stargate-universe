@@ -174,11 +174,13 @@ For each module defined in Phase 1, define ownership:
 Format as a table per layer, then as an ASCII dependency diagram.
 
 **Engine awareness check**: For every engine API listed, verify against the
-relevant module reference doc. If an API is post-cutoff, flag it:
+relevant reference. Web-era repo runs vanilla Three.js (see
+`.claude/docs/technical-preferences.md`); there is no `docs/engine-reference/`
+tree in the web-era repo. If an API is post-cutoff, flag it:
 
 ```
-⚠️  [ClassName.method()] — Godot 4.6 (post-cutoff, HIGH risk)
-    Verified against: docs/engine-reference/godot/modules/[domain].md
+⚠️  [ClassName.method()] — Three.js 0.180 (post-cutoff, HIGH risk)
+    Verified against: technical-preferences.md / src/*.js usage
     Behaviour confirmed: [yes / NEEDS VERIFICATION]
 ```
 
