@@ -54,8 +54,9 @@ def _transcode_to_ogg(raw_mp3: Path, dst_ogg: Path) -> bool:
 
 	Prefers libvorbis (best quality) but falls back to ffmpeg's built-in `vorbis`
 	encoder (needs `-strict -2`, it's marked experimental) so the tool works on a
-	minimal Homebrew ffmpeg that wasn't built with libvorbis. Godot 4 imports either
-	as AudioStreamOggVorbis. Quality ~q6 VBR — fine for ambient music beds.
+	minimal Homebrew ffmpeg that wasn't built with libvorbis. Either codec yields a
+	valid Ogg Vorbis stream for src/music.js AudioLoader. Quality ~q6 VBR — fine for
+	ambient music beds.
 	"""
 	dst_ogg.parent.mkdir(parents=True, exist_ok=True)
 	attempts = (
