@@ -220,8 +220,9 @@ Write in pseudocode or the project's actual language (from technical preferences
 These become the contracts programmers implement against.
 
 **Engine awareness check**: If any interface uses engine-specific types (e.g.
-`Node`, `Resource`, `Signal` in Godot), flag the version and verify the type
-exists and has not changed signature in the target engine version.
+`THREE.Scene`, `THREE.Mesh`, `THREE.AnimationMixer`, import-map addons from
+`examples/jsm/`), flag the version and verify the type exists and has not
+changed signature in the target engine version.
 
 ---
 

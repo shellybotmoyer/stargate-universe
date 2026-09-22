@@ -323,13 +323,14 @@ Post-Cutoff API Conflicts:
 
 ### Engine Specialist Consultation
 
-After completing the engine audit above, spawn the **primary engine specialist** via Task for a domain-expert second opinion:
-- Read `.claude/docs/technical-preferences.md` `Engine Specialists` section to get the primary specialist
-- If no engine is configured, skip this consultation
-- Spawn `subagent_type: [primary specialist]` with: all ADRs that contain engine-specific decisions or `Post-Cutoff APIs Used` fields, the engine reference docs, and the Phase 5 audit findings. Ask them to:
-  1. Confirm or challenge each audit finding — specialists may know of engine nuances not captured in the reference docs
-  2. Identify engine-specific anti-patterns in the ADRs that the audit may have missed (e.g., using the wrong Godot node type, Unity component coupling, Unreal subsystem misuse)
-  3. Flag ADRs that make assumptions about engine behaviour that differ from the actual pinned version
+After completing the engine audit above, spawn a **web-era specialist** via Task for a domain-expert second opinion:
+- Web-era repo runs vanilla Three.js (see `.claude/docs/technical-preferences.md`); no engine-specific specialist
+  agents exist (`engine-programmer` / `technical-artist` / `performance-analyst` in `.claude/agents/` cover it)
+- Spawn `subagent_type: engine-programmer` (or the closest generalist) with: all ADRs that contain
+  engine-specific decisions or `Post-Cutoff APIs Used` fields, and the Phase 5 audit findings. Ask them to:
+  1. Confirm or challenge each audit finding — specialists may know of Three.js/WebGL nuances not captured in the reference docs
+  2. Identify web-era anti-patterns in the ADRs that the audit may have missed (e.g., render-loop misuse, import-map/module version drift, per-frame allocations)
+  3. Flag ADRs that make assumptions about engine behaviour that differ from the pinned Three.js version
 
 Incorporate additional findings under `### Engine Specialist Findings` in the Phase 5 output. These feed into the final verdict — specialist-identified issues carry the same weight as audit-identified issues.
 
