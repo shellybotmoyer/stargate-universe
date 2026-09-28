@@ -1,5 +1,15 @@
 # Opening Scene Script — E1 Cold Open ("Air, Part 1" gate evacuation)
 
+## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
+
+This describes the removed Godot cold-open cinematic
+(`scripts/gate_room.gd::_play_prologue_cinematic()`, `scripts/cinematic.gd`,
+`character_factory.gd`, `tests/smoke/cold_open_lines.gd`). Web-era repo drives the
+opening declaratively from `data/chapters.json` (chapter `e1_air`, step `arrive`)
+via `src/autoplay.js`, `src/gate-room.js`, and `src/main.js`; the GDScript call
+sites and Godot test harness do not exist. The dialogue transcript below is still
+canonical reference material — re-map the implementation pointers before use.
+
 > **What this is.** The script for the E1 *cold open* — the pre-flashback opening where the
 > Icarus crew is shoved through the Stargate onto the derelict *Destiny* and Scott hands the
 > player the **Find Rush** objective. §1 is the **canonical scene** (exact dialogue, story

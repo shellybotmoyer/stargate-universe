@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ElevenLabs music-stem baker. Generates the composable SGU loop library — isolated,
 seamlessly-looping textures (drones, pads, solo strings/piano, pulses) plus short one-shot
-stings — that the runtime MusicDirector (scripts/music_director.gd) layers into moods.
+stings — that the runtime mixer (src/music.js) layers into moods.
 
 Why the SFX API for stems: text_to_sound_effects.convert(loop=True) makes a SINGLE seamless
 looping texture you can stack — exactly one stem. music.compose() makes a fully-mixed track
@@ -10,10 +10,10 @@ you can't pull stems back out of, so it's reserved for `kind: bed` standalone pi
 Reads a job (tools/music-bake/jobs/<name>.json): { out_dir, stems: [<id> | {id, ...overrides}] }.
 Stem definitions live in palette.py; jobs just SELECT ids. For each stem: call the right API,
 write a temp mp3, ffmpeg-transcode to <out_dir>/<id>.ogg (project loop convention), record a
-bake_report. Loop POINTS aren't baked in — the .ogg loops because MusicDirector sets
-stream.loop = true at load (robust across Godot OGG-import defaults).
+bake_report. Loop POINTS aren't baked in — the .ogg loops because the runtime mixer
+sets loop=true on load (see src/music.js).
 
-Run via tools/music-bake/run.sh (handles uv env + ffmpeg + godot --import). Direct:
+Run via tools/music-bake/run.sh (handles uv env + ffmpeg). Direct:
   ELEVENLABS_API_KEY=... uv run --python-preference only-managed --with elevenlabs \\
     python bake.py [job_name]      # default job: sgu_sample
 """
@@ -54,8 +54,9 @@ def _transcode_to_ogg(raw_mp3: Path, dst_ogg: Path) -> bool:
 
 	Prefers libvorbis (best quality) but falls back to ffmpeg's built-in `vorbis`
 	encoder (needs `-strict -2`, it's marked experimental) so the tool works on a
-	minimal Homebrew ffmpeg that wasn't built with libvorbis. Godot 4 imports either
-	as AudioStreamOggVorbis. Quality ~q6 VBR — fine for ambient music beds.
+	minimal Homebrew ffmpeg that wasn't built with libvorbis. Either codec yields a
+	valid Ogg Vorbis stream for src/music.js AudioLoader. Quality ~q6 VBR — fine for
+	ambient music beds.
 	"""
 	dst_ogg.parent.mkdir(parents=True, exist_ok=True)
 	attempts = (
@@ -149,8 +150,8 @@ def main() -> int:
 	(HERE / f"bake_report_{job_name}.json").write_text(json.dumps(report, indent=2))
 	ok = sum(1 for r in report if r["ok"])
 	print(f"[bake] done: {ok}/{len(report)} ok -> {out_dir.relative_to(REPO)}")
-	print("[bake] NEXT: run `godot --headless --import` so the OGGs get .import sidecars "
-	      "(else AudioStream load() returns null in-game), then `python build_index.py` to audition.")
+	print("[bake] NEXT: run `python build_index.py` to audition. OGGs load directly via "
+	      "src/music.js AudioLoader + build.sh cp (no Godot .import sidecars in the web-era pipeline).")
 	return 0 if ok == len(report) else 2
 
 

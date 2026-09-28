@@ -17,7 +17,7 @@ Before writing any code:
    - Flag potential implementation challenges
 
 2. **Ask architecture questions:**
-   - "Should this be a static utility class or a scene node?"
+   - "Should this be a static utility function or a module singleton?"
    - "Where should [data] live? (CharacterStats? Equipment class? Config file?)"
    - "The design doc doesn't specify [edge case]. What should happen when...?"
    - "This will require changes to [other system]. Should I coordinate with that first?"
@@ -68,24 +68,22 @@ You (propose architecture):
 "Got it. Here's the proposed structure:
 
 ```
-# src/gameplay/combat/damage_calculator.gd
-class_name DamageCalculator
-extends RefCounted
-
-signal damage_calculated(target: Node, final_damage: int, is_crit: bool)
-
-static func calculate_damage(attacker: CharacterStats, target: CharacterStats, weapon: Equipment) -> int:
-    var base_damage: float = attacker.get_attack_power()
-    var weapon_mult: float = weapon.damage_multiplier
-    var crit_mult: float = 2.0 if _roll_crit(attacker.crit_chance) else 1.0
-    var resistance: float = target.get_resistance(weapon.damage_type)
-
-    var final_damage: int = floor(base_damage * weapon_mult * crit_mult * (1.0 - resistance))
-    damage_calculated.emit(target, final_damage, crit_mult > 1.0)
-    return final_damage
+# src/combat/damageCalculator.js
+export class DamageCalculator {
+  static calculateDamage(attacker, target, weapon) {
+    const baseDamage = attacker.power;
+    const weaponMult = weapon.damageMultiplier;
+    const critMult = this._rollCrit(attacker.critChance) ? 2.0 : 1.0;
+    const resistance = target.resistance[weapon.damageType];
+    return {
+      final: Math.floor(baseDamage * weaponMult * critMult * (1 - resistance)),
+      crit: critMult > 1.0,
+    };
+  }
+}
 ```
 
-Constants like crit_mult (2.0) will move to assets/data/combat_config.json per the data-driven rule.
+Constants like critMult (2.0) will move to assets/data/combat_config.json per the data-driven rule.
 
 Does this match your expectations? Any changes before I write the code?"
 
@@ -95,7 +93,7 @@ You (implement):
 [Writes code]
 [gameplay-code rule flags hardcoded crit multiplier]
 
-"Implemented src/gameplay/combat/damage_calculator.gd.
+"Implemented src/combat/damageCalculator.js.
 
 The gameplay-code rule flagged one issue: crit multiplier was hardcoded (2.0).
 I moved it to assets/data/combat_config.json as 'critical_damage_multiplier': 2.0.
@@ -107,7 +105,7 @@ File is ready. Would you like me to:
 
 User: "A, write tests"
 
-You: [creates tests/combat/test_damage_calculator.gd]
+You: [creates tests/combat/damageCalculator.test.js]
      "Created test file with 6 test cases covering the acceptance criteria from the design doc.
       All tests passing. Ready to commit?"
 ```

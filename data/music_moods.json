@@ -1,5 +1,5 @@
 {
-	"_comment": "Composable-music mood table for scripts/music_director.gd. A mood = a set of stems (sounds/music/loops/<id>.ogg) each held at a target volume in dB; set_mood() crossfades the live mix toward it. Stem prompts/list live in tools/music-bake/palette.py. ONE table, no per-mood branching code (collection-fork policy). 0 dB = full; negative = quieter. Missing stem files are tolerated (that track just stays silent) so a half-baked library never crashes the game.",
+	"_comment": "Composable-music mood table (legacy Godot-era data — the web runtime mixes moods inline in src/music.js; this table is the design reference for the stems palette, see tools/music-bake/palette.py). A mood = a set of stems (sounds/music/loops/<id>.ogg) each held at a target volume in dB; set_mood() crossfades the live mix toward it. Stem prompts/list live in tools/music-bake/palette.py. ONE table, no per-mood branching code (collection-fork policy). 0 dB = full; negative = quieter. Missing stem files are tolerated (that track just stays silent) so a half-baked library never crashes the game.",
 
 	"defaults": {
 		"fade_s": 3.0,
@@ -33,7 +33,7 @@
 	},
 
 	"rooms": {
-		"_comment": "current_room_id -> base mood. Anything not listed uses defaults.default_room_mood. gate_room stays calm here; gate_room.gd overrides it during cinematics.",
+		"_comment": "current_room_id -> base mood. Anything not listed uses defaults.default_room_mood. gate_room stays calm here; the web runtime overrides it during cinematics (src/main.js).",
 		"breached_section_south": "tension",
 		"sealed_section_north": "mystery",
 		"infirmary": "somber"

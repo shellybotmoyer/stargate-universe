@@ -15,8 +15,14 @@ characters + TypeScript + Vite. They live here as historical reference.
 
 ## Why archived
 
-The `godot` branch (current) was a **complete engine pivot** away from this stack
-(see `CLAUDE.md` → Engine → Status). None of the code these sprints describe
-exists on this branch. They cannot be resumed as written.
+These sprints were planned against the pre-pivot browser stack (Three.js +
+WebGPU + ggez + TypeScript + Vite). The 2026-09-08 re-pivot (`abfb5ed`, merged
+via #188/#190) removed the Godot-era branch and tooling entirely and landed the
+web-era Three.js game at the repo root (`src/*.js`, `index.html`, `build.sh`).
+The current stack is plain Three.js via CDN import map — no ggez/Crashcat, no
+TypeScript/Vite bundling (see `.claude/docs/technical-preferences.md`). The
+sprint task lists (DRACO, EffectComposer, leva, VRM) do not map onto the current
+tree as written; they live here as historical reference only.
 
-Resumption of the Godot-era roadmap begins with `production/sprints/sprint-005.md`.
+Resumption of the web-era roadmap is tracked by the open PR stack (#191-#195)
+and the `production/sprints/sprint-005*` notes (marked stale — Godot-era).

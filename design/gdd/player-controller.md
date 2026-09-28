@@ -1,5 +1,14 @@
 # Player Controller (Third-Person)
 
+> **⚠️ STALE engine mapping — ggez-era sections superseded by the 2026-09-08 Three.js re-pivot**
+>
+> Engine-specific sections below (`ggez Physics (Crashcat)` kinematic body,
+> `ggez Gameplay Runtime` system registration/update loop) reference the ggez
+> framework removed in `abfb5ed` — the Three.js-era repo runs plain `src/*.js` +
+> `index.html` (`build.sh`). The movement/interaction controller design (walk,
+> sprint, squeeze/duck/climb, contextual traversal rules) remains reference
+> until re-mapped onto the web implementation.
+
 > **Status**: Designed
 > **Author**: User + Claude
 > **Last Updated**: 2026-03-30

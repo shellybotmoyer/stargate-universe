@@ -1,5 +1,13 @@
 # S4-04 — Locomotion blend tree: status
 
+> **⚠️ STALE — pre-re-pivot TS/Godot-era note.** References `src/systems/vrm/vrm-player-animation-controller.ts`,
+> `src/npcs/scott-opening.ts` and `src/animations/player-locomotion/` — all removed in the 2026-09-08 Three.js
+> re-pivot (abfb5ed); the web-era runtime implements locomotion blend in `src/player.js` (THREE.AnimationMixer,
+> speed-driven gait at ~line 45/115) and NPCs via `spawnNpc()` in `src/main.js` (Lt. Scott is still a stationary
+> kneeler — the NPC-half rationale in this note remains accurate). Tracking links to
+> `production/perf-baseline-2026-05-21.md` which itself is marked stale. Keep as historical record; re-open the
+> NPC half when a patrolling NPC ships.
+
 **Status:** player half complete (pre-existing); NPC half N/A this sprint.
 **Decision date:** 2026-05-21
 

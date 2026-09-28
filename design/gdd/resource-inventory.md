@@ -64,8 +64,8 @@ not busywork.
    | Food | Start | Crew nutrition (morale, health) | Episode 1 |
    | Lime | Early S1 | CO2 scrubbing (life support consumable) | First planet mission |
 
-   > **Godot status (issues #86, #93):** Water, Food, and Ship Parts are now
-   > live **tracked resources** in the build — `GameState.TRACKED_RESOURCES`
+   > **Godot status (issues #86, #93) — STALE since the 2026-09-08 Three.js re-pivot:** Water, Food, and Ship Parts were
+   > live **tracked resources** in the Godot build — `GameState.TRACKED_RESOURCES`
    > registers each with a label + low threshold, backed by `Inventory` counts.
    > `GameState.resource_scarcity()` ranks them by deficit (deepest first), and
    > `build_resource_table(seed)` targets that scarcity on every gate run: the

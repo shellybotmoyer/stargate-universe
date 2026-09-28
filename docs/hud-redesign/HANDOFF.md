@@ -1,5 +1,13 @@
 # HANDOFF — WoW-style HUD Redesign (Epic)
 
+## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
+
+This brief targets the removed Godot HUD (`scripts/hud.gd` + `objects/hud.tscn`).
+The web-era HUD lives in `src/ui.js` / `src/console.js` (and related `src/*.js`);
+all GDScript file/line references in this doc are dead. The redesign goals and
+gold-on-dark palette may still inform the web UI, but acceptance criteria must be
+re-mapped to `src/*.js` before use.
+
 > **Purpose:** A complete, self-contained brief for the code agent who implements the
 > WoW-style HUD. Read this top-to-bottom before touching code. Every phase lists
 > concrete tasks, the exact files to touch (with current line refs), and **testable
@@ -89,7 +97,8 @@ only declares a handful of legacy `Label`/`NinePatchRect` nodes.
 
 Create a single source of truth for the skin so every widget shares it (the current
 `_make_wow_stylebox` is close but per-widget constants drift). **Recommended:** extract a
-small static helper `res://scripts/ui/hud_theme.gd` (`class_name HudTheme`) holding the
+small static helper module (Godot-era `scripts/ui/hud_theme.gd` with
+`class_name HudTheme` was removed in the 2026-09-08 re-pivot) holding the
 palette + stylebox factories; `hud.gd` and all new widgets read from it. (Duck-type via
 `preload` path in tests to dodge the `class_name` headless race — see §11.)
 

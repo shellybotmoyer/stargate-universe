@@ -211,7 +211,7 @@ remaining = max(0, remaining - effective_delta)
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
 | `remaining` | float | 0 – `duration` | timer state | Seconds left |
-| `delta` | float | ~0.0167 | ggez runtime | Frame delta in seconds (1/60 at 60 FPS) |
+| `delta` | float | ~0.0167 | runtime | Frame delta in seconds (1/60 at 60 FPS) |
 | `globalTimeScale` | float | 0.1 – 3.0 | Timer system | Global speed modifier for all timers |
 | `timer_dilation` | float | 0.1 – 3.0 | per-timer config | Auto-dilation when below threshold |
 

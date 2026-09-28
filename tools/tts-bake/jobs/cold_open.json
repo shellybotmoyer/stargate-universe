@@ -1,5 +1,5 @@
 {
-	"_comment": "E1 cold-open VO (manifest §18, wired in scripts/gate_room.gd::_play_prologue_cinematic / _play_rush_handoff). Text matches the captions EXACTLY. out_dir matches PROLOGUE_VO_DIR so files land where the game loads them. Crew lines split across marine/jack so the bed isn't one cloned voice. Emotion presets in emotions.py; add \"emo_text\" to any line to override.",
+	"_comment": "E1 cold-open VO (manifest §18, wired in src/main.js::arriveAt — the web-era E1 arrival choreography, see design/voice-line-manifest.md). Text matches the captions EXACTLY. out_dir matches PROLOGUE_VO_DIR so files land where the game loads them. Crew lines split across marine/jack so the bed isn't one cloned voice. Emotion presets in emotions.py; add \"emo_text\" to any line to override.",
 	"out_dir": "sounds/dialog/prologue",
 	"lines": [
 		{ "id": "open-scott-evac",     "voice": "scott",  "emotion": "urgent",   "text": "Slow down the evac — we're coming in too high!" },

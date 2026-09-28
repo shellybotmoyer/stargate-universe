@@ -26,8 +26,8 @@ Check:
 - **Engine configured?** Read `.claude/docs/technical-preferences.md`. If the
   Engine field contains `[TO BE CONFIGURED]`, the engine is not set.
 - **Game concept exists?** Check for `design/gdd/game-concept.md`.
-- **Source code exists?** Glob for source files in `src/` (`*.gd`, `*.cs`,
-  `*.cpp`, `*.h`, `*.rs`, `*.py`, `*.js`, `*.ts`).
+- **Source code exists?** Glob for source files in `src/` (`*.js`, `*.mjs`,
+  `*.ts`, `*.cs`, `*.cpp`, `*.h`, `*.rs`, `*.py`).
 - **Prototypes exist?** Check for subdirectories in `prototypes/`.
 - **Design docs exist?** Count markdown files in `design/gdd/`.
 - **Production artifacts?** Check for files in `production/sprints/` or

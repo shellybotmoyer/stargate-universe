@@ -1,5 +1,16 @@
 # Stargate Universe — Deployment Targets
 
+## ⚠️ STALE — pre-re-pivot deployment doc, superseded by the 2026-09-08 Three.js re-pivot
+
+This doc describes the pre-pivot Vite/Cloudflare/bun stack (`package.json` scripts,
+`public/sw.js`, `wrangler.toml`, `functions/`, `src/systems/fullscreen.ts`) that the
+re-pivot removed (abfb5ed, "chore: remove godot, kenney kit, vite/ggez and mixamo
+tooling; move the three.js game to the repo root"). None of those paths exist in the
+web-era tree. The current build path is a single static HTML bundle: `./build.sh` →
+`dist/` + itch.io zip (`sgu-destiny-html5.zip`). PWA / Electron / iPad packaging
+remain plausible directions for the web stack but must be re-written against the
+current tree before use.
+
 Target matrix: **Chrome/Edge PWA**, **Electron desktop** (Mac/Windows/Linux), **iPad** (native wrapper).
 Android/Steam Deck aren't first-class but likely work via the same Electron build with minor tweaks.
 

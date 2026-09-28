@@ -9,5 +9,6 @@ before creating actions. The controller owns world position; clips only rotate b
 for (const a of gltf.animations) a.tracks = a.tracks.filter((t) => !t.name.endsWith('hips.position'));
 ```
 
-Same idea as the Godot rifle-combat showcase ("strip hip location on shoot/loco") in
-`models/mixamo_openbot/AGENTS.md`.
+Same strip-hips idea applies to any Mixamo/OpenBot-style pack: gameplay code never
+names a clip, and RM variants carry root motion separately — see
+`.ai/learnings/quaternius-ual-two-libraries-one-skeleton.md`.

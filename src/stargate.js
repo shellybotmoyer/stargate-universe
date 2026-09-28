@@ -1,6 +1,6 @@
 // Procedural Stargate — img2threejs-style code-only factory (primitives + shader, no mesh files).
-// Proportions mirror objects/stargate.gd: outer r=3.0, inner r=2.4, 9 chevrons at 40°.
-// Event horizon = port of shaders/event_horizon.gdshader (fBm + domain warp + polar swirl).
+// Proportions: outer r=3.0, inner r=2.4, 9 chevrons at 40°.
+// Event horizon = fBm + domain warp + polar swirl (animated shader, see below).
 import * as THREE from 'three';
 
 export const GATE = { rOuter: 3.0, rInner: 2.4, chevrons: 9 };
@@ -124,7 +124,7 @@ export const createStargate = () => {
 	horizon.material.side = THREE.DoubleSide;
 	horizon.name = 'eventHorizon'; horizon.visible = false; g.add(horizon);
 	// Kawoosh plume: bulbous vortex erupting toward +Z (the viewer), widest at the gate, rounded tip ~4.5 m out.
-	// Lathe profile (radius vs. length) + swirl shader (rotating streaks, tip/rim fade). Mirrors stargate.gd kawoosh().
+	// Lathe profile (radius vs. length) + swirl shader (rotating streaks, tip/rim fade).
 	const PLUME_LEN = 4.6;
 	const profile = [];
 	for (let i = 0; i <= 24; i++) {

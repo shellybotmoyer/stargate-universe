@@ -7,7 +7,7 @@ Reads a job (tools/tts-bake/jobs/<name>.json): each line has voice (-> voices.js
 clip), text, and an emotion preset (emotions.py) or free-text emo_text override. Clones
 the character timbre, applies the emotion, writes <out_dir>/<id>.wav under the repo.
 
-Run via tools/tts-bake/run.sh (handles uv py3.11 + godot --import). Direct:
+Run via tools/tts-bake/run.sh (handles uv py3.11). Direct:
   uv run --python-preference only-managed --python 3.11 \\
     --with "git+https://github.com/index-tts/index-tts" --with huggingface_hub --with soundfile \\
     python bake.py [job_name]      # default job: cold_open
@@ -88,8 +88,8 @@ def main() -> int:
 	(HERE / f"bake_report_{job_name}.json").write_text(json.dumps(report, indent=2))
 	ok = sum(1 for r in report if r["ok"])
 	print(f"[bake] done: {ok}/{len(report)} ok -> {out_dir.relative_to(REPO)}")
-	print("[bake] NEXT: run `godot --headless --import` so the WAVs get .import sidecars "
-	      "(else AudioStream load() returns null in-game).")
+	print("[bake] NEXT: WAVs load directly via src/main.js SFX_FILES + build.sh cp "
+	      "(no Godot .import sidecars in the web-era pipeline).")
 	return 0 if ok == len(report) else 2
 
 

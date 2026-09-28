@@ -1,5 +1,15 @@
 # Lead Programmer — Agent Memory
 
+> ## ⚠️ STALE — Godot/Unity/Unreal-era harness notes, repo re-pivoted to Three.js (2026-09-08)
+>
+> This memory file is a leftover of the multi-engine Claude harness (Godot/Unity/Unreal)
+> removed by `abfb5ed` ("chore: remove godot, kenney kit, vite/ggez and mixamo tooling;
+> move the three.js game to the repo root"). The engine-convention bullets below reference
+> deleted paths (`scripts/gate_room.gd`, the `.claude/agent-memory/godot-gdscript-specialist/`
+> dir, `.tscn` scenes) and the old `.claude/agents/*specialist` roster — none exist in the
+> web-era tree. Rebuild against the Three.js codebase (`src/`, `index.html`, `build.sh`)
+> before relying on any of this in a new session.
+
 ## Skill Authoring Conventions
 
 ### Frontmatter

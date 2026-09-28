@@ -5,8 +5,9 @@
     watery tail.
   • gate_active_hum.wav — a low, seamless energy-hum loop for the open gate.
 
-Writes 44.1 kHz mono 16-bit WAVs into sounds/. Re-run `godot --headless --import`
-after to generate the .import sidecars.
+Writes 44.1 kHz mono 16-bit WAVs into sounds/. The web runtime loads both
+directly (src/main.js SFX_FILES via audioLoader; build.sh copies them into
+dist/assets/sounds/) — no Godot .import sidecars in the web-era pipeline.
 """
 import numpy as np
 from scipy.io import wavfile

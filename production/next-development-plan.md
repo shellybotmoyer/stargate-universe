@@ -2,6 +2,14 @@
 
 Last updated: 2026-05-24
 
+## ⚠️ STALE — Godot-era plan, superseded by the 2026-09-08 Three.js re-pivot
+
+This plan targets the removed Godot stack: `scripts/playthrough_runner.gd`,
+`room.gd`, `GameState`, and the `scripts/` directory no longer exist in the
+repo (web era: `src/*.js`, `tools/`). Do NOT resume work from this file —
+treat it as historical intent only. The current forward queue lives in the
+git history of main and the open PR stack (see `../AGENTS.md`).
+
 ## Recommendation
 
 Finish a full executable Episode 1 proof before starting Mission 2.

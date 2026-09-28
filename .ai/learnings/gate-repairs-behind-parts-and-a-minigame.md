@@ -13,4 +13,4 @@ component spec (`{ type: 'crate', loot: [...] }`) so the level editor can author
 state is a flag per crate key so it round-trips through the save.
 
 **Applies to:** the elevator (bus fuses), scrubber/water tanks, sealed doors — any "repair X" objective in
-`web/gate-room/data/chapters.json` and the Godot `procedural_ship.gd` repair paths.
+`web/gate-room/data/chapters.json`.

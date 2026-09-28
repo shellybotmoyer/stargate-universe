@@ -1,7 +1,7 @@
 """SGU composable-music stem palette — the single registry of generatable loops.
 
 Each stem is an ISOLATED, seamlessly-looping texture (or a short one-shot accent) the
-runtime MusicDirector (scripts/music_director.gd) layers and crossfades into moods. The
+runtime mixer (src/music.js) layers and crossfades into moods. The
 sonic identity is Stargate Universe (Joel Goldsmith): intimate, melancholic, electronic-
 acoustic — solo cello/violin, sparse piano, vast lonely synth drones. Crisis/combat get
 intensity from pulsing synth + low swells + light percussion, NOT bombastic orchestra.

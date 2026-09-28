@@ -7,4 +7,4 @@ Destiny dais). The controller takes `floorY`: when grounded it lerps `y` toward 
 when airborne it lands on it. Spawn/arrival positions call `floorAt` too.
 
 Cost: a couple of lines per world. It covers every step edge in the scene without introducing
-Rapier/Crashcat for a scene that is otherwise XZ-only AABB sliding.
+a full physics engine for a scene that is otherwise XZ-only AABB sliding.

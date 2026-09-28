@@ -1,5 +1,13 @@
 # Dynamic Voice Dialogue (TTS)
 
+## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
+
+This describes the removed Godot TTSClient → LuxTTS sidecar integration
+(`scripts/tts_client.gd`, `tools/tts-onnx-poc/godot/`). Web-era repo has
+`tools/tts-bake/` and `src/music.js`; the HTTP-sidecar architecture and GDScript
+call sites do not exist. Treat as historical intent; re-map to web-era audio paths
+before use.
+
 Generate **spoken dialogue at runtime** in the engine — any line, including
 player names and unplanned conditions — using **pre-computed character voices**.
 Voices are fixed; only the text is dynamic.

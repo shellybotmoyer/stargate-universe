@@ -1,5 +1,16 @@
 # Sprint 4 — Perf Baseline (2026-05-21)
 
+## ⚠️ STALE — pre-re-pivot Vite/ggez baseline doc, superseded by the 2026-09-08 Three.js re-pivot
+
+This doc's methodology targets the removed pre-pivot stack (`scripts/perf-baseline.ts`,
+`bun run dev` / `bun run build`, `vite build`, `wrangler pages dev`, `import.meta.env.DEV`),
+none of which exist in the web-era tree (no `scripts/` dir, no `package.json`, no
+`wrangler.toml` — see abfb5ed, "chore: remove godot, kenney kit, vite/ggez and mixamo
+tooling; move the three.js game to the repo root"). The numbers describe an
+asset/runtime layout the game no longer ships. Keep as historical record of Sprint 4;
+re-baseline performance against the current build (`./build.sh` → `dist/` +
+itch.io zip, static `index.html` + `src/*.js` bundle) before any future perf work.
+
 Captured before any S4 work began. Numbers here are the "before" against which
 Sprint 4 targets (−25 % frame time, −40 % bytes, −30 % draw calls,
 largest asset < 1.5 MB, TTI < 4 s) will be measured.

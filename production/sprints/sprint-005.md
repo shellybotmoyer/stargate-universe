@@ -1,5 +1,12 @@
 # Sprint 5 — 2026-05-21 to 2026-06-03
 
+> **STALE — Godot ERA DOC (pre-2026-09-08 re-pivot).** The repo re-pivoted to
+> Three.js (web) on 2026-09-08. This sprint plan references Godot scene stubs
+> (`.tscn`), `e1_flow.gd`, and other Godot-era artifacts that were removed in
+> the re-pivot. The web-era game (`src/`, `data/chapters.json`) supersedes it;
+> current planning lives in `production/next-development-plan.md` and
+> `.ai/learnings/`.
+
 ## Sprint Goal
 
 **Make E1 Mission 1 actually playable in Godot.** Today the gate room exists in

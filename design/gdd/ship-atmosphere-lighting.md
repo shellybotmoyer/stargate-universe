@@ -1,5 +1,14 @@
 # Ship Atmosphere & Lighting
 
+> **⚠️ STALE engine mapping — ggez-era sections superseded by the 2026-09-08 Three.js re-pivot**
+>
+> Engine-specific sections below (`ggez Render Pipeline` dependency, `ggez
+> World Editor` authoring) reference the ggez framework removed in `abfb5ed` —
+> the Three.js-era repo runs plain `src/*.js` + `index.html` (`build.sh`).
+> The atmosphere/lighting design (power-scarcity visuals, emergency red
+> strips, repaired-section glow) remains reference until re-mapped onto the
+> web implementation.
+
 > **Status**: Designed
 > **Author**: User + Claude
 > **Last Updated**: 2026-04-01

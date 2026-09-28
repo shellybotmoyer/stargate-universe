@@ -1,5 +1,13 @@
 # Stargate Universe — Repo Review Learnings
 
+## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
+
+This review describes the removed Godot 4.6 stack (`scripts/*.gd`, `project.godot`,
+`addons/`, `objects/*.tscn`) — none of those exist in the current web-era tree
+(`src/*.js`, `tools/`). GDScript conventions, autoload order, save-system internals
+and `sprint-005` references no longer apply. Treat as historical context only; do
+NOT use it to locate files or plan web-era work.
+
 Compiled 2026-07-03 from a full-repo review (code, tests, tooling, design docs, production
 history, GitHub tracker). Written as atomic, self-contained memory entries so each one can be
 imported into an external memory store (e.g. Supermemory) independently. Tags in brackets.
