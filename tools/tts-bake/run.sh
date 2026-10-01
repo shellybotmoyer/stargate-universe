@@ -20,4 +20,6 @@ uv run --python-preference only-managed --python 3.11 \
 	python bake.py "$JOB"
 rc=$?
 [ $rc -ne 0 ] && echo "[run] bake exited $rc" >&2
+
+# (the Godot .import sidecar pass was removed with the Godot build on 2026-09-08; the web game plays WAV/MP3 directly)
 echo "[run] done."
