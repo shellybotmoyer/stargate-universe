@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Offline IndexTTS-2 voice-line bake. Renders a job's lines to WAVs under the repo.
-# WAVs load directly via src/main.js SFX_FILES + build.sh cp (no Godot .import
-# sidecars in the web-era pipeline).
+# Offline IndexTTS-2 voice-line bake. Renders a job's lines to WAVs under sounds/dialog/ for the web game.
 #
 #   ./run.sh                # bake jobs/cold_open.json
 #   ./run.sh cold_open      # explicit job name
@@ -20,4 +18,7 @@ uv run --python-preference only-managed --python 3.11 \
 	python bake.py "$JOB"
 rc=$?
 [ $rc -ne 0 ] && echo "[run] bake exited $rc" >&2
+
+# (the Godot .import sidecar pass was removed with the Godot build on 2026-09-08; the web game plays WAV/MP3 directly)
+
 echo "[run] done."
