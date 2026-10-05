@@ -5,6 +5,14 @@
 > **Last Updated**: 2026-03-30
 > **Implements Pillar**: Pillar 2 (Survival with Purpose)
 
+> **⚠️ STALE engine references — Godot-era mapping, superseded by the 2026-09-08 Three.js re-pivot**
+
+> The Godot status block below (lines referencing `GameState.TRACKED_RESOURCES`,
+> `resource_scarcity()`, `build_resource_table(seed)`) describes a Godot build that
+> no longer exists — the Three.js-era repo runs `src/*.js` + `data/`. The resource
+> catalog, scarcity ranking, and planetary deposit wiring remain canonical design
+> reference until re-mapped onto the web implementation.
+
 ## Overview
 
 The Resource & Inventory System tracks all resources and items the crew has
