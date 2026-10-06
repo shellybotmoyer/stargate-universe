@@ -1,42 +1,56 @@
 # Technical Debt Register
 
-## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
+## Web-era register — rebuilt 2026-10-06 from a full `src/*.js` scan
 
-This register tracks debt for the removed Godot stack: `scripts/*.gd`, `addons/vrm`,
-`gate_room.gd`, `room.gd`, GDScript conventions and `sprint-005` no longer exist in the
-repo (web era: `src/*.js`, `tools/`). TD-001/TD-002/TD-005 reference Godot files that
-were deleted; TD-003's `docs/architecture/` does not exist in the web tree. Treat as
-historical intent only — re-scan the web-era codebase (`src/*.js`) before rebuilding a
-register. The current forward queue lives in git history of main and the open PR stack.
-
-Last updated: 2026-06-26 · Sprint: sprint-005
-Total open items: 5 | Estimated total effort: ~XL (one large refactor + three doc writes)
-
-Tracks **conscious** technical-debt decisions for the Godot 4.6 Stargate Universe project.
-Maintained via the `/tech-debt` skill (`.claude/skills/tech-debt/`). Run `/tech-debt scan`
-at least once per sprint; items open for >3 sprints must be fixed or consciously re-accepted.
+Previous Godot-era entries (TD-001 through TD-008) are archived at the bottom.
+The codebase was re-pivoted to web/Three.js on 2026-09-08; this register reflects
+the current `src/*.js` (24 modules, 3,308 LOC) loaded via ES import maps.
 
 Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/XL).
 
-| ID | Category | Description | Files | Effort | Impact | Priority | Added | Sprint |
-|----|----------|-------------|-------|--------|--------|----------|-------|--------|
-| TD-001 | Architecture | `gate_room.gd` is a 4,603-line god object — procedural scene build + cold-open cinematic + throw mechanics in one file. Plan: extract `GateThrowKit` (mechanics) + `GatePrologueDirector` (cinematic) as `Node` helpers (no `class_name`, preload pattern). | `scripts/gate_room.gd` | L | Med | Med | 2026-06-26 | Backlog |
-| TD-002 | Architecture | `room.gd` is a 2,657-line god object — base room + standoff choreography cluster (~1117–1763). Plan: extract `RushStandoffDirector`, keep `_spawn_dr_rush` + a thin `_run_standoff_cinematic` forwarder. Lowest-risk extraction (tested behaviorally, not by source-text). | `scripts/room.gd` | M | Med | Med-High | 2026-06-26 | Backlog |
-| TD-003 | Documentation | Missing architecture docs flagged "not blocking" in CLAUDE.md. 4 ADRs + a dependency graph exist; the synthesis docs do not. Generate via `/create-architecture`, `/create-control-manifest`. | `docs/architecture/architecture.md`, `docs/architecture/control-manifest.md`, `design/accessibility-requirements.md` | M | Low | Low | 2026-06-26 | Backlog |
-| TD-005 | Dependency | VRM addon carries 15 FIXMEs / 13 TODOs around mesh/material/spring-bone handling. **Consciously accepted:** third-party plugin we do not maintain; touching it risks breaking VRM import for marginal gain. Re-evaluate only if we upgrade the addon. | `addons/vrm/*` | L | Low | Low | 2026-06-26 | Accepted |
-| TD-007 | Test | Smoke suite (`tests/smoke/`) is SceneTree-based, not GDUnit4, and centred on the E1 vertical slice. Newer systems (planet gen, biomes, equipment) have lighter coverage; no real input-event simulation. Accept for slice scope; revisit if the suite outgrows the framework. | `tests/smoke/`, `tests/README.md` | M | Low | Low | 2026-06-26 | Accepted |
+| ID | Category | Description | Files | Effort | Impact | Priority | Added |
+|----|----------|-------------|-------|--------|--------|----------|-------|
+| TD-101 | Architecture | `main.js` is a 706-line orchestrator that owns the game loop, save/load, FTL, countdown, title screen, chapter flow, and input wiring. Growing risk of implicit coupling as features accrete. Plan: extract `saveGame`/`loadGame`/`newGame` into a `save.js` module (~40 lines), extract FTL+countdown into `ftl.js`. | `src/main.js` | M | Med | Med | 2026-10-06 |
+| TD-102 | Architecture | No `package.json`, no bundler, no type-check, no linter. The project loads Three.js from CDN via import maps in `index.html`. `build.sh` vendors the same CDN files into `dist/`. This works but means: (1) no CI gate on syntax/type errors, (2) no dependency version lock file — a CDN release could silently break the game, (3) IDE tooling (autocomplete, go-to-definition) is degraded. Plan: add a minimal `package.json` with `three@0.180.0` as a devDependency for type info, a `typecheck` script using TypeScript's `--checkJs`, and a `lint` script using eslint with the `js` config. No bundler needed — import maps work fine for dev. | `index.html`, `build.sh` | L | Med | Med | 2026-10-06 |
+| TD-103 | Test | Zero test files in the repo. No `tests/`, `test/`, `*.spec.js`, or `*.test.js` anywhere. The game has complex state (quest engine, RPG inventory, ship layout, save/load round-trip) with no automated verification. Plan: start with unit tests for pure-logic modules: `rpg.js` (inventory add/remove/equip, XP calc, save/load round-trip), `quest.js` (chapter loading, flag tracking), `settings.js` (defaults, persistence). Use `node:test` (built into Node 18+) — no framework dependency. | `src/rpg.js`, `src/quest.js`, `src/settings.js` | L | High | High | 2026-10-06 |
+| TD-104 | Error Handling | 6 `catch {}` blocks silently swallow errors across `rpg.js` (save/load), `settings.js` (load/persist), `leveledit.js` (live save), and `main.js` (saveGame). localStorage can throw `QuotaExceededError` — currently invisible to the player. At minimum, log to console in dev mode. The `quest.js` load (`eng.load = async (url) => { eng.chapters = (await (await fetch(url)).json()).chapters; }`) has NO error handling at all — a missing `chapters.json` will crash with an unhandled promise rejection. Plan: add `catch (e) { console.warn('[save] failed:', e); }` to each, and wrap `quest.load` in try/catch with a fallback. | `src/rpg.js:76-77`, `src/settings.js:6,9`, `src/leveledit.js:45`, `src/main.js:550`, `src/quest.js:4` | S | Med | High | 2026-10-06 |
+| TD-105 | Asset Loading | `GLTFLoader.load()` in `player.js:21` has no error callback — if `UAL1_Standard.glb` fails to load (404, network error, corrupt file), the promise rejects silently and the player never spawns. The `fetch()` calls for `ship_layout.json`, `room_connections.json`, and `chapters.json` in `main.js:46,271` also have no error handling. Plan: add `onError` callback to GLTFLoader, show a "Failed to load player model" message, and wrap the initial data fetch in try/catch with a user-facing error. | `src/player.js:21`, `src/main.js:46,271` | S | High | High | 2026-10-06 |
+| TD-106 | Save System | `main.js:550` — `saveGame()` serializes the entire game state (chapter, flags, deck, FTL, growth, countdown) into a single `localStorage` key (`SAVE_KEY`). No version field in the save format. If the save schema changes (new fields, renamed keys), old saves will silently load with `undefined` values or crash `JSON.parse`. Plan: add `version: 1` to the save object, and a migration function in `loadGame()` that checks the version and applies transforms. | `src/main.js:550-554` | S | Med | Med | 2026-10-06 |
+| TD-107 | Code Quality | `components.js` (390 lines) exports a flat `COMPONENTS` registry, `DEFAULT_PROPS`, and `ROOM_PROPS` as large object literals. No JSDoc on any export. The component schema is implicit — you have to read the object to understand what fields each component expects. Plan: add JSDoc `@typedef` blocks for `Component`, `ComponentProps`, and document the registry pattern. | `src/components.js` | M | Low | Low | 2026-10-06 |
+| TD-108 | Build | `build.sh` uses inline Python heredocs (`python3 - <<'PY'`) for asset vendoring and index.html rewriting. This works but is fragile — any Python version change or encoding issue breaks the build silently. The script also hardcodes the asset list (sound files, models) as a manual `cp` chain. Plan: extract the Python logic into `tools/vendor.py` and the asset manifest into `tools/assets.json` so the build is data-driven. | `build.sh` | M | Low | Low | 2026-10-06 |
 
 ## Resolved / closed
 
 | ID | Category | Description | Resolution | Closed |
 |----|----------|-------------|------------|--------|
-| TD-004 | Code Quality | Scan flagged ~9 scripts (`character_factory.gd`, `planet_generator.gd`, `room_builder.gd`, `ui/hud_theme.gd`, …) as having untyped `func` signatures. | **False positive** — verified all signatures and parameters are fully typed; the finding tripped on multi-line signature wraps (`-> Type` on the continuation line). No change needed; code already conforms to the typed-GDScript convention. | 2026-06-26 |
-| TD-006 | Documentation | `/sound-fetch` skill still described the browser stack (Three.js `audio-manager.ts`, R2 upload via `wrangler`, `resolveAssetUrl()`, `bun run typecheck`, mp3). | Ported Steps 4–8 + format table + path convention to Godot: `Audio` autoload, in-repo `sounds/*.ogg`, `godot --headless --import` sidecar, `tests/run.sh` verify. | 2026-06-26 |
-| TD-008 | Code Quality | `scripts/crew_viewer.gd.uid` was untracked (orphaned Godot import sidecar). | Committed alongside its `.gd`. | 2026-06-26 |
+| TD-101 through TD-108 | — | Web-era items above are all open as of 2026-10-06. | — | — |
+
+---
+
+## Archived: Godot-era register (2026-06-26)
+
+These items reference files that no longer exist (`scripts/*.gd`, `addons/vrm/`,
+`tests/smoke/`). Kept for historical context only.
+
+| ID | Category | Description | Status |
+|----|----------|-------------|--------|
+| TD-001 | Architecture | `gate_room.gd` 4,603-line god object | **Deleted** — file removed in re-pivot |
+| TD-002 | Architecture | `room.gd` 2,657-line god object | **Deleted** — file removed in re-pivot |
+| TD-003 | Documentation | Missing architecture docs | **Moot** — `docs/architecture/` never created |
+| TD-004 | Code Quality | Untyped GDScript signatures (false positive) | **Deleted** — no GDScript left |
+| TD-005 | Dependency | VRM addon FIXMEs/TODOs | **Deleted** — addon removed in re-pivot |
+| TD-006 | Documentation | `/sound-fetch` skill described browser stack | **Moot** — skill context changed |
+| TD-007 | Test | SceneTree-based smoke suite | **Deleted** — `tests/smoke/` removed |
+| TD-008 | Code Quality | Orphaned `.uid` sidecar | **Deleted** — no Godot imports left |
 
 ## Notes
 
-- Tech debt is a tool, not a failure. Every open entry records WHY it's accepted (deadline,
-  third-party, slice scope) and what would trigger a re-evaluation.
-- `@no-save:` / `@collection-ok:` opt-out markers (35 across `scripts/`) were audited during
-  the 2026-06-26 scan and are all justified — not tracked as debt.
+- Tech debt is a tool, not a failure. Every open entry records WHY it's accepted
+  and what would trigger a re-evaluation.
+- The web-era codebase is remarkably clean: zero `TODO`/`FIXME`/`HACK` comments,
+  zero `console.log` debug statements, zero `debugger` statements, no dead code
+  found. The debt is structural (no tests, no build tooling, no type checking)
+  rather than code-level neglect.
+- Highest-value quick wins: TD-104 (error handling, effort S) and TD-105 (asset
+  load error handling, effort S) — both are small changes with high impact on
+  user experience when things go wrong.
