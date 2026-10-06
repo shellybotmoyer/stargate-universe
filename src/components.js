@@ -103,7 +103,7 @@ const hollowBox = (g, w, h, d, t, mat, y = 0) => {
 const lootMeshes = (loot) => {
 	const g = new THREE.Group(), fuse = (r, h, c) => new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 12), new THREE.MeshStandardMaterial({ color: c, emissive: 0x4a2c08, emissiveIntensity: 0.4, roughness: 0.35, metalness: 0.6 }));
 	const pack = new THREE.MeshStandardMaterial({ color: 0xb8a070, roughness: 0.9 }), misc = new THREE.MeshStandardMaterial({ color: 0x6a7076, roughness: 0.6, metalness: 0.4 });
-	let x = 0; const items = [];
+	const items = [];
 	for (const it of loot) for (let i = 0; i < (it.n ?? 1); i++) {
 		let m;
 		if (it.id === 'large_fuse') { m = fuse(0.09, 0.5, 0xd8b060); m.rotation.z = Math.PI / 2; m.position.y = 0.09; }
@@ -114,8 +114,8 @@ const lootMeshes = (loot) => {
 		m.castShadow = true; items.push(m); g.add(m);
 	}
 	const n = items.length, pitch = Math.min(0.34, 1.0 / Math.max(1, n));
-	for (const [i, m] of items.entries()) { m.position.x = (i - (n - 1) / 2) * pitch; m.position.z += (i % 2 ? 0.12 : -0.12) * (n > 3 ? 1 : 0); x++; }
-	void x; return g;
+	for (const [i, m] of items.entries()) { m.position.x = (i - (n - 1) / 2) * pitch; m.position.z += (i % 2 ? 0.12 : -0.12) * (n > 3 ? 1 : 0); }
+	return g;
 };
 const ease = (k) => k * k * (3 - 2 * k);
 
