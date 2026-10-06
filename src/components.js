@@ -4,6 +4,37 @@
 // defaults in ship.js; the map editor places the same specs. Positions are room-relative fractions (u, v) resolved by ship.js.
 //   spec: { type, u, v, ry?, anchor?, id?, loot?, style? }   ctx: { box, group, mats, parts, roomH }
 // Convention: `ry` is the direction the prop's FRONT faces (0 = +z); the anchor (where the player stands) lies along it.
+
+/**
+ * @typedef {Object} ComponentSpec
+ * @property {string} type      - Component type key (must match a COMPONENTS entry).
+ * @property {number} u         - Room-relative U position (0..1, resolved by ship.js).
+ * @property {number} v         - Room-relative V position (0..1, resolved by ship.js).
+ * @property {number} [ry]      - Y-axis rotation in radians; direction the prop's front faces (0 = +z).
+ * @property {string} [anchor] - Named anchor point; quests/NPCs reference it as `${roomId}:${anchor}`.
+ * @property {string} [id]     - Optional unique instance id (loot/crate identification).
+ * @property {Array}  [loot]   - Loot items placed inside crates: `[{ id, n? }]`.
+ * @property {string} [style]  - Visual style variant (component-specific interpretation).
+ */
+
+/**
+ * @typedef {Object} BuildContext
+ * @property {Function} box    - Helper to create a BoxGeometry mesh with collider.
+ * @property {THREE.Group} group - Parent group; built meshes are added here.
+ * @property {Object}   mats   - Shared material palette keyed by name.
+ * @property {Object}   parts  - Mutable parts map; toggled by ship state (lamps, screens, etc.).
+ * @property {number}   roomH  - Room height in metres (for wall-mounted placement).
+ */
+
+/**
+ * @typedef {Object} ComponentDef
+ * @property {string}   label          - Human-readable name shown in the editor.
+ * @property {[number, number]} size   - Editor footprint: [widthMeters, depthMeters].
+ * @property {string}   defaultAnchor  - Anchor name used when `spec.anchor` is omitted.
+ * @property {(ctx: BuildContext, p: THREE.Vector3, spec: ComponentSpec) => void} build
+ *   Builds the component's meshes + colliders at world position `p`, facing `spec.ry`.
+ */
+
 import * as THREE from 'three';
 
 const fwd = (ry) => new THREE.Vector3(Math.sin(ry), 0, Math.cos(ry));
