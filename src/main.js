@@ -43,7 +43,10 @@ const envTex = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(
 // ?layout=live → the map editor's working copy (localStorage) instead of the repo data files
 const LIVE = (() => { try { return location.search.includes('layout=live') ? JSON.parse(localStorage.getItem('sgu.layout.live')) : null; } catch { return null; } })();
 const buildDestiny = async () => {
-	const [layout, connections] = LIVE ? [LIVE.layout, LIVE.connections] : await Promise.all([`${ASSETS}data/ship_layout.json`, `${ASSETS}data/room_connections.json`].map((u) => fetch(u).then((r) => r.json())));
+	let layout, connections;
+	try {
+		[layout, connections] = LIVE ? [LIVE.layout, LIVE.connections] : await Promise.all([`${ASSETS}data/ship_layout.json`, `${ASSETS}data/room_connections.json`].map((u) => fetch(u).then((r) => { if (!r.ok) throw new Error(`${u} ${r.status}`); return r.json(); })));
+	} catch (e) { console.error('[SGU] World data load failed:', e); layout = {}; connections = {}; }
 	const scene = new THREE.Scene();
 	scene.background = new THREE.Color(0x04060a); scene.fog = new THREE.Fog(0x05070c, 26, 70);
 	scene.environment = envTex; scene.environmentIntensity = 0.28;
@@ -110,7 +113,7 @@ const listener = new THREE.AudioListener(); camera.add(listener);
 const audioLoader = new THREE.AudioLoader();
 const buffers = {};
 const SFX_FILES = { chevron: 'stargate_chevron_incom.mp3', kawoosh: 'gate_kawoosh.wav', hum: 'gate_active_hum.wav', doorThunk: 'impact_metal_heavy_000.ogg', doorLock: 'impact_metal_000.ogg', terminal: 'terminal_boot.ogg', menuOpen: 'menu_open.ogg', menuClose: 'menu_close.ogg', radio: 'radio_click.ogg', ftlDrop: 'ftl-dropout.ogg', discover: 'discovery_stinger.ogg', discoverKey: 'discovery_stinger_key.ogg', step1: 'footstep_01.ogg', step2: 'footstep_02.ogg', step3: 'footstep_03.ogg', step4: 'footstep_04.ogg', sand1: 'footstep_desert_00.ogg', sand2: 'footstep_desert_01.ogg', sand3: 'footstep_desert_02.ogg', sand4: 'footstep_desert_03.ogg' };
-await Promise.all(Object.entries(SFX_FILES).map(async ([k, f]) => { buffers[k] = await audioLoader.loadAsync(`${ASSETS}sounds/${f}`); }));
+await Promise.all(Object.entries(SFX_FILES).map(async ([k, f]) => { try { buffers[k] = await audioLoader.loadAsync(`${ASSETS}sounds/${f}`); } catch (e) { console.warn(`[SGU] SFX missing: ${f}`, e); } }));
 const music = createMusic(listener, Object.fromEntries(Object.entries({ theme: 'sgu_main_theme.mp3', derelict: 'loops/bed_derelict_cold.ogg', ship_warm: 'loops/bed_ship_warm.ogg', space: 'loops/bed_space_vast.ogg', planet: 'loops/bed_planet_open.ogg', shimmer: 'loops/pad_shimmer.ogg', tense: 'loops/pad_strings_tense.ogg', pulse_slow: 'loops/pulse_slow.ogg', pulse_drive: 'loops/pulse_drive.ogg', cello: 'loops/mel_cello_lonely.ogg' }).map(([k, f]) => [k, `${ASSETS}sounds/music/${f}`])));
 music.load(); // streams in the background; silent until the first mood is set after a user gesture
 let sfxLevel = 1;

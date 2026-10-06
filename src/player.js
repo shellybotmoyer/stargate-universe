@@ -21,7 +21,7 @@ export const CLIPS = {
 const loader = new GLTFLoader();
 let cache = null;
 const loadAssets = async () => {
-	cache ??= Promise.all([loader.loadAsync(MODEL_URL), loader.loadAsync(EXTRA_CLIPS_URL)]);
+	cache ??= Promise.all([loader.loadAsync(MODEL_URL), loader.loadAsync(EXTRA_CLIPS_URL)]).catch((e) => { console.error('[SGU] Player model load failed:', e); cache = null; throw e; });
 	return cache;
 };
 
