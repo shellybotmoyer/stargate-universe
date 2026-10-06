@@ -42,7 +42,7 @@ export const createLevelEditor = (ctx) => {
 	const status = (t) => { const s = document.getElementById('le-status'); if (s) s.textContent = t; };
 
 	// ---- data
-	const live = () => { try { localStorage.setItem('sgu.layout.live', JSON.stringify({ layout: state.layout, connections: state.connections, chapters: { chapters: ctx.chapters() } })); } catch {} };
+	const live = () => { try { localStorage.setItem('sgu.layout.live', JSON.stringify({ layout: state.layout, connections: state.connections, chapters: { chapters: ctx.chapters() } })); } catch (e) { console.warn('leveledit live save failed:', e.message); } };
 	const put = async (path, data) => { const r = await fetch(path, { method: 'PUT', body: JSON.stringify(data) }); if (!r.ok) throw new Error(`${path}: ${await r.text()}`); return r.text(); };
 	const save = async () => {
 		for (const r of state.layout) { r.width = r.endX - r.startX; r.height = r.endY - r.startY; }

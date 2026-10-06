@@ -547,11 +547,11 @@ window.__dbg = { input, player, camera, orbit, quest, rpg, ride: rideElevator, s
 // ---------------------------------------------------------------- save / load (localStorage) + title screen
 const SAVE_KEY = 'sgu.save';
 let gameStarted = false; // saves only once a game is running (startChapter fires onStep during boot/load)
-const saveGame = () => { if (!quest.chapter || !gameStarted) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ chapter: quest.chapter.id, stepIndex: quest.stepIndex, flags: [...quest.flags], lastScan, deck: destiny.deck, ftl: { window: ftl.window, cooldown: ftl.cooldown }, growth: destiny.ship.growBeds.map((b) => b.growth), countdown: countdown && { t: countdown.t, total: countdown.total, label: countdown.label, cause: countdown.cause }, savedAt: Date.now() })); saveRpg(); } catch {} };
+const saveGame = () => { if (!quest.chapter || !gameStarted) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ chapter: quest.chapter.id, stepIndex: quest.stepIndex, flags: [...quest.flags], lastScan, deck: destiny.deck, ftl: { window: ftl.window, cooldown: ftl.cooldown }, growth: destiny.ship.growBeds.map((b) => b.growth), countdown: countdown && { t: countdown.t, total: countdown.total, label: countdown.label, cause: countdown.cause }, savedAt: Date.now() })); saveRpg(); } catch (e) { console.warn('saveGame failed:', e.message); } };
 const hasSave = () => { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } };
 /** Restore chapter/step/flags + RPG, rebuild Destiny state from flags, and put the player in the gate room. Planet-side steps rewind to the gate. */
 const loadGame = () => {
-	let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch { s = null; }
+	let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { console.warn('loadGame parse failed:', e.message); s = null; }
 	if (!s) return false;
 	startChapter(s.chapter); loadRpg(); lastScan = s.lastScan ?? null;
 	for (const f of s.flags) quest.flags.add(f);

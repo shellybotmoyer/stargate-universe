@@ -1,7 +1,7 @@
 // Chapter/quest engine: declarative steps advance when their `complete_when` flag is set. Triggers run on step enter/exit.
 export const createQuestEngine = ({ onTrigger, onStep, onChapterComplete, grantXp }) => {
 	const eng = { chapters: [], chapter: null, stepIndex: 0, flags: new Set(), done: [] };
-	eng.load = async (url) => { eng.chapters = (await (await fetch(url)).json()).chapters; };
+	eng.load = async (url) => { const r = await fetch(url); if (!r.ok) throw new Error('quest.load HTTP ' + r.status); eng.chapters = (await r.json()).chapters; };
 	eng.step = () => eng.chapter?.steps[eng.stepIndex] ?? null;
 	eng.chapterById = (id) => eng.chapters.find((c) => c.id === id);
 	const runTriggers = (list) => { for (const t of list ?? []) onTrigger?.(t, eng); };

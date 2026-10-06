@@ -3,10 +3,10 @@
 const KEY = 'sgu.settings';
 export const DEFAULTS = { master: 0.9, music: 1.0, sfx: 1.0, sensitivity: 1.0, invertY: false, fov: 60, subtitles: true, clockScale: 1.0 };
 export const settings = { ...DEFAULTS };
-try { Object.assign(settings, JSON.parse(localStorage.getItem(KEY) ?? '{}')); } catch {}
+try { Object.assign(settings, JSON.parse(localStorage.getItem(KEY) ?? '{}')); } catch (e) { console.warn('settings load failed:', e.message); }
 const listeners = new Set();
 export const onSettings = (fn) => { listeners.add(fn); fn(settings); };
-export const setSetting = (k, v) => { settings[k] = v; try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch {} for (const fn of listeners) fn(settings); };
+export const setSetting = (k, v) => { settings[k] = v; try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch (e) { console.warn('settings save failed:', e.message); } for (const fn of listeners) fn(settings); };
 export const resetSettings = () => { for (const k in DEFAULTS) settings[k] = DEFAULTS[k]; setSetting('master', DEFAULTS.master); };
 
 const FIELDS = [
