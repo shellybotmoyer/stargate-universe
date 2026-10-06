@@ -213,7 +213,7 @@ const ftlJump = () => {
 const ftlRedrop = () => { shake = 1.4; oneShot(buffers.ftlDrop, 0.9); oneShot(shutdownBuf, 0.5, 0.55); addLog('Destiny dropped out of FTL'); alertUntil = performance.now() + 12000; openFtlWindow(); setTimeout(() => dialGate(destiny), 900); oneShot(buffers.radio, 0.6); ui.subtitle('Brody', 'We have dropped out again — same address is dialing. Whatever you did not finish, finish it.', { radio: true }); };
 // Knockout loop (design: no death, issue #92): black out, wake on an infirmary bed, TJ has a line for whatever dropped you.
 let knockoutLines = { speaker: 'TJ', pools: { generic: ['You took a knock out there. Nothing that will not mend.'] } }, knockedOut = false;
-fetch(`${ASSETS}data/knockout_lines.json`).then((r) => r.json()).then((j) => { knockoutLines = j; }).catch(() => {});
+fetch(`${ASSETS}data/knockout_lines.json`).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }).then((j) => { knockoutLines = j; }).catch((e) => { console.warn('[SGU] knockout_lines.json load failed:', e.message); });
 const knockOut = (cause) => {
 	if (knockedOut) return; knockedOut = true; if (kino.active) recallKino(); input.keys.clear(); ui.setPrompt(null); oneShot(heartBuf, 0.8); setTimeout(() => oneShot(heartBuf, 0.6, 0.9), 1000);
 	flash.style.transition = 'opacity 1.1s'; flash.style.background = '#000'; flash.style.opacity = '1'; addLog(`Knocked out: ${cause.replace(/_/g, ' ')}`);
