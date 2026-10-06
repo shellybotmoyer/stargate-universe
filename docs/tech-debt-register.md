@@ -23,7 +23,10 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
 
 | ID | Category | Description | Resolution | Closed |
 |----|----------|-------------|------------|--------|
-| TD-101 through TD-108 | — | Web-era items above are all open as of 2026-10-06. | — | — |
+| TD-104 | Error Handling | Silent `catch {}` blocks | ✅ Resolved 2026-10-06 | 2026-10-06 |
+| TD-105 | Asset Loading | Missing error handling on GLTFLoader/fetch | ✅ Resolved 2026-10-06 | 2026-10-06 |
+| TD-106 | Save System | No save versioning or migration | ✅ Resolved 2026-10-06 | 2026-10-06 |
+| TD-107 | Code Quality | Missing JSDoc typedefs for component schema | ✅ Resolved 2026-10-06 | 2026-10-06 |
 
 ---
 
