@@ -550,12 +550,22 @@ window.__dbg = { input, player, camera, orbit, quest, rpg, ride: rideElevator, s
 // ---------------------------------------------------------------- save / load (localStorage) + title screen
 const SAVE_KEY = 'sgu.save';
 let gameStarted = false; // saves only once a game is running (startChapter fires onStep during boot/load)
-const saveGame = () => { if (!quest.chapter || !gameStarted) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ chapter: quest.chapter.id, stepIndex: quest.stepIndex, flags: [...quest.flags], lastScan, deck: destiny.deck, ftl: { window: ftl.window, cooldown: ftl.cooldown }, growth: destiny.ship.growBeds.map((b) => b.growth), countdown: countdown && { t: countdown.t, total: countdown.total, label: countdown.label, cause: countdown.cause }, savedAt: Date.now() })); saveRpg(); } catch (e) { console.warn('saveGame failed:', e.message); } };
+const SAVE_VERSION = 1;
+/** Migrate an older save object to the current version. Older saves (no version field) are treated as version 0. */
+const migrateSave = (s) => {
+	if (!s.version) s.version = 0;
+	// v0 → v1: no structural changes yet, but this is the hook for future migrations.
+	// Example: if (s.version < 1) { s.deck = s.deck ?? 0; s.version = 1; }
+	s.version = SAVE_VERSION;
+	return s;
+};
+const saveGame = () => { if (!quest.chapter || !gameStarted) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, chapter: quest.chapter.id, stepIndex: quest.stepIndex, flags: [...quest.flags], lastScan, deck: destiny.deck, ftl: { window: ftl.window, cooldown: ftl.cooldown }, growth: destiny.ship.growBeds.map((b) => b.growth), countdown: countdown && { t: countdown.t, total: countdown.total, label: countdown.label, cause: countdown.cause }, savedAt: Date.now() })); saveRpg(); } catch (e) { console.warn('saveGame failed:', e.message); } };
 const hasSave = () => { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } };
 /** Restore chapter/step/flags + RPG, rebuild Destiny state from flags, and put the player in the gate room. Planet-side steps rewind to the gate. */
 const loadGame = () => {
 	let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { console.warn('loadGame parse failed:', e.message); s = null; }
 	if (!s) return false;
+	s = migrateSave(s);
 	startChapter(s.chapter); loadRpg(); lastScan = s.lastScan ?? null;
 	for (const f of s.flags) quest.flags.add(f);
 	const steps = quest.chapter.steps, idx = (id) => steps.findIndex((x) => x.id === id);
