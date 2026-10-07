@@ -3,7 +3,7 @@
 #   - vendors Three.js 0.180 (module + addons) from jsdelivr via tools/vendor.py
 #   - copies the repo assets the game loads under dist/assets/
 #   - rewrites the import map to ./vendor/ and sets window.__ASSET_ROOT = './assets/'
-# Usage: ./build.sh   (needs curl, python3, zip)
+# Usage: ./build.sh   (needs curl, python3, and either zip or python3 stdlib for zipfile fallback)
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"; REPO="$HERE"; DIST="$HERE/dist"
 THREE_VER="0.180.0"
@@ -25,6 +25,11 @@ python3 "$HERE/tools/vendor.py" "$HERE/src" "$DIST" "$THREE_VER"
 rm -f "$DIST/src/recorder.js"   # dev-only (needs the local save server)
 
 echo "→ zip"
-( cd "$DIST" && rm -f sgu-destiny-html5.zip && zip -qr sgu-destiny-html5.zip index.html src data vendor assets )
+rm -f "$DIST/sgu-destiny-html5.zip"
+if command -v zip >/dev/null 2>&1; then
+	( cd "$DIST" && zip -qr sgu-destiny-html5.zip index.html src data vendor assets )
+else
+	python3 "$HERE/tools/zip.py" "$DIST" sgu-destiny-html5.zip index.html src data vendor assets
+fi
 du -sh "$DIST/sgu-destiny-html5.zip" | awk '{print "   " $1 "  " $2}'
 echo "done → upload dist/sgu-destiny-html5.zip to itch.io as an HTML project (index.html at zip root)."
