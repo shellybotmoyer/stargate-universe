@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "typecheck": "tsc --noEmit --checkJs --allowJs --moduleResolution bundler --module esnext --target es2022 --skipLibCheck src/*.js",
+    "typecheck": "tsc --noEmit -p jsconfig.json",
     "build": "./build.sh"
   },
   "devDependencies": {
