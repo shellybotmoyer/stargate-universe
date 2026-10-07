@@ -22,6 +22,10 @@ jobs:
         run: for f in data/*.json .claude/launch.json; do python3 -m json.tool "$f" > /dev/null; done
       - name: Run unit tests
         run: node --test tests/*.test.js
+      - name: Install deps for type checking
+        run: npm install
+      - name: Run type checks
+        run: npm run typecheck
       - name: Build itch.io zip
         run: ./build.sh
       - uses: actions/upload-artifact@v4
