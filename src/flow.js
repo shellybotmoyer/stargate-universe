@@ -22,10 +22,11 @@ const css = `
 	#flow .esc{position:absolute;right:26px;bottom:10px;font:11px monospace;color:#3f7fb0}
 `;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
+/** @param {any} opts - { sfx?: { pick?, success?, tick? } } */
 export const createFlow = ({ sfx = {} } = {}) => {
 	document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 	const el = document.createElement('div'); el.id = 'flow'; el.hidden = true; document.body.appendChild(el);
-	let resolve = null, M = [], target = [], sol = [], band = 0.06, hold = 0, holdTimer = 0, N = 3;
+	let resolve = null, M = [], target = [], sol = [], band = 0.06, hold = 0, holdTimer = /** @type {any} */(0), N = 3;
 	const done = (ok) => { clearInterval(holdTimer); el.hidden = true; const r = resolve; resolve = null; r?.(ok); };
 	const values = () => [...el.querySelectorAll('input[type=range]')].map((i) => +i.value / 100);
 	const reading = (v) => M.map((row, i) => clamp01(row.reduce((acc, m, j) => acc + m * v[j], 0) + 0.15));
@@ -60,6 +61,6 @@ export const createFlow = ({ sfx = {} } = {}) => {
 	});
 	window.addEventListener('keydown', (e) => { if (!el.hidden && e.code === 'Escape') { e.stopImmediatePropagation(); done(false); } }, true);
 	/** Dev/autoplay: set every valve to the generating solution. */
-	const solve = () => { el.querySelectorAll('input[type=range]').forEach((i, j) => { i.value = Math.round(sol[j] * 100); }); render(); };
+	const solve = () => { el.querySelectorAll('input[type=range]').forEach((i, j) => { i.value = String(Math.round(sol[j] * 100)); }); render(); };
 	return { play, solve, isOpen: () => !el.hidden };
 };

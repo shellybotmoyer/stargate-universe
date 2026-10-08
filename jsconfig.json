@@ -11,10 +11,10 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "paths": {
-      "three": ["./node_modules/three/build/three.module.js"],
-      "three/addons/*": ["./node_modules/three/examples/jsm/*"]
+      "three": ["./node_modules/@types/three"],
+      "three/addons/*": ["./node_modules/@types/three/examples/jsm/*"]
     }
   },
-  "include": ["src/*.js", "tests/*.js"],
-  "exclude": ["node_modules", "dist", "tools"]
+  "include": ["src/*.js", "src/*.d.ts"],
+  "exclude": ["node_modules", "dist", "tools", "tests"]
 }

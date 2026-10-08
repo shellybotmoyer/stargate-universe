@@ -15,7 +15,8 @@ const MOODS = {
 	silent: {},
 };
 
-/** @param listener THREE.AudioListener  @param files {layer: url} */
+/** @param {THREE.AudioListener} listener
+ * @param {Record<string, string>} files */
 export const createMusic = (listener, files) => {
 	const loader = new THREE.AudioLoader(), layers = {}, target = {};
 	let mood = 'silent', ready = false, level = 1;

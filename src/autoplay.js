@@ -13,7 +13,11 @@ export const createAutoplay = (d) => {
 	const pos = () => d.player.root.position;
 	const ship = () => d.destiny.ship, A = () => d.destiny.anchors, step = () => d.quest.step(), stepId = () => step()?.id;
 	const gz = () => d.destiny.gate.position.z;
-	/** Walk toward (x,z) via the real key path; camera yaw steers so W moves toward the target. Runs on long legs. */
+	/** Walk toward (x,z) via the real key path; camera yaw steers so W moves toward the target. Runs on long legs.
+	 * @param {number} x
+	 * @param {number} z
+	 * @param {any} [opts] - { run?: boolean, tol?: number, timeout?: number }
+	 */
 	const walkTo = async (x, z, { run, tol = 0.7, timeout } = {}) => {
 		const dist0 = Math.hypot(x - pos().x, z - pos().z); run ??= dist0 > 10; timeout ??= (dist0 / (run ? 8 : 3.5)) * 1000 + 6000;
 		const t0 = simNow(); d.input.keys.add('KeyW'); if (run) d.input.keys.add('ShiftLeft');
@@ -42,7 +46,7 @@ export const createAutoplay = (d) => {
 			const p = door.g.position, cc = ship().center(cur);
 			const n = door.axis === 'x' ? Math.sign(cc.x - p.x) : Math.sign(cc.z - p.z);
 			const before = door.axis === 'x' ? [p.x + n * 1.4, p.z] : [p.x, p.z + n * 1.4], after = door.axis === 'x' ? [p.x - n * 1.4, p.z] : [p.x, p.z - n * 1.4];
-			await walkTo(...before, { tol: 0.5 }); await sleep(450); await walkTo(...after, { tol: 0.5, run: false }); cur = next;
+			await walkTo(before[0], before[1], { tol: 0.5 }); await sleep(450); await walkTo(after[0], after[1], { tol: 0.5, run: false }); cur = next;
 		}
 		const t = A()[`${room}:${anchor}`] ?? ship().center(room); await walkTo(t.x, t.z, opts); return true;
 	};

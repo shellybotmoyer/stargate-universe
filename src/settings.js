@@ -16,7 +16,7 @@ const FIELDS = [
 ];
 /** Render the settings form into `el` (title screen and Kino Remote share it). */
 export const renderSettings = (el) => {
-	el.innerHTML = FIELDS.map(([k, label, type, min, max, step]) => `<div class="srow"><label>${label}</label>${type === 'checkbox' ? `<input type="checkbox" data-s="${k}" ${settings[k] ? 'checked' : ''}>` : `<input type="range" data-s="${k}" min="${min}" max="${max}" step="${step}" value="${settings[k]}"><b>${type === 'range' && max <= 2.5 ? Math.round(settings[k] * 100) + (k === 'sensitivity' ? '%' : '%') : settings[k]}</b>`}</div>`).join('') + `<div class="srow"><span></span><button class="btn" data-reset="1">Reset to defaults</button></div>`;
+	el.innerHTML = FIELDS.map(([k, label, type, min, max, step]) => `<div class="srow"><label>${label}</label>${type === 'checkbox' ? `<input type="checkbox" data-s="${k}" ${settings[k] ? 'checked' : ''}>` : `<input type="range" data-s="${k}" min="${min}" max="${max}" step="${step}" value="${settings[k]}"><b>${type === 'range' && Number(max) <= 2.5 ? Math.round(settings[k] * 100) + (k === 'sensitivity' ? '%' : '%') : settings[k]}</b>`}</div>`).join('') + `<div class="srow"><span></span><button class="btn" data-reset="1">Reset to defaults</button></div>`;
 	el.querySelectorAll('[data-s]').forEach((inp) => (inp.oninput = () => { const k = inp.dataset.s; setSetting(k, inp.type === 'checkbox' ? inp.checked : +inp.value); const b = inp.nextElementSibling; if (b) b.textContent = k === 'fov' ? settings[k] : `${Math.round(settings[k] * 100)}%`; }));
 	el.querySelector('[data-reset]').onclick = () => { resetSettings(); renderSettings(el); };
 };

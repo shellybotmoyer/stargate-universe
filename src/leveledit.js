@@ -31,7 +31,7 @@ const PANEL = `
 	</div>`;
 
 /**
- * @param ctx { renderer, camera, destiny, chapters (mutable array ref holder: {chapters}), rebuildShip(layout, connections),
+ * @param {object} ctx — { renderer, camera, destiny, chapters (mutable array ref holder: {chapters}), rebuildShip(layout, connections),
  *              envTex, input, onEnter(), onExit() }
  */
 export const createLevelEditor = (ctx) => {

@@ -119,7 +119,7 @@ music.load(); // streams in the background; silent until the first mood is set a
 let sfxLevel = 1;
 onSettings((s) => { listener.setMasterVolume(s.master); music.setLevel(s.music); sfxLevel = s.sfx; input.sensitivity = s.sensitivity; input.invertY = s.invertY; if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); } });
 const noiseBuffer = (len = 2, smooth = 0.985, gain = 6) => { const ctx = listener.context, n = ctx.sampleRate * len, buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0); let l = 0; for (let i = 0; i < n; i++) { l = l * smooth + (Math.random() * 2 - 1) * (1 - smooth); d[i] = l * gain; } return buf; };
-const makeNoise = (freq, type = 'lowpass') => { const a = new THREE.Audio(listener); a.setBuffer(noiseBuffer()); a.setLoop(true); a.setVolume(0); const f = listener.context.createBiquadFilter(); f.type = type; f.frequency.value = freq; a.setFilter(f); return a; };
+const makeNoise = (freq, type = 'lowpass') => { const a = new THREE.Audio(listener); a.setBuffer(noiseBuffer()); a.setLoop(true); a.setVolume(0); const f = listener.context.createBiquadFilter(); f.type = /** @type {BiquadFilterType} */(type); f.frequency.value = freq; a.setFilter(f); return a; };
 const sfxRumble = makeNoise(140), sfxWhoosh = makeNoise(900, 'bandpass');
 const shutdownBuffer = () => {
 	const ctx = listener.context, sr = ctx.sampleRate, dur = 1.5, len = Math.floor(sr * dur), buf = ctx.createBuffer(1, len, sr), out = buf.getChannelData(0); let ph = 0, lp = 0;
@@ -244,7 +244,7 @@ const tickCountdown = (dt) => {
 const tickFtl = (dt) => {
 	if (ftl.window > 0) {
 		ftl.window = Math.max(0, ftl.window - dt);
-		for (const [at, who, line] of [[120, 'Rush', 'Two minutes on the FTL clock, Eli. The ship does not wait for you.'], [30, 'Scott', 'Thirty seconds! Whatever you are doing, stop and run.']]) if (ftl.window <= at && !ftl.warned.has(at)) { ftl.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
+		for (const [at, who, line] of [[120, 'Rush', 'Two minutes on the FTL clock, Eli. The ship does not wait for you.'], [30, 'Scott', 'Thirty seconds! Whatever you are doing, stop and run.']]) if (Number(ftl.window) <= at && !ftl.warned.has(at)) { ftl.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
 		if (ftl.window === 0) ftlJump();
 		if (!countdown) ui.setClock(`FTL JUMP  ${mmss(ftl.window)}`, ftl.window <= 60 ? 'urgent' : '');
 		if (!countdown && ftl.window > 0 && ftl.window <= 60) urgentAlarm(dt);

@@ -78,17 +78,19 @@ export const ancientGrating = ({ size = 1024, panels = 4, base = '#0d1116' } = {
 	return { map: tex(c), rough: tex(r, false) };
 };
 
-/** Standard Ancient-metal material. `repeat` tiles the plates per world-unit scale of the surface. */
+/** Standard Ancient-metal material. `repeat` tiles the plates per world-unit scale of the surface.
+ * @param {any} opts
+ */
 export const ancientMaterial = ({ repeat = [1, 1], base, plates, roughness = 0.6, metalness = 0.5, tint = 0xffffff, ribs } = {}) => {
 	const { map, rough } = ancientPlates({ base, plates, ribs });
-	map.repeat.set(...repeat); rough.repeat.set(...repeat);
+	map.repeat.set(repeat[0], repeat[1]); rough.repeat.set(repeat[0], repeat[1]);
 	return new THREE.MeshStandardMaterial({ map, roughnessMap: rough, bumpMap: rough, bumpScale: 0.025, roughness, metalness, color: tint });
 };
 
 /** Floor: slotted grating panels, darker and wetter (reflection lives in the Reflector under the gate hall). */
 export const ancientFloorMaterial = (repeat = [4, 8]) => {
 	const { map, rough } = ancientGrating({});
-	map.repeat.set(...repeat); rough.repeat.set(...repeat);
+	map.repeat.set(repeat[0], repeat[1]); rough.repeat.set(repeat[0], repeat[1]);
 	return new THREE.MeshStandardMaterial({ map, roughnessMap: rough, bumpMap: rough, bumpScale: 0.04, roughness: 0.5, metalness: 0.45 });
 };
 

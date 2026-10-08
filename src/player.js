@@ -43,6 +43,8 @@ export const loadPlayer = async ({ tint = 0x9d978d } = {}) => {
 		const c = a.clone(); c.tracks = c.tracks.filter((t) => !t.name.startsWith('root.position') && !t.name.startsWith('Armature.')); clips.set(c.name, c);
 	}
 	const mixer = new THREE.AnimationMixer(model);
+	/** @param {keyof typeof CLIPS} key
+	 * @param {THREE.AnimationActionLoopStyles} [loop] */
 	const act = (key, loop = THREE.LoopRepeat) => { const name = CLIPS[key] ?? key; const c = clips.get(name); if (!c) throw new Error(`missing clip ${name}`); const a = mixer.clipAction(c); a.setLoop(loop, loop === THREE.LoopOnce ? 1 : Infinity); a.clampWhenFinished = loop === THREE.LoopOnce; return a; };
 	const loco = Object.fromEntries(['idle', 'fidget', 'walk', 'carry', 'run', 'sprint', 'air'].map((k) => [k, act(CLIPS[k])]));
 	for (const a of Object.values(loco)) { a.play(); a.setEffectiveWeight(0); }
