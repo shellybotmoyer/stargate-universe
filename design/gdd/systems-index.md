@@ -1,11 +1,11 @@
 # Systems Index: Stargate Universe — The Destiny Mission
 
-> **⚠️ STALE engine mapping — ggez-era foundation references scrubbed 2026-10-08; system catalog updated to Three.js**
+> **⚠️ Engine mapping updated — Three.js web era (2026-09-08 re-pivot)**
 >
 > The former "ggez-Provided Foundation" section has been replaced with the
 > Three.js foundation layer. The system catalog (player controller, ship
-> systems, Kino Remote, crew AI, etc.) remains reference until re-mapped
-> onto the web implementation in detail.
+> systems, Kino Remote, crew AI, etc.) remains reference until implemented
+> in the web codebase in detail.
 
 > **Status**: Draft
 > **Created**: 2026-03-29
