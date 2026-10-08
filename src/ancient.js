@@ -6,6 +6,7 @@ import * as THREE from 'three';
 
 const rnd = (a, b) => a + Math.random() * (b - a);
 const tex = (c, srgb = true) => { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
+/** @returns {[HTMLCanvasElement, CanvasRenderingContext2D]} */
 const canvas = (size) => { const c = document.createElement('canvas'); c.width = c.height = size; return [c, c.getContext('2d')]; };
 /** Brushed grime pass: cool streaks + dark scuffs. */
 const grime = (g, size, n = 1) => {
