@@ -2,11 +2,11 @@
 
 > **⚠️ Engine mapping updated — Three.js web era (2026-09-08 re-pivot)**
 >
-> Engine-specific sections have been updated from the old ggez framework
+> Engine-specific sections have been updated from the old framework
 > (removed in `abfb5ed`) to Three.js equivalents: `@pixiv/three-vrm`
 > provides VRM parsing directly on Three.js, `THREE.AnimationMixer` replaces
-> the `@ggez/anim-*` animation pipeline, and `THREE.AnimationClip` replaces
-> `ggez RigDefinition` for skeleton retargeting. The Three.js-era repo runs
+> the old animation pipeline, and `THREE.AnimationClip` replaces
+> the old RigDefinition for skeleton retargeting. The Three.js-era repo runs
 > plain `src/*.js` + `index.html` (`build.sh`). The character visual design
 > intent remains reference until implemented in the web codebase.
 
@@ -283,7 +283,7 @@ Where:
 | Dependency | Type | Purpose |
 |------------|------|---------|
 | `@pixiv/three-vrm` | New npm package | VRM file parsing, spring bones, expressions, first-person |
-| `THREE.AnimationMixer` (`three`) | Existing | Skeleton retargeting, animation clip playback, animation blending (replaces `@ggez/anim-*`) |
+| `THREE.AnimationMixer` (`three`) | Existing | Skeleton retargeting, animation clip playback, animation blending |
 | Player Controller (`src/game/starter-player-controller.js`) | Existing | Visual attachment point (`object` Group), movement state for animation |
 | Camera System (`design/gdd/camera-system.md`) | Existing | Camera mode (FPS/third-person) for head hiding, distance for LOD |
 | Crew Dialogue & Choice System (`design/gdd/crew-dialogue-choice.md`) | Existing | Expression triggers, viseme events during dialogue |

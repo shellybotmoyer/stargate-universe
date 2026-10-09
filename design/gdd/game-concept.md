@@ -2,7 +2,7 @@
 
 > **⚠️ Engine mapping updated — Three.js web era (2026-09-08 re-pivot)**
 >
-> The engine/physics config block has been updated from `ggez` / `Crashcat`
+> The engine/physics config block has been updated from the old `Crashcat`
 > to plain Three.js (`src/*.js` + `index.html`, built via `build.sh`).
 > The concept itself (Eli aboard Destiny, exploration-survival pillars,
 > episode arcs) remains canonical reference.

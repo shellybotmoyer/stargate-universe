@@ -2,10 +2,10 @@
 
 > **⚠️ Engine mapping updated — Three.js web era (2026-09-08 re-pivot)**
 >
-> Engine-specific sections have been updated from the old ggez framework
+> Engine-specific sections have been updated from the old framework
 > (removed in `abfb5ed`) to Three.js equivalents: `THREE.WebGLRenderer`
-> render pipeline replaces `ggez Render Pipeline`, and per-scene config
-> replaces the `ggez World Editor`. The Three.js-era repo runs plain
+> render pipeline replaces the old Render Pipeline, and per-scene config
+> replaces the old World Editor. The Three.js-era repo runs plain
 > `src/*.js` + `index.html` (`build.sh`). The atmosphere/lighting design
 > (power-scarcity visuals, emergency red strips, repaired-section glow)
 > remains reference until implemented in the web codebase.
@@ -135,7 +135,7 @@ by Ship State values. However, the key thresholds that trigger visual changes ar
 | System | Direction | Interface |
 |--------|-----------|-----------|
 | **Ship State** | Inbound (read + subscribe) | Reads: section power_level, atmosphere, structural_integrity, subsystem conditions. Subscribes to `ship:power:changed`, `ship:section:*`, `ship:subsystem:*` for real-time updates. |
-| **Three.js Render Pipeline** *(replaces ggez)* | Outbound (configure) | Sets: light colors/intensities, fog parameters, emissive material values, particle system enable/disable. |
+| **Three.js Render Pipeline** | Outbound (configure) | Sets: light colors/intensities, fog parameters, emissive material values, particle system enable/disable. |
 | **Event Bus** | Inbound (subscribe) | Subscribes to `ship:*` events for reactive visual changes. |
 | **Player Controller** | Outbound (context) | Provides ambient light level for phone light trigger decision. |
 | **Audio & Ambience** *(undesigned)* | Parallel | Audio system reads the same Ship State data. Visual and audio should be synchronized (lights dim = hum quiets). |
@@ -206,7 +206,7 @@ Glow is 0 below threshold, scales linearly to max above it.
 |--------|----------------|-----------|
 | Ship State | Hard | section.power_level, section.atmosphere, section.structural_integrity, subsystem conditions |
 | Event Bus | Hard | Subscribes to ship:* for real-time visual updates |
-| Three.js Render Pipeline | Hard | Light, fog, material, particle system APIs (replaces ggez) |
+| Three.js Render Pipeline | Hard | Lights, fog, emissive materials, particle systems (replaces old Render Pipeline) |
 
 **Downstream (depends on this system):**
 

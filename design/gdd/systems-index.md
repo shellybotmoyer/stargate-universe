@@ -2,7 +2,7 @@
 
 > **⚠️ Engine mapping updated — Three.js web era (2026-09-08 re-pivot)**
 >
-> The former "ggez-Provided Foundation" section has been replaced with the
+> The former engine-provided foundation section has been replaced with the
 > Three.js foundation layer. The system catalog (player controller, ship
 > systems, Kino Remote, crew AI, etc.) remains reference until implemented
 > in the web codebase in detail.

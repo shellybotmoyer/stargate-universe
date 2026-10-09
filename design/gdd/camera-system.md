@@ -2,10 +2,10 @@
 
 > **⚠️ Engine mapping updated — Three.js web era (2026-09-08 re-pivot)**
 >
-> Engine-specific sections have been updated from the old ggez framework
+> Engine-specific sections have been updated from the old framework
 > (removed in `abfb5ed`) to Three.js equivalents: `THREE.Raycaster` replaces
-> `ggez Physics (Crashcat)` spherecast, and `requestAnimationFrame` replaces
-> `ggez Gameplay Runtime` registration. The third-person camera design (arm
+> the old Physics spherecast, and `requestAnimationFrame` replaces
+> the old Gameplay Runtime registration. The third-person camera design (arm
 > compression, cinematic framing, scene-transition rules) remains reference
 > until implemented in the web codebase (`src/*.js` + `index.html`, built
 > via `build.sh`).
@@ -138,8 +138,8 @@ shift from player-awareness to cinematic framing *is* the storytelling.
 | System | Direction | Interface |
 |--------|-----------|-----------|
 | **Player Controller** | Inbound (read) | Reads `getPosition()`, `getRotation()`, `getVelocity()` each frame. Receives state signals: Dialogue entered/exited, Traversing entered/exited, sprint started/stopped. |
-| **Three.js Raycaster** *(replaces ggez Physics)* | Inbound (collision) | `THREE.Raycaster` along camera arm to detect wall collisions. Used for arm compression to prevent clipping. |
-| **`requestAnimationFrame` loop** *(replaces ggez Runtime)* | Inbound (lifecycle) | Update called each frame via `requestAnimationFrame`. Updates after Player Controller in the loop. |
+| **Three.js Raycaster** | Inbound (collision) | `THREE.Raycaster` along camera arm to detect wall collisions. Used for arm compression to prevent clipping. |
+| **`requestAnimationFrame` loop** | Inbound (lifecycle) | Update called each frame via `requestAnimationFrame`. Updates after Player Controller in the loop. |
 | **Event Bus** | Inbound (subscribe) | Subscribes to `episode:crisis:triggered` and similar narrative events to trigger cinematic camera transitions. |
 | **Ship Exploration** *(downstream, undesigned)* | Outbound (read) | Ship Exploration may read camera position/direction for section visibility. Camera provides `getPosition()` and `getForward()`. |
 | **Crew Dialogue & Choice** *(downstream, undesigned)* | Inbound (framing data) | Dialogue system provides: NPC position for framing, camera angle per dialogue node (two-shot, OTS-left, OTS-right, close-up). |
@@ -238,8 +238,8 @@ sway_rotation = perlin_noise((time + seed) * sway_frequency)
 | System | Dependency Type | Interface |
 |--------|----------------|-----------|
 | Player Controller | Hard | Reads position, rotation, velocity each frame. Receives state change signals (dialogue, traversal, sprint). |
-| Three.js Raycaster | Hard | Raycast for arm collision detection against scene geometry. Replaces ggez Physics (Crashcat) spherecast. |
-| `requestAnimationFrame` loop | Hard | Frame update loop, scene lifecycle. Must update after Player Controller. Replaces ggez Gameplay Runtime. |
+| Three.js Raycaster | Hard | Raycast for arm collision detection against scene geometry. Replaces old Physics spherecast. |
+| `requestAnimationFrame` loop | Hard | Frame update loop, scene lifecycle. Must update after Player Controller. |
 | Event Bus | Soft | Subscribes to narrative events for cinematic triggers. Functions without (just no auto-cinematics). |
 
 **Downstream (depends on this system):**

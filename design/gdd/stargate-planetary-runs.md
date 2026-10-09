@@ -2,7 +2,7 @@
 
 > **⚠️ Engine mapping updated — Three.js web era (2026-09-08 re-pivot)**
 
-> References to `planet.gd`, `kino_drone.gd`, `CharacterBody3D`, and ggez scene
+> References to `planet.gd`, `kino_drone.gd`, `CharacterBody3D`, and old scene
 > loading have been updated to Three.js equivalents (`src/*.js` + `data/`). The
 > design (planet catalog, gate flow, mission triage) remains reference until
 > implemented in the web codebase.
@@ -263,7 +263,7 @@ survive as the data the spec carries.
 | **Resource & Inventory** | Outbound (source) | Calls `addResource(type, amount)` when player gathers from nodes or auto-collects. Planet definitions specify resource tables. Primary source for Water, Food, Lime, and specialized resources. |
 | **Player Controller** | Reads | Uses same controller on planets. Radial menu shows planet-specific actions ("Gather", "Examine", "Dial"). Subscribes to `player:interact` for resource node and gate interactions. |
 | **Camera System** | Reads | Same third-person rig. Auto-framing registers planet POIs. Cinematic mode for auto-return sequence. |
-| **Three.js Scene Mgmt** *(replaces ggez)* | Outbound (loader) | Loads planet scenes on gate entry, suspends/resumes gate room scene. Manages planet scene lifecycle. |
+| **Three.js Scene Mgmt** | Outbound (loader) | Loads planet scenes on gate entry, suspends/resumes gate room scene. Manages planet scene lifecycle. |
 | **Event Bus** | Bidirectional | Publishes: `gate:dial:started`, `gate:activated`, `gate:closed`, `planet:entered`, `planet:returned`, `planet:resource:gathered`, `planet:poi:discovered`. Subscribes to timer events, player interactions, episode triggers. |
 | **Ship State** | Reads | Reads sensor condition to determine planet scan detail level (planet selection evolution). Reads FTL drive condition for cooldown duration. |
 | **Episode Narrative** *(undesigned)* | Bidirectional | Episodes specify which planets appear per FTL drop. Episodes can trigger hostile encounters on planets. Planet discoveries can trigger narrative events. `narrativeHooks` in planet data. |
@@ -389,7 +389,7 @@ as part of this system's save state (for mid-run save/load).
 | Timer & Pressure | Hard | Gate window countdown, FTL cooldown, suit air timer |
 | Resource & Inventory | Hard | `addResource()` for gathered resources, story items for suit unlock |
 | Event Bus | Hard | All gate/planet events, timer subscriptions |
-| Three.js Scene Mgmt | Hard | Planet scene loading/unloading/suspension (replaces ggez) |
+| Three.js Scene Mgmt | Hard | Planet scene loading/unloading/suspension |
 | Ship State | Soft | Sensor condition for scan detail, FTL condition for cooldown |
 | Ship Exploration | Soft | Gate room must be accessible |
 | Save/Load (interface) | Hard (contract) | Serialize gate state + on-planet progress |
