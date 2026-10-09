@@ -15,6 +15,49 @@
 > **Author**: User + Claude
 > **Last Updated**: 2026-06-01
 
+---
+
+## Three.js implementation (current — 2026-10-09)
+
+The web/Three.js runtime uses a **simple localStorage-based save system** — no
+profiles, checkpoints, slots, or `.gd`/`.tscn` test harnesses. All save/load
+logic lives in `src/main.js`.
+
+| Element | Value |
+|---|---|
+| Storage key | `sgu.save` (single localStorage entry) |
+| Save version | `SAVE_VERSION = 1` |
+| Migration | `migrateSave(s)` — bumps `s.version` to `SAVE_VERSION`; v0→v1 has no structural changes yet (hook for future migrations) |
+| Save trigger | `saveGame()` — called on quest step changes, chapter completion, and after load |
+| Load trigger | `loadGame()` — restores chapter/step/flags, RPG state, FTL, growth, countdown; rewinds planet-side steps to the gate |
+| Save guard | `gameStarted` flag — saves are skipped until a game is actually running |
+| Public API | `window.__save = { saveGame, loadGame, hasSave, clear }` (dev/debug) |
+
+### Serialized state shape
+
+```json
+{
+  "version": 1,
+  "chapter": "<chapter_id>",
+  "stepIndex": 0,
+  "flags": ["flag1", "flag2"],
+  "lastScan": null,
+  "deck": 0,
+  "ftl": { "window": 0, "cooldown": 0 },
+  "growth": [0, 0, 0],
+  "countdown": null,
+  "savedAt": 1696848000000
+}
+```
+
+### What the Godot-era sections below describe (historical reference)
+
+The sections below document the **Godot-era implementation** — profiles,
+checkpoints, slot rotation, `.gd` test suites, `SaveStore`/`SaveManager`
+autoloads, `user://` paths, etc. None of these exist in the Three.js codebase.
+They are preserved as design reference for when the save system is re-mapped
+onto the web implementation (localStorage → IndexedDB, profiles, etc.).
+
 ## Profile + checkpoint model (Godot, issues #77/#79/#80/#81/#82)
 
 The shipped save system groups saves under named **profiles** (one per
