@@ -37,7 +37,7 @@ const PANEL = `
 export const createLevelEditor = (ctx) => {
 	const { renderer, camera, destiny, input } = ctx;
 	const state = { active: false, layout: null, connections: null, floor: 0, sel: null, selProp: null, placing: null, dirty: false, mode: 'ship', planetWorld: null };
-	let root, $, yaw = Math.PI, pitch = 0, speed = 8, looking = false, downAt = null, mouse = { x: 0, y: 0 };
+	let root, $, yaw = Math.PI, pitch = 0, speed = 8, looking = false, downAt = null, mouse = new THREE.Vector2();
 	const cv = renderer.domElement;
 	const status = (t) => { const s = document.getElementById('le-status'); if (s) s.textContent = t; };
 
@@ -81,7 +81,7 @@ export const createLevelEditor = (ctx) => {
 	};
 	const onDown = (e) => { if (!state.active) return; if (e.button === 2) looking = true; if (e.button === 0) downAt = [e.clientX, e.clientY]; };
 	const onUp = (e) => { if (!state.active) return; if (e.button === 2) looking = false; if (e.button === 0 && downAt) { const moved = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]); downAt = null; if (moved < 4 && e.target === cv) click(); } };
-	const onMove = (e) => { if (!state.active) return; const r = cv.getBoundingClientRect(); mouse = { x: ((e.clientX - r.left) / r.width) * 2 - 1, y: -((e.clientY - r.top) / r.height) * 2 + 1 }; if (looking || document.pointerLockElement === cv) { yaw -= e.movementX * 0.0025; pitch = THREE.MathUtils.clamp(pitch - e.movementY * 0.0025, -1.5, 1.5); } };
+	const onMove = (e) => { if (!state.active) return; const r = cv.getBoundingClientRect(); mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); if (looking || document.pointerLockElement === cv) { yaw -= e.movementX * 0.0025; pitch = THREE.MathUtils.clamp(pitch - e.movementY * 0.0025, -1.5, 1.5); } };
 	const onWheel = (e) => { if (state.active) speed = THREE.MathUtils.clamp(speed * Math.exp(-e.deltaY * 0.001), 1, 60); };
 	const onCtx = (e) => { if (state.active) e.preventDefault(); };
 	const fly = (dt) => {
@@ -93,7 +93,7 @@ export const createLevelEditor = (ctx) => {
 
 	// ---- picking / placing (at the mouse; crosshair when pointer-locked)
 	const ray = new THREE.Raycaster();
-	const aim = () => { ray.setFromCamera(document.pointerLockElement === cv ? { x: 0, y: 0 } : mouse, camera); const floors = []; ship().group.traverse((o) => { if (o.userData.roomId) floors.push(o); }); return ray.intersectObjects([...floors, ...ship().propMeshes, ...ship().occludable], false)[0] ?? null; };
+	const aim = () => { ray.setFromCamera(document.pointerLockElement === cv ? mouse.set(0, 0) : mouse, camera); const floors = []; ship().group.traverse((o) => { if (o.userData.roomId) floors.push(o); }); return ray.intersectObjects([...floors, ...ship().propMeshes, ...ship().occludable], false)[0] ?? null; };
 	const click = () => {
 		if (state.mode !== 'ship') return; const hit = aim(); if (!hit) return;
 		if (state.placing && state.sel) {

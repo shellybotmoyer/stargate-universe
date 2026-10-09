@@ -244,7 +244,7 @@ const tickCountdown = (dt) => {
 const tickFtl = (dt) => {
 	if (ftl.window > 0) {
 		ftl.window = Math.max(0, ftl.window - dt);
-		for (const [at, who, line] of [[120, 'Rush', 'Two minutes on the FTL clock, Eli. The ship does not wait for you.'], [30, 'Scott', 'Thirty seconds! Whatever you are doing, stop and run.']]) if (Number(ftl.window) <= at && !ftl.warned.has(at)) { ftl.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
+		for (const [at, who, line] of /** @type {[number,string,string][]} */ ([[120, 'Rush', 'Two minutes on the FTL clock, Eli. The ship does not wait for you.'], [30, 'Scott', 'Thirty seconds! Whatever you are doing, stop and run.']])) if (Number(ftl.window) <= at && !ftl.warned.has(at)) { ftl.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
 		if (ftl.window === 0) ftlJump();
 		if (!countdown) ui.setClock(`FTL JUMP  ${mmss(ftl.window)}`, ftl.window <= 60 ? 'urgent' : '');
 		if (!countdown && ftl.window > 0 && ftl.window <= 60) urgentAlarm(dt);
@@ -461,7 +461,7 @@ const kickSand = (loud) => { const p = player.root.position, pos = dGeo.attribut
 const tickDust = (dt) => { const pos = dGeo.attributes.position.array, al = dGeo.attributes.aAlpha.array, sz = dGeo.attributes.aSize.array; for (let i = 0; i < DCOUNT; i++) { if (dLife[i] <= 0) { al[i] = 0; continue; } dLife[i] -= dt; dVel[i * 3 + 1] -= 3.5 * dt; pos[i * 3] += dVel[i * 3] * dt; pos[i * 3 + 1] += dVel[i * 3 + 1] * dt; pos[i * 3 + 2] += dVel[i * 3 + 2] * dt; const k = Math.max(0, dLife[i] / dMax[i]); al[i] = 0.85 * k; sz[i] = 0.22 + (1 - k) * 0.55; } dGeo.attributes.position.needsUpdate = true; dGeo.attributes.aAlpha.needsUpdate = true; dGeo.attributes.aSize.needsUpdate = true; };
 // footsteps fire from the animation's foot plants (player.js), so sound, dust and stride share one source of truth
 player.onStep = (side, speed) => { const loud = speed > 7; footstep(world === planet ? 'sand' : 'deck', loud); if (world === planet) kickSand(loud); };
-const tickFootsteps = () => {}; void stepDist;
+const tickFootsteps = (dt) => {}; void stepDist;
 
 // ---------------------------------------------------------------- gate travel + arrival
 let travel = null; const PLAYER_CHEST = 1.1;
@@ -593,7 +593,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) liste
 const newGame = () => { listener.context.resume(); destiny.scene.add(beacon); localStorage.removeItem(SAVE_KEY); localStorage.removeItem('sgu.rpg'); ui.showChapter(quest.chapter.title, quest.chapter.subtitle, 'Begin', () => { gameStarted = true; arriveAt(destiny); }); };
 /** Start at any chapter with the state earlier episodes would have left behind (cumulative stages, in chapter order). */
 const PREREQ_STAGES = {
-	e2_water: () => { const S = destiny.ship; S.setPower(true); S.installFuse(); S.takeKino(); S.repairScrubber(); S.sealBreach?.(); for (const f of ['relay_inspected', 'has_small_fuse', 'fuse_installed', 'power_restored', 'control_room_visited', 'life_support_diagnosed', 'any_breach_sealed', 'eli_quarters_visited', 'kino_acquired', 'locker_opened', 'scrubber_diagnosed', 'geared_up', 'scrubber_repaired']) quest.flags.add(f); for (const [id, n] of [['kino_orb', 1], ['kino_remote', 1], ['shovel', 1], ['field_backpack', 1], ['tac_vest', 1], ['rations', 2]]) if (count(id) < n) addItem(id, n - count(id)); equip('shovel'); equip('field_backpack'); equip('tac_vest'); },
+	e2_water: () => { const S = destiny.ship; S.setPower(true); S.installFuse(); S.takeKino(); S.repairScrubber(); S.sealBreach?.(); for (const f of ['relay_inspected', 'has_small_fuse', 'fuse_installed', 'power_restored', 'control_room_visited', 'life_support_diagnosed', 'any_breach_sealed', 'eli_quarters_visited', 'kino_acquired', 'locker_opened', 'scrubber_diagnosed', 'geared_up', 'scrubber_repaired']) quest.flags.add(f); for (const [id, n] of /** @type {[string,number][]} */ ([['kino_orb', 1], ['kino_remote', 1], ['shovel', 1], ['field_backpack', 1], ['tac_vest', 1], ['rations', 2]])) if (count(id) < n) addItem(id, n - count(id)); equip('shovel'); equip('field_backpack'); equip('tac_vest'); },
 	e3_darkness: () => {},
 	e4_parts: () => { const S = destiny.ship; S.seatElevatorFuses(); S.setElevatorPower(true); S.setGrowLights(true); for (const f of ['has_bus_fuses', 'has_large_fuse', 'elevator_fuses_seated', 'elevator_powered', 'upper_deck_reached', 'hydroponics_visited', 'grow_lights_restored']) quest.flags.add(f); },
 	e5_light: () => { const S = destiny.ship; S.installConduit(); S.setQuartersPower(true); for (const f of ['conduit_seated', 'quarters_powered', 'quarters_visited']) quest.flags.add(f); },
@@ -679,7 +679,7 @@ const frame = (dtIn) => {
 			const airless = world === planet && planet?.def?.atmosphere?.breathable === false && !kino.active; // no suits: the lungs are the clock
 			rpg.o2 = airless ? Math.max(4, o2 - dt * 0.55) : dying ? Math.max(38, o2 - dt * 0.09) : Math.min(100, o2 + dt * 3);
 			if (airless && rpg.o2 <= 4 && !knockedOut) { rpg.hp = Math.max(0, rpg.hp - dt * 6); ui.refreshPlayer(); if (rpg.hp <= 0) knockOut('asphyxiation'); }
-			if (airless) { for (const [lvl, who, line] of [[50, 'Rush', 'Half your air, Eli. Whatever you have, it is enough — start back.'], [20, 'Eli', 'Can\'t... breathe. Gate. Now.']]) if (o2 > lvl && rpg.o2 <= lvl) ui.subtitle(who, line); }
+			if (airless) { for (const [lvl, who, line] of /** @type {[number,string,string][]} */ ([[50, 'Rush', 'Half your air, Eli. Whatever you have, it is enough — start back.'], [20, 'Eli', 'Can\'t... breathe. Gate. Now.']])) if (o2 > lvl && rpg.o2 <= lvl) ui.subtitle(who, line); }
 			if (Math.round(o2) !== Math.round(rpg.o2)) ui.refreshPlayer();
 		}
 		if (gameStarted) { tickFtl(dt); tickCountdown(dt); }
