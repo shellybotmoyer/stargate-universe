@@ -2,8 +2,7 @@
 
 > **⚠️ Engine mapping updated — Three.js web era (2026-09-08 re-pivot)**
 
-> References to `planet.gd`, `kino_drone.gd`, `CharacterBody3D`, and old scene
-> loading have been updated to Three.js equivalents (`src/*.js` + `data/`). The
+> Engine mapping updated to Three.js web era (`src/*.js` + `data/`). The
 > design (planet catalog, gate flow, mission triage) remains reference until
 > implemented in the web codebase.
 
