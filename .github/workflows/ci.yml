@@ -20,8 +20,12 @@ jobs:
         run: 'for f in src/*.js; do cp "$f" /tmp/check.mjs && node --check /tmp/check.mjs || { echo "syntax error: $f"; exit 1; }; done'
       - name: Validate data JSON
         run: for f in data/*.json .claude/launch.json; do python3 -m json.tool "$f" > /dev/null; done
+      - name: Install deps for typecheck
+        run: npm install
       - name: Run unit tests
         run: node --test tests/*.test.js
+      - name: Type check (tsc --noEmit)
+        run: npm run typecheck
       - name: Build itch.io zip
         run: ./build.sh
       - uses: actions/upload-artifact@v4
