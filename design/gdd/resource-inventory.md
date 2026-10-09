@@ -5,10 +5,10 @@
 > **Last Updated**: 2026-03-30
 > **Implements Pillar**: Pillar 2 (Survival with Purpose)
 
-> **⚠️ STALE engine references — Godot-era mapping, superseded by the 2026-09-08 Three.js re-pivot**
+> **⚠️ Historical engine references — Godot-era mapping retained as design context**
 
 > The Godot status block below (lines referencing `GameState.TRACKED_RESOURCES`,
-> `resource_scarcity()`, `build_resource_table(seed)`) describes a Godot build that
+> `resource_scarcity()`, `build_resource_table(seed)`) describes a build that
 > no longer exists — the Three.js-era repo runs `src/*.js` + `data/`. The resource
 > catalog, scarcity ranking, and planetary deposit wiring remain canonical design
 > reference until re-mapped onto the web implementation.
@@ -72,7 +72,7 @@ not busywork.
    | Food | Start | Crew nutrition (morale, health) | Episode 1 |
    | Lime | Early S1 | CO2 scrubbing (life support consumable) | First planet mission |
 
-   > **Godot status (issues #86, #93) — STALE since the 2026-09-08 Three.js re-pivot:** Water, Food, and Ship Parts were
+   > **Historical Godot status (issues #86, #93) — retained as design context:** Water, Food, and Ship Parts were
    > live **tracked resources** in the Godot build — `GameState.TRACKED_RESOURCES`
    > registers each with a label + low threshold, backed by `Inventory` counts.
    > `GameState.resource_scarcity()` ranks them by deficit (deepest first), and

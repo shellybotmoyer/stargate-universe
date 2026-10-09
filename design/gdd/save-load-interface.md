@@ -1,16 +1,16 @@
 # Save/Load Interface Contract
 
-> **⚠️ STALE implementation pointers — Godot-era mapping, superseded by the 2026-09-08 Three.js re-pivot**
+> **⚠️ Historical implementation pointers — Godot-era mapping retained as design context**
 
 > The engine-mapped sections below (`tests/save/*.gd`, `.tscn` orchestration
-> harnesses, `title.gd`) reference Godot files that no longer exist — the
+> harnesses, `title.gd`) reference files that no longer exist — the
 > Three.js-era repo has no `tests/` or `scripts/` directories (runtime is
 > `src/*.js` + `data/`). The interface contract and the TS profile/checkpoint
 > model remain canonical reference until re-mapped onto the web implementation.
 
 > **Status**: Implemented — profile/checkpoint model (issues #77/#79/#80/#81/#82)
-> layered over the original Godot slot system (#44). The TS interface at the
-> bottom is the engine-agnostic origin; the Godot mapping is in "Profile +
+> layered over the original slot system (#44). The TS interface at the
+> bottom is the engine-agnostic origin; the historical Godot mapping is in "Profile +
 > checkpoint model" first, then the legacy "Slot model" it builds on.
 > **Author**: User + Claude
 > **Last Updated**: 2026-06-01
@@ -50,7 +50,7 @@ logic lives in `src/main.js`.
 }
 ```
 
-### What the Godot-era sections below describe (historical reference)
+### What the Godot-era sections below describe (historical context)
 
 The sections below document the **Godot-era implementation** — profiles,
 checkpoints, slot rotation, `.gd` test suites, `SaveStore`/`SaveManager`
