@@ -2,10 +2,10 @@
 
 > **⚠️ Engine mapping updated — Three.js web era (2026-09-08 re-pivot)**
 
-> References to `planet.gd`, `kino_drone.gd`, and ggez scene loading have been
-> updated to Three.js equivalents (`src/*.js` + `data/`). The design (planet
-> catalog, gate flow, mission triage) remains reference until implemented in
-> the web codebase.
+> References to `planet.gd`, `kino_drone.gd`, `CharacterBody3D`, and ggez scene
+> loading have been updated to Three.js equivalents (`src/*.js` + `data/`). The
+> design (planet catalog, gate flow, mission triage) remains reference until
+> implemented in the web codebase.
 
 > **Status**: Designed
 > **Author**: User + Claude
@@ -84,7 +84,7 @@ and clues to Destiny's mission — but only if you budget your time well.
 > _Implementation note:_ a Kino must **leave the gate's crossing radius once
 > before it can cross** (an "arm" latch) — otherwise a Kino that *spawns* on a
 > gate (recon drone by the planet's return gate, or one that just arrived in the
-> gate room) would instantly bounce straight back. See `kino_drone.gd`
+> gate room) would instantly bounce straight back. See `src/kino_drone.js`
 > `_try_gate_crossing` / `_gate_armed`. Gate-open state is the planet-agnostic
 > `GameState.is_gate_open()`.
 
@@ -200,7 +200,7 @@ survive as the data the spec carries.
   resource_table: Dictionary, hazard_params: Dictionary, name: String }`.
   `PlanetGenerator.build(world, spec)` consumes it: it streams a near-infinite,
   walkable terrain (a single global `height_at()` height field — gentle enough
-  that worst-case local slope stays well under the CharacterBody3D floor limit, so
+  that worst-case local slope stays well under the player's floor-climb limit, so
   the player never has to jump), seats the return Stargate at the home anchor,
   scatters deterministic resource clusters + POIs + walk-around props, and lays
   the biome's hazards (heat/water drain, toxin oxygen drain, jungle damage traps,
@@ -231,7 +231,7 @@ survive as the data the spec carries.
 - **Kino scan profile** (issue #93): `GameState.planet_scan_profile(spec)` returns
   a render-ready summary of the upcoming planet — biome label, breathability +
   composition, temperature, radiation/toxins, hazard type, gate window, and the
-  resource labels the run will yield (scarcest first). `planet.gd` layers this
+  resource labels the run will yield (scarcest first). `src/planet.js` layers this
   onto the Kino recon HUD's atmosphere readout (`AtmoReadout.render`) so the
   player reads "what's down there" **before/while choosing to cross**, extending
   the existing Kino recon + compass surfaces.
