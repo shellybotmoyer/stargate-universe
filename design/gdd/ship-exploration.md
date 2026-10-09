@@ -27,7 +27,7 @@ unmanned — so the lore is the ship's own history, not a crew's.
 **Implementation status (as of 2026-06-09):** Floors 0–1 are hand-authored rooms
 wired in `data/ship_layout.json`. Floors 2+ are procedurally generated at runtime
 by `ProceduralShip` (see §Procedural Floor Architecture below) and floor-gated
-behind an escalating parts cost. The original browser-era ggez/EventBus design
+behind an escalating parts cost. The original browser-era EventBus design
 in the sections below describes the aspirational vision; the Three.js web
 implementation is documented in the new section first.
 
@@ -208,7 +208,7 @@ label.
 
 > The sections below describe the full designed vision. Items noted
 > [FORWARD-LOOKING] are designed but not yet built. The original browser-era
-> references to `ggez`, `EventBus`, and `player:entered:section` have been
+> references to `EventBus`, and `player:entered:section` have been
 > superseded by the Three.js web architecture described in the Procedural
 > Floor Architecture section above.
 
