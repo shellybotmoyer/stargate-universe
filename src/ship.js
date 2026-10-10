@@ -8,7 +8,10 @@ import { COMPONENTS, DEFAULT_PROPS, ROOM_PROPS } from './components.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export const DOOR_W = 2.4, DOOR_H = 3.2, WALL_T = 0.3, DECK_H = 12; // decks stack DECK_H apart (gate hall is 11 m tall)
-/** Rooms fed by the crew-deck conduit (dark until `setQuartersPower(true)`). */
+/** Rooms fed by the crew-deck conduit (dark until `setQuartersPower(true)`).
+ *  ⚠️ These IDs MUST match `data/ship_layout.json` room entries. If a layout
+ *  ID is renamed or removed, lights in that room will silently stop gating
+ *  on the conduit power state. Update this set whenever layout IDs change. */
 export const CREW_DECK_ROOMS = new Set(['room_1753576770763', 'quarters_room_1']);
 const R = DOOR_W / 2, ARCH_Y = DOOR_H - R, BULGE = 0.1, HUB_R = 0.42, GEAR_R = 0.2; // arched opening: straight to ARCH_Y, semicircle to DOOR_H
 const SCALE = 0.05, H_ROOM = 4.6, LIGHT_RANGE = 22, MAX_LIVE = 6;
