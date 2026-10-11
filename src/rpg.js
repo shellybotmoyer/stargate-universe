@@ -39,7 +39,7 @@ export const rpg = {
 export const xpToNext = (lvl) => 100 * lvl;
 
 export const loadItems = async () => {
-	try { for (const it of await (await fetch(`${ASSETS}data/items.json`)).json()) ITEMS[it.id] = it; } catch { /* repo data optional */ }
+	try { for (const it of await (await fetch(`${ASSETS}data/items.json`)).json()) ITEMS[it.id] = it; } catch (e) { console.warn('items.json load failed:', e.message); /* repo data optional */ }
 	for (const it of WEB_ITEMS) ITEMS[it.id] = it;
 	if (ITEMS.field_backpack) ITEMS.field_backpack.description ??= 'Roomy canvas pack. +6 carry.';
 };
