@@ -51,7 +51,6 @@ export const createAutoplay = (d) => {
 		const t = A()[`${room}:${anchor}`] ?? ship().center(room); await walkTo(t.x, t.z, opts); return true;
 	};
 	const face = (x, z) => { const dx = x - pos().x, dz = z - pos().z; d.player.root.rotation.y = Math.atan2(dx, dz); };
-	const faceAnchorProp = (room, anchor) => { const a = A()[`${room}:${anchor}`]; if (!a) return; const c = ship().center(room); face(a.x + (c.x - a.x) * -0.01 + (a.x - c.x) * 0.0 + (a.x - pos().x) * 2, a.z + (a.z - pos().z) * 2); };
 	const interact = async (settle = 2200) => { await sleep(150); press('KeyE'); await sleep(settle); };
 	const waitFor = async (pred, timeout = 20000) => { const t0 = simNow(); while (!pred() && simNow() - t0 < timeout && !auto.abort) await sleep(80); return pred(); };
 	const holdE = async (until, timeout = 12000) => { const t0 = simNow(); while (!until() && simNow() - t0 < timeout && !auto.abort) { d.input.keys.add('KeyE'); await sleep(60); } d.input.keys.delete('KeyE'); await sleep(250); };

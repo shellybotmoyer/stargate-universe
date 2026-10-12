@@ -37,7 +37,7 @@ const PANEL = `
 export const createLevelEditor = (ctx) => {
 	const { renderer, camera, destiny, input } = ctx;
 	const state = { active: false, layout: null, connections: null, floor: 0, sel: null, selProp: null, placing: null, dirty: false, mode: 'ship', planetWorld: null };
-	let root, $, yaw = Math.PI, pitch = 0, speed = 8, looking = false, downAt = null, mouse = new THREE.Vector2();
+	let root, $, yaw = Math.PI, pitch = 0, speed = 8, looking = false, downAt = null; const mouse = new THREE.Vector2();
 	const cv = renderer.domElement;
 	const status = (t) => { const s = document.getElementById('le-status'); if (s) s.textContent = t; };
 

@@ -29,7 +29,7 @@ export const createFlow = ({ sfx = {} } = {}) => {
 	let resolve = null, M = [], target = [], sol = [], band = 0.06, hold = 0, holdTimer = /** @type {any} */(0), N = 3;
 	const done = (ok) => { clearInterval(holdTimer); el.hidden = true; const r = resolve; resolve = null; r?.(ok); };
 	const values = () => [...el.querySelectorAll('input[type=range]')].map((i) => +i.value / 100);
-	const reading = (v) => M.map((row, i) => clamp01(row.reduce((acc, m, j) => acc + m * v[j], 0) + 0.15));
+	const reading = (v) => M.map((row) => clamp01(row.reduce((acc, m, j) => acc + m * v[j], 0) + 0.15));
 	const render = () => {
 		const r = reading(values()); let allOk = true;
 		el.querySelectorAll('.col').forEach((col, i) => {
