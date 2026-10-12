@@ -20,6 +20,7 @@ import { settings, onSettings } from './settings.js';
 import { createLevelEditor } from './leveledit.js';
 import { createHotwire } from './hotwire.js';
 import { createFlow } from './flow.js';
+import { createSaveSystem } from './save.js';
 
 const loadingEl = document.getElementById('loading');
 // surface failures instead of a silent black screen: load errors stay on the loading card, runtime errors show a toast
@@ -546,63 +547,22 @@ window.__dbg = { input, player, camera, orbit, quest, rpg, ride: rideElevator, s
 
 // ---------------------------------------------------------------- start: chapter card → cold open (arrive through the gate)
 // ---------------------------------------------------------------- save / load (localStorage) + title screen
-const SAVE_KEY = 'sgu.save';
-let gameStarted = false; // saves only once a game is running (startChapter fires onStep during boot/load)
-const SAVE_VERSION = 1;
-/** Migrate an older save object to the current version. Older saves (no version field) are treated as version 0. */
-const migrateSave = (s) => {
-	if (!s.version) s.version = 0;
-	// v0 → v1: no structural changes yet, but this is the hook for future migrations.
-	// Example: if (s.version < 1) { s.deck = s.deck ?? 0; s.version = 1; }
-	s.version = SAVE_VERSION;
-	return s;
-};
-const saveGame = () => { if (!quest.chapter || !gameStarted) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, chapter: quest.chapter.id, stepIndex: quest.stepIndex, flags: [...quest.flags], lastScan, deck: destiny.deck, ftl: { window: ftl.window, cooldown: ftl.cooldown }, growth: destiny.ship.growBeds.map((b) => b.growth), countdown: countdown && { t: countdown.t, total: countdown.total, label: countdown.label, cause: countdown.cause }, savedAt: Date.now() })); saveRpg(); } catch (e) { console.warn('saveGame failed:', e.message); } };
-const hasSave = () => { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } };
-/** Restore chapter/step/flags + RPG, rebuild Destiny state from flags, and put the player in the gate room. Planet-side steps rewind to the gate. */
-const loadGame = () => {
-	let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { console.warn('loadGame parse failed:', e.message); s = null; }
-	if (!s) return false;
-	s = migrateSave(s);
-	startChapter(s.chapter); loadRpg(); lastScan = s.lastScan ?? null;
-	for (const f of s.flags) quest.flags.add(f);
-	const steps = quest.chapter.steps, idx = (id) => steps.findIndex((x) => x.id === id);
-	let si = Math.min(s.stepIndex, steps.length - 1);
-	const travelIdx = idx('travel'), brodyIdx = idx('give_brody');
-	if (travelIdx >= 0 && brodyIdx >= 0 && si > travelIdx && si < brodyIdx) { si = travelIdx; for (const f of ['on_planet', 'returned_from_planet']) quest.flags.delete(f); }
-	quest.stepIndex = si;
-	const S2 = destiny.ship;
-	if (quest.has('fuse_installed')) S2.installFuse(); if (quest.has('conduit_seated')) S2.installConduit(); if (quest.has('quarters_powered')) S2.setQuartersPower(true); for (const l of S2.lootables) if (quest.has(`looted:${l.key}`)) { S2.openCrate(l, true); S2.takeLoot(l); }
-	if (quest.has('grow_lights_restored')) S2.setGrowLights(true); if (s.growth) S2.setGrowth(s.growth); if (quest.has('elevator_fuses_seated')) S2.seatElevatorFuses(); if (quest.has('elevator_powered')) S2.setElevatorPower(true);
-	if (quest.has('power_restored')) S2.setPower(true); if (quest.has('any_breach_sealed')) S2.sealBreach(); if (quest.has('kino_acquired')) S2.takeKino(); if (quest.has('scrubber_repaired')) S2.repairScrubber();
-	const step = quest.step();
-	if (quest.has('ftl_dropped') && ['scout_kino', 'gear_up', 'travel'].includes(step?.id)) { destiny.gate.userData.reset(); destiny.gate.userData.incoming(onGateEvent(destiny)); }
-	ftl.window = s.ftl?.window ?? 0; ftl.cooldown = s.ftl?.cooldown ?? 0; ftl.warned.clear();
-	countdown = s.countdown ? { ...s.countdown, warned: new Set() } : null;
-	destiny.deck = s.deck ?? 0; enterWorld(destiny); placePlayer(destiny, destiny.deck ? (destiny.anchors['elevator_room_floor_1:Elevator'] ?? destiny.spawn).clone().setY(destiny.deck * DECK_H) : destiny.spawn, destiny.spawnYaw); cam.yaw = 0;
-	gameStarted = true; saveGame();
-	ui.refreshTracker(); ui.refreshPlayer(); ui.toast(`Loaded: ${quest.chapter.title} — ${step?.label ?? ''}`, 4);
-	return true;
-};
-window.__save = { saveGame, loadGame, hasSave, clear: () => localStorage.removeItem(SAVE_KEY) };
+// Extracted to src/save.js (TD-101). Dependencies injected via ctx.
+const __save = createSaveSystem({
+	quest, rpg, ftl, destiny, DECK_H, ui, enterWorld, arriveAt, placePlayer, loadRpg, saveRpg, listener, beacon,
+	get countdown() { return countdown; },
+	set countdown(v) { countdown = v; },
+	get lastScan() { return lastScan; },
+	set lastScan(v) { lastScan = v; },
+	cam, startChapter,
+	count: (id) => count(id), addItem: (id, n) => addItem(id, n), equip: (id) => equip(id),
+	onGateEvent: (w) => onGateEvent(w),
+});
+const { saveGame, hasSave, loadGame, newGame, startFrom } = __save;
+window.__save = { saveGame, loadGame, hasSave, clear: __save.clear };
 startChapter('e1_air');
 document.getElementById('loading')?.remove();
-document.addEventListener('visibilitychange', () => { if (document.hidden) listener.context.suspend?.(); else if (gameStarted) listener.context.resume?.(); }); // silence when the tab is hidden
-const newGame = () => { listener.context.resume(); destiny.scene.add(beacon); localStorage.removeItem(SAVE_KEY); localStorage.removeItem('sgu.rpg'); ui.showChapter(quest.chapter.title, quest.chapter.subtitle, 'Begin', () => { gameStarted = true; arriveAt(destiny); }); };
-/** Start at any chapter with the state earlier episodes would have left behind (cumulative stages, in chapter order). */
-const PREREQ_STAGES = {
-	e2_water: () => { const S = destiny.ship; S.setPower(true); S.installFuse(); S.takeKino(); S.repairScrubber(); S.sealBreach?.(); for (const f of ['relay_inspected', 'has_small_fuse', 'fuse_installed', 'power_restored', 'control_room_visited', 'life_support_diagnosed', 'any_breach_sealed', 'eli_quarters_visited', 'kino_acquired', 'locker_opened', 'scrubber_diagnosed', 'geared_up', 'scrubber_repaired']) quest.flags.add(f); for (const [id, n] of /** @type {[string,number][]} */ ([['kino_orb', 1], ['kino_remote', 1], ['shovel', 1], ['field_backpack', 1], ['tac_vest', 1], ['rations', 2]])) if (count(id) < n) addItem(id, n - count(id)); equip('shovel'); equip('field_backpack'); equip('tac_vest'); },
-	e3_darkness: () => {},
-	e4_parts: () => { const S = destiny.ship; S.seatElevatorFuses(); S.setElevatorPower(true); S.setGrowLights(true); for (const f of ['has_bus_fuses', 'has_large_fuse', 'elevator_fuses_seated', 'elevator_powered', 'upper_deck_reached', 'hydroponics_visited', 'grow_lights_restored']) quest.flags.add(f); },
-	e5_light: () => { const S = destiny.ship; S.installConduit(); S.setQuartersPower(true); for (const f of ['conduit_seated', 'quarters_powered', 'quarters_visited']) quest.flags.add(f); },
-};
-const startFrom = (id) => {
-	listener.context.resume(); destiny.scene.add(beacon); localStorage.removeItem(SAVE_KEY); localStorage.removeItem('sgu.rpg');
-	if (id === quest.chapters[0].id) return newGame();
-	startChapter(id); for (const ch of quest.chapters) { PREREQ_STAGES[ch.id]?.(); if (ch.id === id) break; }
-	ui.refreshPlayer(); ui.refreshTracker();
-	ui.showChapter(quest.chapter.title, quest.chapter.subtitle, 'Begin', () => { gameStarted = true; enterWorld(destiny); placePlayer(destiny, destiny.spawn.clone(), destiny.spawnYaw); cam.yaw = 0; saveGame(); });
-};
+document.addEventListener('visibilitychange', () => { if (document.hidden) listener.context.suspend?.(); else if (__save.gameStarted) listener.context.resume?.(); }); // silence when the tab is hidden
 ui.showTitle({ hasSave: hasSave(), onNew: newGame, onContinue: () => { listener.context.resume(); destiny.scene.add(beacon); if (!loadGame()) newGame(); }, chapters: quest.chapters.map((c) => ({ id: c.id, title: c.title, subtitle: c.subtitle })), onChapter: startFrom });
 // ?autoplay → hands-free demo driver (recordings / smoke runs); start it with window.__auto.run()
 if (location.search.includes('autoplay')) { const { createAutoplay } = await import('./autoplay.js'); window.__auto = createAutoplay(window.__dbg); }
@@ -663,7 +623,7 @@ const frame = (dtIn) => {
 		destiny.gate.userData.tick(t, dt); planet.gate.userData.tick(t, dt);
 		if (particles.visible) tickParticles(dt); if (world === planet) tickDust(dt);
 		tickHumFades(dt);
-		music.setMood(travel?.phase === 'wormhole' ? 'wormhole' : world === planet ? 'planet' : !gameStarted ? 'title' : performance.now() < alertUntil ? 'alert' : world.gate.userData.active ? 'gate' : !destiny.ship.powered ? 'ship_dark' : 'ship'); music.tick(dt);
+		music.setMood(travel?.phase === 'wormhole' ? 'wormhole' : world === planet ? 'planet' : !__save.gameStarted ? 'title' : performance.now() < alertUntil ? 'alert' : world.gate.userData.active ? 'gate' : !destiny.ship.powered ? 'ship_dark' : 'ship'); music.tick(dt);
 		{ // low rumble drone: rises while the ring spins, dips at the final chevron, then sits under the hum while the gate is active
 			const active = world.gate.userData.active && (!travel || travel.phase === 'arrive');
 			const target = active ? 0.7 : dialingWorld && rumbleOn ? Math.min(0.8, sfxRumble.getVolume() + dt * 0.6) : 0;
@@ -672,14 +632,14 @@ const frame = (dtIn) => {
 		}
 		brodyBusy = Math.max(0, brodyBusy - dt);
 		{ // air: CO2 builds while the scrubber is dead (Episode 1), recovers once it cycles; the O2 bar is the crew's clock
-			const dying = quest.chapter?.id === 'e1_air' && !quest.has('scrubber_repaired') && gameStarted, o2 = rpg.o2;
+			const dying = quest.chapter?.id === 'e1_air' && !quest.has('scrubber_repaired') && __save.gameStarted, o2 = rpg.o2;
 			const airless = world === planet && planet?.def?.atmosphere?.breathable === false && !kino.active; // no suits: the lungs are the clock
 			rpg.o2 = airless ? Math.max(4, o2 - dt * 0.55) : dying ? Math.max(38, o2 - dt * 0.09) : Math.min(100, o2 + dt * 3);
 			if (airless && rpg.o2 <= 4 && !knockedOut) { rpg.hp = Math.max(0, rpg.hp - dt * 6); ui.refreshPlayer(); if (rpg.hp <= 0) knockOut('asphyxiation'); }
 			if (airless) { for (const [lvl, who, line] of /** @type {[number,string,string][]} */ ([[50, 'Rush', 'Half your air, Eli. Whatever you have, it is enough — start back.'], [20, 'Eli', 'Can\'t... breathe. Gate. Now.']])) if (o2 > lvl && rpg.o2 <= lvl) ui.subtitle(who, line); }
 			if (Math.round(o2) !== Math.round(rpg.o2)) ui.refreshPlayer();
 		}
-		if (gameStarted) { tickFtl(dt); tickCountdown(dt); }
+		if (__save.gameStarted) { tickFtl(dt); tickCountdown(dt); }
 		const wp = waypointPos(); beacon.visible = !!wp && !kino.active;
 		if (wp) { if (beacon.parent !== world.scene) { beacon.removeFromParent(); world.scene.add(beacon); } beacon.position.set(wp.x, wp.y + 3, wp.z); beacon.material.opacity = 0.18 + 0.1 * Math.sin(t * 3); }
 		ui.drawMinimap({ rooms: world === destiny ? destiny.rooms : null, nodes: world === planet ? planet.nodes : null, player: player.root.position, yaw: player.root.rotation.y, waypoint: wp, gate: world.gate.position });
