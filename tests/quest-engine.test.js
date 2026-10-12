@@ -64,17 +64,17 @@ describe('quest engine — init', () => {
 });
 
 describe('quest engine — startChapter', () => {
-	let triggers, steps, xpGranted, eng;
+	let triggers, steps, _xpGranted, eng;
 
 	beforeEach(() => {
 		triggers = [];
 		steps = [];
-		xpGranted = 0;
+		_xpGranted = 0;
 		eng = createQuestEngine({
 			onTrigger: (t) => triggers.push(t),
 			onStep: (s) => steps.push(s?.id),
 			onChapterComplete: (ch) => triggers.push(`complete:${ch.id}`),
-			grantXp: (n) => { xpGranted += n; },
+			grantXp: (n) => { _xpGranted += n; },
 		});
 		eng.chapters = makeChapters();
 	});
@@ -111,17 +111,17 @@ describe('quest engine — startChapter', () => {
 });
 
 describe('quest engine — flag / check / advance', () => {
-	let triggers, steps, xpGranted, eng;
+	let triggers, steps, _xpGranted, eng;
 
 	beforeEach(() => {
 		triggers = [];
 		steps = [];
-		xpGranted = 0;
+		_xpGranted = 0;
 		eng = createQuestEngine({
 			onTrigger: (t) => triggers.push(t),
 			onStep: (s) => steps.push(s?.id),
 			onChapterComplete: (ch) => triggers.push(`complete:${ch.id}`),
-			grantXp: (n) => { xpGranted += n; },
+			grantXp: (n) => { _xpGranted += n; },
 		});
 		eng.chapters = makeChapters();
 		eng.startChapter('ch1');
@@ -159,7 +159,7 @@ describe('quest engine — flag / check / advance', () => {
 		assert.ok(triggers.includes('msg:key_found'));
 		assert.ok(triggers.includes('msg:open_door'));
 		// Should have granted xp for s1
-		assert.equal(xpGranted, 10);
+		assert.equal(_xpGranted, 10);
 	});
 
 	test('check does not advance when complete_when flag is not set', () => {
@@ -175,7 +175,7 @@ describe('quest engine — flag / check / advance', () => {
 		assert.equal(eng.step().terminal, true);
 		assert.deepEqual(eng.done, ['ch1']);
 		assert.ok(triggers.includes('complete:ch1'));
-		assert.equal(xpGranted, 30); // 10 + 20
+		assert.equal(_xpGranted, 30); // 10 + 20
 	});
 
 	test('terminal step stops further advancement', () => {

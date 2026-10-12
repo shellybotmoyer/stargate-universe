@@ -21,7 +21,7 @@ function makeCtx(overrides = {}) {
 		stepIndex: 0,
 		flags: new Set(['power_restored']),
 		step: () => ({ id: 'scout_kino', label: 'Scout' }),
-		has: (f) => false,
+		has: (_f) => false,
 		...overrides.quest,
 	};
 	const ftl = { window: 300, cooldown: 0, warned: new Set() };

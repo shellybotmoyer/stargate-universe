@@ -11,9 +11,9 @@
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { roomsFromLayout, doorsFromLayout, elevatorsFromLayout, DOOR_W, DECK_H } from '../src/ship.js';
+import { roomsFromLayout, doorsFromLayout, elevatorsFromLayout, DECK_H } from '../src/ship.js';
 
-const SCALE = 0.05;
+const _SCALE = 0.05; // used in comment assertions; kept for documentation
 
 // Minimal layout: two adjacent rooms sharing an x-edge, both on floor 0
 const TWO_ROOMS = [

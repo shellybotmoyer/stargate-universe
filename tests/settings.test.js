@@ -54,7 +54,7 @@ describe('settings persistence', () => {
 	});
 
 	test('resetSettings restores all defaults', () => {
-		let settings = { ...DEFAULTS, master: 0.3, fov: 90, invertY: true };
+		const settings = { ...DEFAULTS, master: 0.3, fov: 90, invertY: true };
 		// Simulate resetSettings
 		for (const k in DEFAULTS) settings[k] = DEFAULTS[k];
 		assert.deepEqual(settings, DEFAULTS);

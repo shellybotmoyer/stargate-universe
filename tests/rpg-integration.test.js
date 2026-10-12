@@ -28,7 +28,7 @@ const rpgMod = await import('../src/rpg.js');
 const {
 	rpg, xpToNext, addLog, count, addItem, removeItem,
 	equip, unequip, spendTalent, stats, carried, grantXp,
-	usable, use, useVerb, iconHtml, TALENTS, loadItems, ITEMS,
+	usable, use, useVerb, iconHtml, TALENTS, loadItems,
 } = rpgMod;
 
 // Populate ITEMS by calling loadItems with a stubbed fetch.
@@ -36,7 +36,7 @@ const {
 // merges in WEB_ITEMS. We stub fetch to return the local file content.
 import { readFileSync } from 'node:fs';
 const itemsJson = JSON.parse(readFileSync(new URL('../data/items.json', import.meta.url), 'utf8'));
-globalThis.fetch = async (url) => ({
+globalThis.fetch = async (_url) => ({
 	ok: true,
 	status: 200,
 	json: async () => itemsJson,

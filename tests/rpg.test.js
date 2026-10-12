@@ -156,16 +156,16 @@ describe('inventory add/remove logic', () => {
 	test('removeItem deletes when count reaches zero', () => {
 		const inv = { rations: 2 };
 		const count = (id) => inv[id] ?? 0;
-		let c = count('rations') - 1; if (c <= 0) delete inv['rations']; else inv['rations'] = c;
+		const c = count('rations') - 1; if (c <= 0) delete inv['rations']; else inv['rations'] = c;
 		assert.equal(inv['rations'], 1);
-		c = count('rations') - 1; if (c <= 0) delete inv['rations']; else inv['rations'] = c;
+		const c2 = count('rations') - 1; if (c2 <= 0) delete inv['rations']; else inv['rations'] = c2;
 		assert.equal(inv['rations'], undefined);
 	});
 
 	test('removeItem on non-existent item is a no-op', () => {
 		const inv = {};
 		const count = (id) => inv[id] ?? 0;
-		let c = count('rations') - 1; if (c <= 0) delete inv['rations']; else inv['rations'] = c;
+		const c = count('rations') - 1; if (c <= 0) delete inv['rations']; else inv['rations'] = c;
 		assert.equal(inv['rations'], undefined);
 	});
 });
