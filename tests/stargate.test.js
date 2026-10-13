@@ -210,8 +210,8 @@ describe('incoming() — incoming wormhole (pre-locked chevrons)', () => {
 
 	test('skips chevron locking and goes straight to kawoosh', () => {
 		g.userData.incoming(col.cb, { chevronCount: 7 });
-		const kawooshAt = 0.4 + CHEV_INTERVAL * 7 + 0.35;
-		// incoming starts at kawooshAt - 0.05, so only ~0.05s before kawoosh
+		const _kawooshAt = 0.4 + CHEV_INTERVAL * 7 + 0.35;
+		// incoming starts at _kawooshAt - 0.05, so only ~0.05s before kawoosh
 		advance(g, 2.0);
 		const chevs = col.events.filter(e => e.name === 'chevron');
 		assert.equal(chevs.length, 0, 'incoming should not fire chevron events');
