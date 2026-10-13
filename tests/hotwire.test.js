@@ -9,8 +9,18 @@
  * with minimal stubs to test: return shape, isOpen state, fault counting,
  * sfx callback wiring, play() promise interface, and WIRES labels.
  */
-import { test, describe } from 'node:test';
+import { test, describe, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+
+// ─── Timer Leak Prevention ──────────────────────────────
+// hotwire.js starts setTimeout(2600ms) in play() for port colour flash removal.
+// Tests that call play() without completing leave orphaned timeouts that can
+// interfere with other test suites when run via glob. Track and clear after each test.
+const _timeouts = [];
+const _origSetTimeout = globalThis.setTimeout;
+globalThis.setTimeout = (...args) => { const id = _origSetTimeout(...args); _timeouts.push(id); return id; };
+function _clearAllTimeouts() { _timeouts.forEach((id) => clearTimeout(id)); _timeouts.length = 0; }
+afterEach(_clearAllTimeouts);
 
 // ─── DOM Stub ─────────────────────────────────────────────
 // hotwire.js calls document.head.appendChild(createElement('style')),

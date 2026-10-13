@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   web-game:
     runs-on: ubuntu-latest
@@ -24,6 +28,7 @@ jobs:
         run: npm install
       - name: Run unit tests
         run: node --test tests/*.test.js
+        timeout-minutes: 2
       - name: Type check (tsc --noEmit)
         run: npm run typecheck
       - name: Build itch.io zip

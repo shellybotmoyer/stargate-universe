@@ -10,8 +10,18 @@
  * play() promise interface, solve() helper, sfx callback wiring, gauges option,
  * and multiple instance independence.
  */
-import { test, describe } from 'node:test';
+import { test, describe, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+
+// ─── Interval Leak Prevention ───────────────────────────
+// flow.js starts setInterval(tick, 200) in play() and only clears it in done().
+// Tests that call play() without resolving leave orphaned intervals that prevent
+// node --test from exiting. Track and clear all intervals after each test.
+const _intervals = [];
+const _origSetInterval = globalThis.setInterval;
+globalThis.setInterval = (...args) => { const id = _origSetInterval(...args); _intervals.push(id); return id; };
+function _clearAllIntervals() { _intervals.forEach((id) => clearInterval(id)); _intervals.length = 0; }
+afterEach(_clearAllIntervals);
 
 // ─── DOM Stub ─────────────────────────────────────────────
 // flow.js calls document.head.appendChild(createElement('style')),
