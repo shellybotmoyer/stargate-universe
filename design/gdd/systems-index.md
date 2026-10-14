@@ -41,12 +41,12 @@ The game pillars that constrain system design:
 | 4 | Ship State System | Gameplay | MVP | Implemented | design/gdd/ship-state-system.md | src/ship.js | Event Bus, Save/Load (interface) |
 | 5 | Ship Exploration System | Gameplay | MVP | Implemented | design/gdd/ship-exploration.md | src/ship.js, src/gate-room.js | Player Controller, Camera, Ship State, Three.js scene mgmt |
 | 6 | Resource & Inventory System | Economy | MVP | Implemented | design/gdd/resource-inventory.md | src/rpg.js | Event Bus, Save/Load (interface) |
-| 7 | Timer & Pressure System | Gameplay | MVP | Implemented | design/gdd/timer-pressure-system.md | src/main.js (tickCountdown, tickFtl) | Event Bus |
+| 7 | Timer & Pressure System | Gameplay | MVP | Implemented | design/gdd/timer-pressure-system.md | src/ftl.js (createFtlSystem), src/main.js (wiring) | Event Bus |
 | 8 | Stargate & Planetary Runs | Gameplay | MVP | Implemented | design/gdd/stargate-planetary-runs.md | src/stargate.js, src/destination.js | Player Controller, Camera, Timer, Three.js scene mgmt, Resource System |
 | 9 | Crew Dialogue & Choice System | Narrative | MVP | Implemented | design/gdd/crew-dialogue-choice.md | src/ui.js (subtitle), data/characters.json | Event Bus, Save/Load (interface) |
 | 10 | Kino Remote (diegetic menu) | UI | MVP | Implemented | design/gdd/kino-remote.md | src/ui.js (Kino Remote tabs) | Ship State, Resource System, Three.js scene mgmt |
 | 11 | Ship Atmosphere & Lighting | Audio/Visual | MVP | Implemented | design/gdd/ship-atmosphere-lighting.md | src/ancient.js, src/ship.js (nearest-6 lights) | Ship State, Three.js materials/lighting |
-| 12 | Save/Load System | Persistence | Vertical Slice | Implemented | — | src/save.js (22 unit tests) | Event Bus |
+| 12 | Save/Load System | Persistence | Vertical Slice | Implemented | — | src/save.js (createSaveSystem, 22 unit tests) | Event Bus |
 | 13 | Ancient Tech Puzzle System | Gameplay | Vertical Slice | Implemented | — | src/hotwire.js, src/flow.js | Player Controller, Ship State |
 | 14 | Crew AI & Schedule System | Gameplay | Vertical Slice | Partial | — | src/autoplay.js (NPC movement only) | Ship State, Event Bus, Three.js scene mgmt |
 | 15 | Kino Drone (first-person scout) | Gameplay | Vertical Slice | Implemented | — | src/kino.js | Camera System, Ship State, Player Controller |
