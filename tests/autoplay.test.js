@@ -201,7 +201,7 @@ describe('step id coverage in chapters.json', () => {
 	let chapters;
 	try {
 		chapters = JSON.parse(readFileSync(join(__dirname, '..', 'data', 'chapters.json'), 'utf-8'));
-	} catch (e) {
+	} catch {
 		chapters = null;
 	}
 
