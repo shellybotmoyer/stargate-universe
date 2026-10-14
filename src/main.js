@@ -25,8 +25,8 @@ import { createSaveSystem } from './save.js';
 const loadingEl = document.getElementById('loading');
 // surface failures instead of a silent black screen: load errors stay on the loading card, runtime errors show a toast
 THREE.DefaultLoadingManager.onError = (url) => { if (loadingEl) loadingEl.textContent = `FAILED TO LOAD ${url.split('/').pop()} — reload to retry`; };
-addEventListener('error', (e) => { const t = document.getElementById('toast'); if (t) { t.textContent = `Error: ${e.message}`; t.classList.remove('hidden'); } });
-addEventListener('unhandledrejection', (e) => { const t = document.getElementById('toast'); if (t) { t.textContent = `Error: ${e.reason?.message ?? e.reason}`; t.classList.remove('hidden'); } });
+addEventListener('error', (e) => { const t = document.getElementById('toast') ?? loadingEl; if (t) { t.textContent = `Error: ${e.message}`; t.classList?.remove('hidden'); } });
+addEventListener('unhandledrejection', (e) => { const t = document.getElementById('toast') ?? loadingEl; if (t) { t.textContent = `Error: ${e.reason?.message ?? e.reason}`; t.classList?.remove('hidden'); } });
 THREE.DefaultLoadingManager.onProgress = (url, n, total) => { if (loadingEl) loadingEl.textContent = `LOADING DESTINY… ${Math.round((n / Math.max(total, 1)) * 100)}%`; };
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
