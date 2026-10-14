@@ -78,8 +78,7 @@ export function createSaveSystem(ctx) {
 		let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { console.warn('loadGame parse failed:', e.message); s = null; }
 		if (!s) return false;
 		s = migrateSave(s);
-		quest.chapter = quest.chapter; // keep reference — startChapter will set it
-		ctx.startChapter(s.chapter);
+		ctx.startChapter(s.chapter); // sets quest.chapter to the saved chapter
 		loadRpg();
 		ctx.lastScan = s.lastScan ?? null;
 		for (const f of s.flags) quest.flags.add(f);
