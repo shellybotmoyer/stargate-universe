@@ -216,7 +216,7 @@ const knockOut = (cause) => {
 };
 // FTL rhythm + story countdown — extracted to src/ftl.js (TD-101). Dependencies injected via ctx.
 const __ftl = createFtlSystem({
-	mmss, clockScale, quest, ui, oneShot, buffers, shutdownBuf, addLog, urgentAlarm, knockOut, recallKino, shutdownGate, dialGate,
+	mmss, clockScale, quest, ui, oneShot, buffers, shutdownBuf, addLog, urgentAlarm, knockOut, recallKino: () => recallKino(), shutdownGate, dialGate,
 	setShake: (n) => { shake = n; },
 	setAlertUntil: (t) => { alertUntil = t; },
 	getWorld: () => world,
