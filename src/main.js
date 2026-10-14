@@ -20,6 +20,7 @@ import { settings, onSettings } from './settings.js';
 import { createLevelEditor } from './leveledit.js';
 import { createHotwire } from './hotwire.js';
 import { createFlow } from './flow.js';
+import { createFtlSystem } from './ftl.js';
 import { createSaveSystem } from './save.js';
 
 const loadingEl = document.getElementById('loading');
@@ -172,7 +173,7 @@ const ui = createUI({
 	deckMap: () => ({ deck: destiny.deck, rooms: destiny.rooms.filter((r) => r.floor === destiny.deck), player: player.root.position, current: currentRoom, discovered: [...discovered], waypoint: world === destiny ? waypointPos() : null }),
 	clocks: () => { // Kino Remote CLOCKS tab: [label, value, fraction, colour]
 		const rows = [];
-		if (countdown) rows.push([countdown.label, mmss(countdown.t), countdown.t / countdown.total, countdown.t <= 60 ? '#ff5a48' : '#ffb060']);
+		if (__ftl.countdown) rows.push([__ftl.countdown.label, mmss(__ftl.countdown.t), __ftl.countdown.t / __ftl.countdown.total, __ftl.countdown.t <= 60 ? '#ff5a48' : '#ffb060']);
 		if (ftl.window > 0) rows.push(['FTL jump window', mmss(ftl.window), ftl.window / ((quest.chapter?.planet?.window_seconds ?? FTL_WINDOW) * clockScale()), ftl.window <= 60 ? '#ff5a48' : '#d4a852']);
 		else if (ftl.cooldown > 0) rows.push(['FTL cooldown · next drop', mmss(ftl.cooldown), 1 - ftl.cooldown / FTL_COOLDOWN, '#7fb4e6']);
 		if (destiny.ship.growLights) for (const [i, b] of destiny.ship.growBeds.entries()) rows.push([`Hydroponics bed ${i + 1}`, b.growth >= 1 ? 'READY' : `${Math.round(b.growth * 100)}%`, b.growth, b.growth >= 1 ? '#57bd42' : '#8fd0a0']);
@@ -194,23 +195,8 @@ onRpgChange(() => { ui.refreshPlayer(); player.speedMul = stats().speed; if (ui.
 const flash = document.getElementById('flash');
 let shake = 0;
 let alertUntil = 0; // music 'alert' mood window (breach, FTL drop)
-// FTL rhythm (design: timer-pressure-system): each drop-out opens a jump window; when it closes Destiny jumps whether or
-// not you are aboard. If the chapter still needs the planet, a cooldown runs and the ship drops out again at the same address.
-const FTL_WINDOW = 600, FTL_COOLDOWN = 90;
-const ftl = { window: 0, cooldown: 0, warned: new Set() };
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const clockScale = () => settings.clockScale ?? 1; // accessibility: stretch or shorten every story clock
-const openFtlWindow = () => { ftl.window = (quest.chapter?.planet?.window_seconds ?? FTL_WINDOW) * clockScale(); ftl.cooldown = 0; ftl.warned.clear(); };
-const PLANET_STEPS = ['scout_kino', 'gear_up', 'travel', 'mine', 'dial_home'];
-const needsPlanet = () => PLANET_STEPS.includes(quest.step()?.id);
-const ftlJump = () => {
-	if (kino.active) recallKino();
-	if (world === planet || travel?.to === planet) { ui.subtitle('Scott', 'Eli! Through the gate — NOW!'); knockOut('window_closed'); } // no suits, no shuttle: they haul you through as it collapses
-	else if (destiny.gate.userData.active) shutdownGate(destiny);
-	shake = 1.2; oneShot(buffers.ftlDrop, 0.9); addLog('Destiny jumped to FTL'); quest.setFlag('ftl_jumped');
-	ftl.window = 0; ftl.cooldown = FTL_COOLDOWN; ftl.warned.clear();
-};
-const ftlRedrop = () => { shake = 1.4; oneShot(buffers.ftlDrop, 0.9); oneShot(shutdownBuf, 0.5, 0.55); addLog('Destiny dropped out of FTL'); alertUntil = performance.now() + 12000; openFtlWindow(); setTimeout(() => dialGate(destiny), 900); oneShot(buffers.radio, 0.6); ui.subtitle('Brody', 'We have dropped out again — same address is dialing. Whatever you did not finish, finish it.', { radio: true }); };
 // Knockout loop (design: no death, issue #92): black out, wake on an infirmary bed, TJ has a line for whatever dropped you.
 let knockoutLines = { speaker: 'TJ', pools: { generic: ['You took a knock out there. Nothing that will not mend.'] } }, knockedOut = false;
 fetch(`${ASSETS}data/knockout_lines.json`).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }).then((j) => { knockoutLines = j; }).catch((e) => { console.warn('[SGU] knockout_lines.json load failed:', e.message); });
@@ -228,32 +214,19 @@ const knockOut = (cause) => {
 		setTimeout(() => { flash.style.opacity = '0'; setTimeout(() => { flash.style.transition = ''; flash.style.background = ''; knockedOut = false; }, 1200); }, 900);
 	}, 1200);
 };
-// Story countdowns (data triggers `countdown` / `countdown_stop`): a deadline with a label; expiry knocks you out with the
-// given cause and re-arms, so a missed deadline costs a trip to the infirmary rather than the run. Takes over the HUD clock.
-let countdown = null;
-const startCountdown = ({ seconds = 300, label = 'DEADLINE', cause = 'generic' }) => { const t = seconds * clockScale(); countdown = { t, total: t, label, cause, warned: new Set() }; alertUntil = performance.now() + 12000; };
-const stopCountdown = () => { countdown = null; ui.setClock(''); };
-const tickCountdown = (dt) => {
-	if (!countdown) return;
-	if (!knockedOut) countdown.t = Math.max(0, countdown.t - dt); // the clock keeps drawing through a blackout, it just does not run
-	for (const [at, who, line] of [[120, 'Rush', 'Two minutes, Eli. I would very much like to be wrong about the shields.'], [30, 'Scott', 'Thirty seconds! Wherever you are, get it done!']]) if (countdown.t <= at && !countdown.warned.has(at)) { countdown.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
-	ui.setClock(`${countdown.label}  ${mmss(countdown.t)}`, countdown.t <= 60 ? 'urgent' : '');
-	if (countdown.t > 0 && countdown.t <= 60 && !knockedOut) urgentAlarm(dt);
-	if (countdown.t === 0) { const c = countdown; knockOut(c.cause); c.t = c.total; c.warned.clear(); shake = 1.2; }
-};
-const tickFtl = (dt) => {
-	if (ftl.window > 0) {
-		ftl.window = Math.max(0, ftl.window - dt);
-		for (const [at, who, line] of /** @type {[number,string,string][]} */ ([[120, 'Rush', 'Two minutes on the FTL clock, Eli. The ship does not wait for you.'], [30, 'Scott', 'Thirty seconds! Whatever you are doing, stop and run.']])) if (Number(ftl.window) <= at && !ftl.warned.has(at)) { ftl.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
-		if (ftl.window === 0) ftlJump();
-		if (!countdown) ui.setClock(`FTL JUMP  ${mmss(ftl.window)}`, ftl.window <= 60 ? 'urgent' : '');
-		if (!countdown && ftl.window > 0 && ftl.window <= 60) urgentAlarm(dt);
-	} else if (ftl.cooldown > 0) {
-		ftl.cooldown = Math.max(0, ftl.cooldown - dt);
-		if (ftl.cooldown === 0) { if (needsPlanet() && world === destiny && !travel) ftlRedrop(); else ui.setClock(''); }
-		else if (!countdown) ui.setClock(needsPlanet() ? `IN FTL  ·  NEXT DROP ${mmss(ftl.cooldown)}` : 'IN FTL', 'cool');
-	} else if (!countdown) ui.setClock('');
-};
+// FTL rhythm + story countdown — extracted to src/ftl.js (TD-101). Dependencies injected via ctx.
+const __ftl = createFtlSystem({
+	mmss, clockScale, quest, ui, oneShot, buffers, shutdownBuf, addLog, urgentAlarm, knockOut, recallKino, shutdownGate, dialGate,
+	setShake: (n) => { shake = n; },
+	setAlertUntil: (t) => { alertUntil = t; },
+	getWorld: () => world,
+	getDestiny: () => destiny,
+	getPlanet: () => planet,
+	getTravel: () => travel,
+	getKino: () => kino,
+	knockedOut: () => knockedOut,
+});
+const { ftl, openFtlWindow, startCountdown, stopCountdown, tickCountdown, tickFtl, FTL_WINDOW, FTL_COOLDOWN } = __ftl;
 quest = createQuestEngine({
 	grantXp: (n) => grantXp(n),
 	onStep: (step) => { ui.refreshTracker(); if (step && !step.terminal) ui.toast(`New objective: ${step.label}`, 3); saveGame(); },
@@ -550,8 +523,8 @@ window.__dbg = { input, player, camera, orbit, quest, rpg, ride: rideElevator, s
 // Extracted to src/save.js (TD-101). Dependencies injected via ctx.
 const __save = createSaveSystem({
 	quest, rpg, ftl, destiny, DECK_H, ui, enterWorld, arriveAt, placePlayer, loadRpg, saveRpg, listener, beacon,
-	get countdown() { return countdown; },
-	set countdown(v) { countdown = v; },
+	get countdown() { return __ftl.countdown; },
+	set countdown(v) { __ftl.countdown = v; },
 	get lastScan() { return lastScan; },
 	set lastScan(v) { lastScan = v; },
 	cam, startChapter,
@@ -592,7 +565,7 @@ const devcon = createConsole({
 	give: (id, n = 1) => { for (let i = 0; i < +n; i++) addItem(id); return `gave ${n}× ${id}`; },
 	chapter: (id) => { startChapter(id); return `chapter ${id}`; },
 });
-window.__dbg.edit = edit; window.__dbg.console = devcon; window.__dbg.renderer = renderer; window.__dbg.hotwire = hotwire; window.__dbg.flow = flow; window.__dbg.ftl = ftl; window.__dbg.knockOut = knockOut; window.__dbg.countdown = () => countdown;
+window.__dbg.edit = edit; window.__dbg.console = devcon; window.__dbg.renderer = renderer; window.__dbg.hotwire = hotwire; window.__dbg.flow = flow; window.__dbg.ftl = ftl; window.__dbg.knockOut = knockOut; window.__dbg.countdown = () => __ftl.countdown;
 
 const fpsEl = document.getElementById('fps'); let simTime = 0; const frameWaiters = new Set(); // autoplay waits are checked once per simulated frame (timers throttle to 1 Hz in hidden tabs) // simulated seconds (drives autoplay waits; equals wall time except while recording)
 const clock = new THREE.Clock(); let acc = 0, frames = 0;

@@ -21,6 +21,7 @@ import { dirname, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(join(__dirname, '..', 'src', 'main.js'), 'utf-8');
+const ftlSrc = readFileSync(join(__dirname, '..', 'src', 'ftl.js'), 'utf-8');
 
 // ─── Helper: extract a const that's a simple literal (string, number, array) ───
 // Handles both standalone (`const X = 5;`) and comma-separated (`const A = 1, X = 5;`) declarations.
@@ -50,8 +51,8 @@ function extractConstLiteral(name, src) {
 
 // ─── Constants extracted from source ───
 
-const FTL_WINDOW = Number(extractConstLiteral('FTL_WINDOW', src));
-const FTL_COOLDOWN = Number(extractConstLiteral('FTL_COOLDOWN', src));
+const FTL_WINDOW = Number(extractConstLiteral('FTL_WINDOW', ftlSrc));
+const FTL_COOLDOWN = Number(extractConstLiteral('FTL_COOLDOWN', ftlSrc));
 const PLAYER_CHEST = Number(extractConstLiteral('PLAYER_CHEST', src));
 const PCOUNT = Number(extractConstLiteral('PCOUNT', src));
 const DCOUNT = Number(extractConstLiteral('DCOUNT', src));
@@ -59,7 +60,7 @@ const DCOUNT = Number(extractConstLiteral('DCOUNT', src));
 const IDLE_INPUT = eval(`(${extractConstLiteral('IDLE_INPUT', src)})`);
 const WALK_OUT = eval(`(${extractConstLiteral('WALK_OUT', src)})`);
 const VIEWS = eval(`(${extractConstLiteral('VIEWS', src)})`);
-const PLANET_STEPS = eval(`(${extractConstLiteral('PLANET_STEPS', src)})`);
+const PLANET_STEPS = eval(`(${extractConstLiteral('PLANET_STEPS', ftlSrc)})`);
 
 // SFX_FILES is a large object — extract it
 const SFX_FILES_SRC = (() => {
@@ -507,36 +508,41 @@ describe('Interaction system registration', () => {
 
 describe('FTL and countdown system', () => {
 	test('main.js has ftl object with window, cooldown, warned', () => {
-		assert.ok(src.includes('const ftl = { window: 0, cooldown: 0'));
-		assert.ok(src.includes('warned: new Set()'));
+		assert.ok(ftlSrc.includes('const ftl = { window: 0, cooldown: 0') || ftlSrc.includes('ftl = { window: 0, cooldown: 0'));
+		assert.ok(ftlSrc.includes('warned: new Set()'));
 	});
 
-	test('main.js has openFtlWindow function', () => {
-		assert.ok(src.includes('const openFtlWindow'));
+	test('main.js wires openFtlWindow from ftl.js', () => {
+		assert.ok(src.includes('openFtlWindow'), 'openFtlWindow should be referenced in main.js');
+		assert.ok(ftlSrc.includes('openFtlWindow'), 'openFtlWindow should be defined in ftl.js');
 	});
 
-	test('main.js has ftlJump function', () => {
-		assert.ok(src.includes('const ftlJump'));
+	test('main.js wires ftlJump from ftl.js', () => {
+		assert.ok(ftlSrc.includes('ftlJump'), 'ftlJump should be defined in ftl.js');
 	});
 
-	test('main.js has ftlRedrop function', () => {
-		assert.ok(src.includes('const ftlRedrop'));
+	test('main.js wires ftlRedrop from ftl.js', () => {
+		assert.ok(ftlSrc.includes('ftlRedrop'), 'ftlRedrop should be defined in ftl.js');
 	});
 
-	test('main.js has tickFtl function', () => {
-		assert.ok(src.includes('const tickFtl'));
+	test('main.js wires tickFtl from ftl.js', () => {
+		assert.ok(src.includes('tickFtl'), 'tickFtl should be called in main.js');
+		assert.ok(ftlSrc.includes('tickFtl'), 'tickFtl should be defined in ftl.js');
 	});
 
-	test('main.js has tickCountdown function', () => {
-		assert.ok(src.includes('const tickCountdown'));
+	test('main.js wires tickCountdown from ftl.js', () => {
+		assert.ok(src.includes('tickCountdown'), 'tickCountdown should be called in main.js');
+		assert.ok(ftlSrc.includes('tickCountdown'), 'tickCountdown should be defined in ftl.js');
 	});
 
-	test('main.js has startCountdown function', () => {
-		assert.ok(src.includes('const startCountdown'));
+	test('main.js wires startCountdown from ftl.js', () => {
+		assert.ok(src.includes('startCountdown'), 'startCountdown should be called in main.js');
+		assert.ok(ftlSrc.includes('startCountdown'), 'startCountdown should be defined in ftl.js');
 	});
 
-	test('main.js has stopCountdown function', () => {
-		assert.ok(src.includes('const stopCountdown'));
+	test('main.js wires stopCountdown from ftl.js', () => {
+		assert.ok(src.includes('stopCountdown'), 'stopCountdown should be called in main.js');
+		assert.ok(ftlSrc.includes('stopCountdown'), 'stopCountdown should be defined in ftl.js');
 	});
 
 	test('main.js has knockOut function', () => {
@@ -548,8 +554,8 @@ describe('FTL and countdown system', () => {
 	});
 
 	test('main.js FTL has radio warning at 120s and 30s', () => {
-		assert.ok(src.includes('120') && src.includes('30'), 'should have timed radio warnings');
-		assert.ok(src.includes('warned.has'), 'should track warned thresholds');
+		assert.ok(ftlSrc.includes('120') && ftlSrc.includes('30'), 'should have timed radio warnings');
+		assert.ok(ftlSrc.includes('warned.has'), 'should track warned thresholds');
 	});
 });
 
