@@ -26,7 +26,7 @@ unmanned — so the lore is the ship's own history, not a crew's.
 floor-gating logic described in the §Procedural Floor Architecture section below
 were implemented in the Godot era (now historical — those `.gd` files no longer
 exist after the 2026-09-08 Three.js re-pivot). The web runtime is `src/*.js` +
-`data/`. The ggez/EventBus design in the sections below describes the
+`data/`. The engine/EventBus design in the sections below describes the
 aspirational vision; re-map to `src/*.js` before use.
 
 ---
@@ -206,7 +206,7 @@ label.
 
 > The sections below describe the full designed vision. Items noted
 > [FORWARD-LOOKING] are designed but not yet built. The browser-era references
-> to `ggez`, `EventBus`, and `player:entered:section` have been superseded by
+> to the engine framework, `EventBus`, and `player:entered:section` have been superseded by
 > the Godot autoload architecture described in the Procedural Floor Architecture
 > section above.
 

@@ -2,7 +2,7 @@
 
 > **⚠️ STALE engine mapping — ggez-era foundation superseded by the 2026-09-08 Three.js re-pivot**
 >
-> The "ggez-Provided Foundation" section (`@ggez/gameplay-runtime`,
+> The "Engine-Provided Foundation" section (`@ggez/gameplay-runtime`,
 > `@ggez/runtime-physics-crashcat`, `@ggez/anim-*`, `@ggez/render-pipeline`)
 > references the ggez framework removed in `abfb5ed` — the Three.js-era repo
 > runs plain `src/*.js` + `index.html` (`build.sh`). The system catalog
@@ -22,8 +22,8 @@ Stargate Universe is a third-person exploration-survival game aboard the Ancient
 ship Destiny. The systems divide into two domains: **ship systems** (exploring,
 repairing, and managing Destiny) and **planetary systems** (gating to worlds for
 time-limited supply runs). A narrative layer drives the story through episodes,
-crew relationships, and player choices. The ggez framework provides scene
-management, physics (Crashcat), animation, and the render pipeline — all custom
+crew relationships, and player choices. The engine provides scene
+management, physics, animation, and the render pipeline — all custom
 systems build on top of this foundation.
 
 The game pillars that constrain system design:
@@ -39,24 +39,24 @@ The game pillars that constrain system design:
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
 | 1 | Event Bus | Core | MVP | Designed | design/gdd/event-bus.md | (none — foundation) |
-| 2 | Player Controller (third-person) | Core | MVP | Designed | design/gdd/player-controller.md | ggez Gameplay Runtime, ggez Physics |
+| 2 | Player Controller (third-person) | Core | MVP | Designed | design/gdd/player-controller.md | Gameplay Runtime, Physics |
 | 3 | Camera System (third-person) | Core | MVP | Designed | design/gdd/camera-system.md | Player Controller |
 | 4 | Ship State System | Gameplay | MVP | Designed | design/gdd/ship-state-system.md | Event Bus, Save/Load (interface) |
-| 5 | Ship Exploration System | Gameplay | MVP | Designed | design/gdd/ship-exploration.md | Player Controller, Camera, Ship State, ggez Scene Mgmt |
+| 5 | Ship Exploration System | Gameplay | MVP | Designed | design/gdd/ship-exploration.md | Player Controller, Camera, Ship State, Scene Mgmt |
 | 6 | Resource & Inventory System | Economy | MVP | Designed | design/gdd/resource-inventory.md | Event Bus, Save/Load (interface) |
 | 7 | Timer & Pressure System | Gameplay | MVP | Designed | design/gdd/timer-pressure-system.md | Event Bus |
-| 8 | Stargate & Planetary Runs | Gameplay | MVP | Designed | design/gdd/stargate-planetary-runs.md | Player Controller, Camera, Timer, ggez Scene Mgmt, Resource System |
+| 8 | Stargate & Planetary Runs | Gameplay | MVP | Designed | design/gdd/stargate-planetary-runs.md | Player Controller, Camera, Timer, Scene Mgmt, Resource System |
 | 9 | Crew Dialogue & Choice System | Narrative | MVP | Designed | design/gdd/crew-dialogue-choice.md | Event Bus, Save/Load (interface) |
-| 10 | Kino Remote (diegetic menu) | UI | MVP | Designed | design/gdd/kino-remote.md | Ship State, Resource System, ggez Scene Mgmt |
-| 11 | Ship Atmosphere & Lighting | Audio/Visual | MVP | Designed | design/gdd/ship-atmosphere-lighting.md | Ship State, ggez Render Pipeline |
+| 10 | Kino Remote (diegetic menu) | UI | MVP | Designed | design/gdd/kino-remote.md | Ship State, Resource System, Scene Mgmt |
+| 11 | Ship Atmosphere & Lighting | Audio/Visual | MVP | Designed | design/gdd/ship-atmosphere-lighting.md | Ship State, Render Pipeline |
 | 12 | Save/Load System | Persistence | Vertical Slice | Not Started | — | Event Bus |
 | 13 | Ancient Tech Puzzle System | Gameplay | Vertical Slice | Not Started | — | Player Controller, Ship State |
-| 14 | Crew AI & Schedule System | Gameplay | Vertical Slice | Not Started | — | Ship State, Event Bus, ggez Scene Mgmt |
+| 14 | Crew AI & Schedule System | Gameplay | Vertical Slice | Not Started | — | Ship State, Event Bus, Scene Mgmt |
 | 15 | Kino Drone (first-person scout) | Gameplay | Vertical Slice | Not Started | — | Camera System, Ship State, Player Controller |
 | 16 | Episode Narrative System | Narrative | Vertical Slice | Not Started | — | Dialogue System, Ship State, Timer, Event Bus |
-| 17 | Audio & Ambience System | Audio/Visual | Vertical Slice | Not Started | — | Ship State, Event Bus, ggez Scene Mgmt |
+| 17 | Audio & Ambience System | Audio/Visual | Vertical Slice | Not Started | — | Ship State, Event Bus, Scene Mgmt |
 | 18 | Tutorial / Onboarding (Icarus Base) | Meta | Alpha | Not Started | — | All MVP + VS gameplay systems |
-| 19 | VRM Character Models | Audio/Visual | Vertical Slice | Designed | design/gdd/vrm-model-integration.md | Player Controller, Camera, Crew Dialogue, ggez Animation Pipeline |
+| 19 | VRM Character Models | Audio/Visual | Vertical Slice | Designed | design/gdd/vrm-model-integration.md | Player Controller, Camera, Crew Dialogue, Animation Pipeline |
 
 ---
 
@@ -75,18 +75,18 @@ The game pillars that constrain system design:
 
 ---
 
-## ggez-Provided Foundation
+## Engine-Provided Foundation
 
-These systems are built into the ggez framework and do NOT require custom design
+These systems are built into the engine framework and do NOT require custom design
 documents. They are configured, not designed:
 
-| System | ggez Package | Notes |
+| System | Package | Notes |
 |--------|-------------|-------|
-| Scene Management | `@ggez/gameplay-runtime`, `@ggez/three-runtime` | Scene loading, preload, caching |
-| Physics | `@ggez/runtime-physics-crashcat` | Rigid bodies, collision, raycasting |
-| Animation Pipeline | `@ggez/anim-core`, `@ggez/anim-runtime`, `@ggez/anim-three` | Skeletal animation playback |
-| Render Pipeline | `@ggez/render-pipeline` | PBR materials, instanced mesh, WebGPU |
-| Gameplay Runtime Loop | `@ggez/gameplay-runtime` | Fixed timestep update, system registration |
+| Scene Management | gameplay-runtime, three-runtime | Scene loading, preload, caching |
+| Physics | runtime-physics-crashcat | Rigid bodies, collision, raycasting |
+| Animation Pipeline | anim-core, anim-runtime, anim-three | Skeletal animation playback |
+| Render Pipeline | render-pipeline | PBR materials, instanced mesh, WebGPU |
+| Gameplay Runtime Loop | gameplay-runtime | Fixed timestep update, system registration |
 
 Custom systems register with the gameplay runtime via `createGameplayRuntime()`
 and receive `update(delta)` calls at 60 FPS.
@@ -105,13 +105,13 @@ and receive `update(delta)` calls at 60 FPS.
 
 ## Dependency Map
 
-### Foundation Layer (ggez-provided)
+### Foundation Layer (engine-provided)
 
-- ggez Scene Management — loading/unloading environments
-- ggez Physics (Crashcat) — collision, raycasting, rigid bodies
-- ggez Animation Pipeline — skeletal animation playback
-- ggez Render Pipeline — PBR materials, WebGPU rendering
-- ggez Gameplay Runtime — update loop, system registration
+- Scene Management — loading/unloading environments
+- Physics (Crashcat) — collision, raycasting, rigid bodies
+- Animation Pipeline — skeletal animation playback
+- Render Pipeline — PBR materials, WebGPU rendering
+- Gameplay Runtime — update loop, system registration
 
 ### Core Layer (no custom dependencies)
 
@@ -137,7 +137,7 @@ and receive `update(delta)` calls at 60 FPS.
 14. **Kino Remote** — Diegetic menu: map, status, inventory, objectives (depends on: Ship State, Resources, Episode System)
 15. **Ship Atmosphere & Lighting** — Volumetric fog, dynamic lights, Ancient glow (depends on: Ship State)
 16. **Audio & Ambience System** — Ship sounds, environmental audio, music (depends on: Ship State, Event Bus)
-19. **VRM Character Models** — Player and crew VRM loading, spring bones, expressions, LOD (depends on: Player Controller, Camera, Crew Dialogue, ggez Animation Pipeline)
+19. **VRM Character Models** — Player and crew VRM loading, spring bones, expressions, LOD (depends on: Player Controller, Camera, Crew Dialogue, Animation Pipeline)
 
 ### Polish Layer
 

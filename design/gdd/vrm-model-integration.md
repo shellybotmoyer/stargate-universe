@@ -3,7 +3,7 @@
 > **⚠️ STALE engine mapping — ggez-era sections superseded by the 2026-09-08 Three.js re-pivot**
 >
 > Engine-specific sections below (`@pixiv/three-vrm` on Three.js 0.181,
-> skeleton retargeting into `ggez RigDefinition`/`@ggez/anim-*`) reference the
+> skeleton retargeting into engine `RigDefinition`/animation pipeline) reference the
 > ggez framework removed in `abfb5ed` — the Three.js-era repo runs plain
 > `src/*.js` + `index.html` with no VRM pipeline (`grep @pixiv` = 0 in the web
 > tree). The character visual design intent remains reference until a web-era
@@ -24,8 +24,8 @@ aboard Destiny. VRM is a humanoid avatar format built on glTF 2.0 that provides
 standardized bone mapping, spring bone physics (hair, cloth, accessories), blend
 shape groups (facial expressions, lip sync visemes), and first-person rendering
 annotations. Models load via `@pixiv/three-vrm` on top of the existing Three.js
-`GLTFLoader`, then bridge into the ggez animation pipeline through a skeleton
-retargeting layer that maps VRM's humanoid bone names to ggez `RigDefinition`
+`GLTFLoader`, then bridge into the engine animation pipeline through a skeleton
+retargeting layer that maps VRM's humanoid bone names to engine `RigDefinition`
 joints. The physics capsule body remains the source of truth for collision and
 movement; the VRM mesh is a visual-only representation parented to the player
 controller's scene `Group`. Crew NPCs share the same loading and animation
@@ -84,11 +84,11 @@ even when no dialogue is playing.
    first-person settings.
 3. **Skeleton extraction**: The VRM humanoid provides a standardized bone hierarchy.
    A retargeting bridge maps VRM bone names (`hips`, `spine`, `chest`, `head`,
-   `leftUpperArm`, etc.) to ggez `RigDefinition` joint names. This mapping is
+   `leftUpperArm`, etc.) to engine `RigDefinition` joint names. This mapping is
    defined once in a static bone mapping table (`vrm-bone-map.ts`).
-4. **Animation binding**: After retargeting, ggez animation clips (authored in the
-   ggez animation editor) drive the VRM skeleton through the standard
-   `RuntimeAnimationBundle` pipeline. Clips reference ggez joint names; the
+4. **Animation binding**: After retargeting, engine animation clips (authored in the
+   animation editor) drive the VRM skeleton through the standard
+   `RuntimeAnimationBundle` pipeline. Clips reference engine joint names; the
    retarget layer resolves them to VRM bones at bind time.
 5. **Loading queue**: Maximum 2 VRM files load concurrently to avoid frame drops.
    Additional requests are queued. Priority: player model first, then visible
@@ -99,7 +99,7 @@ even when no dialogue is playing.
 1. **Visual attachment**: The VRM scene graph replaces the capsule `Mesh` inside
    `StarterPlayerController.object` (the `Group`). The Crashcat rigid body
    capsule remains unchanged — physics and visuals are decoupled.
-2. **Locomotion states**: The ggez animation graph for the player defines these
+2. **Locomotion states**: The engine animation graph for the player defines these
    states, each mapped to authored animation clips:
    - `idle` — breathing, subtle weight shift
    - `walk` — casual walk cycle, speed-matched to controller walk speed
@@ -282,7 +282,7 @@ Where:
 | Dependency | Type | Purpose |
 |------------|------|---------|
 | `@pixiv/three-vrm` | New npm package | VRM file parsing, spring bones, expressions, first-person |
-| ggez Animation Pipeline (`@ggez/anim-*`) | Existing | Skeleton retargeting, animation clip playback, animation graphs |
+| Animation Pipeline | Existing | Skeleton retargeting, animation clip playback, animation graphs |
 | Player Controller (`src/game/starter-player-controller.ts`) | Existing | Visual attachment point (`object` Group), movement state for animation |
 | Camera System (`design/gdd/camera-system.md`) | Existing | Camera mode (FPS/third-person) for head hiding, distance for LOD |
 | Crew Dialogue & Choice System (`design/gdd/crew-dialogue-choice.md`) | Existing | Expression triggers, viseme events during dialogue |
@@ -336,6 +336,6 @@ hot-reloaded during development.
 - [ ] LOD transitions work correctly: spring bones and expressions disable at
       mid/far distances
 - [ ] Adaptive quality kicks in below 30 FPS, reducing spring bones and crew count
-- [ ] VRM bone mapping retargets correctly to ggez animation clips without visual
+- [ ] VRM bone mapping retargets correctly to engine animation clips without visual
       artifacts
 - [ ] All tuning knobs are externalized in `vrm-config.json` (no hardcoded values)

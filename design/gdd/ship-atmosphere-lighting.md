@@ -66,7 +66,7 @@ IS the ship's vital signs.
    - `baseFogDensity`: float (0-1)
    - `ambientParticles`: enum — `None`, `Dust`, `Steam`, `Sparks`, `Frost`
    - `ancientGlowElements`: array of mesh IDs that glow when powered
-   - Section config is authored per-scene in the ggez World Editor
+   - Section config is authored per-scene in the scene editor
 
 2. **State-driven lighting**: Each section's lights respond to Ship State in
    real-time:
@@ -134,7 +134,7 @@ by Ship State values. However, the key thresholds that trigger visual changes ar
 | System | Direction | Interface |
 |--------|-----------|-----------|
 | **Ship State** | Inbound (read + subscribe) | Reads: section power_level, atmosphere, structural_integrity, subsystem conditions. Subscribes to `ship:power:changed`, `ship:section:*`, `ship:subsystem:*` for real-time updates. |
-| **ggez Render Pipeline** | Outbound (configure) | Sets: light colors/intensities, fog parameters, emissive material values, particle system enable/disable. |
+| **Render Pipeline** | Outbound (configure) | Sets: light colors/intensities, fog parameters, emissive material values, particle system enable/disable. |
 | **Event Bus** | Inbound (subscribe) | Subscribes to `ship:*` events for reactive visual changes. |
 | **Player Controller** | Outbound (context) | Provides ambient light level for phone light trigger decision. |
 | **Audio & Ambience** *(undesigned)* | Parallel | Audio system reads the same Ship State data. Visual and audio should be synchronized (lights dim = hum quiets). |
@@ -205,7 +205,7 @@ Glow is 0 below threshold, scales linearly to max above it.
 |--------|----------------|-----------|
 | Ship State | Hard | section.power_level, section.atmosphere, section.structural_integrity, subsystem conditions |
 | Event Bus | Hard | Subscribes to ship:* for real-time visual updates |
-| ggez Render Pipeline | Hard | Light, fog, material, particle system APIs |
+| Render Pipeline | Hard | Light, fog, material, particle system APIs |
 
 **Downstream (depends on this system):**
 

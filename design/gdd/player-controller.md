@@ -164,10 +164,9 @@ feel Eli's growth because you lived it.
   grounded state
 
 **Animation tooling**: All character animations (locomotion, interactions,
-fidgets, traversals) use the ggez animation pipeline (`@ggez/anim-core`,
-`@ggez/anim-runtime`, `@ggez/anim-three`) for skeletal animation playback,
+fidgets, traversals) use the engine animation pipeline for skeletal animation playback,
 blending, and layering. Animations are authored externally (Mixamo, Blender,
-or motion capture) and imported through the ggez animation editor. The
+or motion capture) and imported through the animation editor. The
 phone-light overlay and fidgets use additive animation layers so they blend
 with the base locomotion state.
 
@@ -176,9 +175,9 @@ with the base locomotion state.
 | System | Direction | Interface |
 |--------|-----------|-----------|
 | **Event Bus** | Outbound (publish) | Publishes: `player:interact` (payload: interactable ID, action type), `player:entered:section` (payload: section ID, first-visit flag), `player:kino:deployed` (payload: position, direction). Does NOT publish per-frame position — other systems read it directly. |
-| **ggez Physics (Crashcat)** | Bidirectional | Controller owns a Crashcat kinematic rigid body for Eli. Reads ground contact and collision normals. Writes velocity each frame. Raycasts for interactable detection. |
-| **ggez Gameplay Runtime** | Inbound (lifecycle) | Controller registers as a system via `createGameplayRuntime()`. Receives `update(delta)` at 60 FPS. Initializes on scene mount, cleans up on scene dispose. |
-| **ggez Animation Pipeline** | Outbound (drive) | Controller sets animation states (walk, sprint, idle, fidget, interact, traverse). Uses animation layers for additive overlays (phone light, fidgets). |
+| **Physics (Crashcat)** | Bidirectional | Controller owns a Crashcat kinematic rigid body for Eli. Reads ground contact and collision normals. Writes velocity each frame. Raycasts for interactable detection. |
+| **Gameplay Runtime** | Inbound (lifecycle) | Controller registers as a system via `createGameplayRuntime()`. Receives `update(delta)` at 60 FPS. Initializes on scene mount, cleans up on scene dispose. |
+| **Animation Pipeline** | Outbound (drive) | Controller sets animation states (walk, sprint, idle, fidget, interact, traverse). Uses animation layers for additive overlays (phone light, fidgets). |
 | **Camera System** *(downstream, undesigned)* | Outbound (position/rotation) | Exposes `getPosition()`, `getRotation()`, and `getVelocity()` for the Camera System to follow. Camera reads these directly each frame (not via events). During traversals and dialogue, controller signals the Camera to use authored camera positions. |
 | **Ship Exploration** *(downstream, undesigned)* | Outbound (events) | `player:entered:section` triggers section discovery logic. Ship Exploration reads player position to determine which section Eli is in. |
 | **Stargate & Planetary Runs** *(downstream, undesigned)* | Bidirectional | Planetary Runs system can override controller spawn position when gating to a planet. Controller publishes `player:interact` when using the Stargate. |
@@ -276,10 +275,10 @@ Eli limps with reduced speed for `injury_duration` seconds. No death.
 
 | System | Dependency Type | Interface |
 |--------|----------------|-----------|
-| ggez Gameplay Runtime | Hard | Provides the update loop, system registration, scene lifecycle |
-| ggez Physics (Crashcat) | Hard | Provides kinematic body, ground detection, raycasting, collision |
-| ggez Animation Pipeline | Hard | Provides skeletal animation playback, blending, additive layers |
-| ggez Render Pipeline | Soft | Provides outline glow for interactable highlighting |
+| Gameplay Runtime | Hard | Provides the update loop, system registration, scene lifecycle |
+| Physics (Crashcat) | Hard | Provides kinematic body, ground detection, raycasting, collision |
+| Animation Pipeline | Hard | Provides skeletal animation playback, blending, additive layers |
+| Render Pipeline | Soft | Provides outline glow for interactable highlighting |
 | Event Bus | Hard | Publishes `player:*` events for cross-system communication |
 
 **Downstream (depends on this system):**

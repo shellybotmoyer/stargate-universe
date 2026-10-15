@@ -174,7 +174,7 @@ systems, making the ship feel real and responsive to your growing understanding.
 | **Camera System** | Outbound (mode) | Quick-check: camera stays in exploration mode. Full mode: camera may shift to show Eli holding device (optional). |
 | **Event Bus** | Inbound (subscribe) | Subscribes to `ship:*`, `resource:*`, `timer:*` for real-time updates on open screens. |
 | **Save/Load** *(undesigned)* | Outbound (serialization) | Serializes: unlocked screens, console connections, last-viewed tab. |
-| **ggez Scene Mgmt** | Reads | UI renders as an overlay on the current scene. |
+| **Scene Management** | Reads | UI renders as an overlay on the current scene. |
 
 ## Formulas
 
@@ -226,7 +226,7 @@ power, Resource computes quantities, Timer computes remaining time).
 |--------|----------------|-----------|
 | Ship State | Hard | Section map, system conditions, power grid data, power priority write-back |
 | Resource & Inventory | Hard | Resource quantities, scarcity warnings, story items (console connections) |
-| ggez Scene Mgmt | Soft | Renders as overlay on current scene |
+| Scene Mgmt | Soft | Renders as overlay on current scene |
 | Event Bus | Hard | Subscribes to state-change events for real-time updates |
 | Ship Exploration | Hard | Knowledge tier for label translation (core feature — labels unreadable without it) |
 | Timer & Pressure | Hard | Active timer list for Timer screen and quick-check |

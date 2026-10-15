@@ -2,9 +2,9 @@
 
 > **⚠️ STALE engine mapping — ggez-era sections superseded by the 2026-09-08 Three.js re-pivot**
 >
-> Engine-specific sections below (`ggez Physics (Crashcat)` spherecast,
-> `ggez Gameplay Runtime` registration) reference the ggez framework removed in
-> `abfb5ed` — the Three.js-era repo runs plain `src/*.js` + `index.html`
+> Engine-specific sections below (physics spherecast, gameplay runtime
+> registration) reference the ggez framework removed in `abfb5ed` —
+> the Three.js-era repo runs plain `src/*.js` + `index.html`
 > (`build.sh`). The third-person camera design (arm compression, cinematic
 > framing, scene-transition rules) remains reference until re-mapped onto the
 > web implementation.
@@ -137,8 +137,8 @@ shift from player-awareness to cinematic framing *is* the storytelling.
 | System | Direction | Interface |
 |--------|-----------|-----------|
 | **Player Controller** | Inbound (read) | Reads `getPosition()`, `getRotation()`, `getVelocity()` each frame. Receives state signals: Dialogue entered/exited, Traversing entered/exited, sprint started/stopped. |
-| **ggez Physics (Crashcat)** | Inbound (collision) | Spherecast along camera arm to detect wall collisions. Used for arm compression to prevent clipping. |
-| **ggez Gameplay Runtime** | Inbound (lifecycle) | Registers as a system. Receives `update(delta)` each frame. Updates after Player Controller in system execution order. |
+| **Physics (spherecast)** | Inbound (collision) | Spherecast along camera arm to detect wall collisions. Used for arm compression to prevent clipping. |
+| **Gameplay Runtime** | Inbound (lifecycle) | Registers as a system. Receives `update(delta)` each frame. Updates after Player Controller in system execution order. |
 | **Event Bus** | Inbound (subscribe) | Subscribes to `episode:crisis:triggered` and similar narrative events to trigger cinematic camera transitions. |
 | **Ship Exploration** *(downstream, undesigned)* | Outbound (read) | Ship Exploration may read camera position/direction for section visibility. Camera provides `getPosition()` and `getForward()`. |
 | **Crew Dialogue & Choice** *(downstream, undesigned)* | Inbound (framing data) | Dialogue system provides: NPC position for framing, camera angle per dialogue node (two-shot, OTS-left, OTS-right, close-up). |
@@ -237,8 +237,8 @@ sway_rotation = perlin_noise((time + seed) * sway_frequency)
 | System | Dependency Type | Interface |
 |--------|----------------|-----------|
 | Player Controller | Hard | Reads position, rotation, velocity each frame. Receives state change signals (dialogue, traversal, sprint). |
-| ggez Physics (Crashcat) | Hard | Spherecast for arm collision detection against scene geometry. |
-| ggez Gameplay Runtime | Hard | System registration, update loop, scene lifecycle. Must update after Player Controller. |
+| Physics (spherecast) | Hard | Spherecast for arm collision detection against scene geometry. |
+| Gameplay Runtime | Hard | System registration, update loop, scene lifecycle. Must update after Player Controller. |
 | Event Bus | Soft | Subscribes to narrative events for cinematic triggers. Functions without (just no auto-cinematics). |
 
 **Downstream (depends on this system):**
