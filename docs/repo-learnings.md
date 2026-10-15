@@ -16,7 +16,7 @@ imported into an external memory store (e.g. Supermemory) independently. Tags in
 
 ## 1. Project identity [concept, status]
 
-*Stargate Universe — The Destiny Mission*: a Godot 4.6 (Forward+, Jolt physics) third-person
+*Stargate Universe — The Destiny Mission*: a web/Three.js (ES modules, no bundler) third-person
 exploration-survival RPG. You play Eli Wallace aboard the Ancient ship Destiny. Single-player,
 30–90 min "one episode per session" structure; content vision 40–60 episodes. Four design
 pillars: (1) The Ship IS the World, (2) Survival with Purpose (no crafting grind),
@@ -26,9 +26,10 @@ KenneyNL Starter-Kit-3D-Platformer (CC0). Sole committer: Chris Moyer.
 
 ## 2. Engine pivot history [history, architecture]
 
-The project pivoted completely from a browser stack (Three.js + WebGPU + ggez + Crashcat +
+The project pivoted from a browser stack (Three.js + WebGPU + ggez + Crashcat +
 VRM + TypeScript/Vite/Bun/Cloudflare) to Godot 4.6 because character animation/display never
-worked on the browser stack. ~3,600 LOC of VRM code was dropped. What carried over:
+worked on the browser stack. ~3,600 LOC of VRM code was dropped. It then pivoted back to
+web/Three.js (2026-09-08 re-pivot). What carried over:
 `design/gdd/` (engine-agnostic GDDs), `production/`, `docs/`, `.claude/` agents+skills.
 Consequences that still bite: **all 4 ADRs in `docs/architecture/` describe the DEAD browser
 stack** (ggez, Crashcat, WebGPU, three-vrm), as do `technical-preferences.md`,
@@ -152,10 +153,10 @@ survive `SceneRouter` transitions must attach to `/root` via a `call_deferred` b
 
 `.github/workflows/ci.yml` is an unmodified TypeScript/bun template (`bun run typecheck`,
 `bun run test`) with no `package.json` in the repo and no Godot install. **The Godot suite
-and policy lints are enforced only by the local pre-commit hook.** Real CI needs a
-Godot-headless setup invoking `tests/run.sh` + `tests/lint/*.sh`. Similarly, several
-`.claude/hooks/` validators target template paths (`src/`, `assets/data/`) that don't exist
-here and are inert.
+and policy lints are enforced only by the local pre-commit hook.** (Historical — the
+2026-09-08 re-pivot removed `scripts/`, `tests/run.sh`, and the entire Godot stack; CI now
+runs `node --check` + JSON validation + build. See the current `CLAUDE.md` for the
+web-era CI flow.)
 
 ## 12. Capture and trailer tooling [tooling]
 
@@ -163,7 +164,8 @@ here and are inert.
 gate-room, planet biomes, ship-compass, kino views) into `screenshots/result/`;
 `tests/shots/cine.sh` does gate-room cinematics with CAM_POS/CAM_LOOK/FOV env overrides.
 `tools/make_trailer.sh` records scripted gameplay via Godot Movie Maker (`--write-movie`,
-needs GPU) then ffmpeg-assembles an MP4 + draft social post; `tools/trailer/record.sh`
+needs GPU) then ffmpeg-assembles an MP4 + draft social post (historical — Godot-era tooling,
+removed in the 2026-09-08 re-pivot); `tools/trailer/record.sh`
 captures human playthroughs for replay. Blender/Python generators in `tools/` build
 placeholder equipment GLBs and inventory icons. macOS paths are hardcoded in places
 (`GODOT_BIN` default, Godot user-data dir).
@@ -215,7 +217,8 @@ issues remain open pending closure.
 ## 17. Known stale artifacts and inconsistencies [tech-debt]
 
 - CLAUDE.md status snapshot (2026-05-21) far behind commit history; says branch `godot`,
-  README says `reset-stack`, actual default branch is now `main` (Godot content).
+  README says `reset-stack`, actual default branch is now `main` (web/Three.js content since
+  the 2026-09-08 re-pivot; the Godot-era CLAUDE.md snapshot has since been rewritten).
 - `production/stage.txt` says "Pre-Production"; CLAUDE.md says "Production".
 - All 4 ADRs + technical-preferences + entities.json are browser-era.
 - `/add-scene`, `/add-npc`, `/add-dialogue`, `/add-room` skills describe non-shipping
