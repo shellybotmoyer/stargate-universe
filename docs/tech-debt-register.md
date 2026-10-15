@@ -12,7 +12,7 @@ register. The current forward queue lives in git history of main and the open PR
 Last updated: 2026-06-26 · Sprint: sprint-005
 Total open items: 5 | Estimated total effort: ~XL (one large refactor + three doc writes)
 
-Tracks **conscious** technical-debt decisions for the Godot 4.6 Stargate Universe project.
+Tracks **conscious** technical-debt decisions for the Stargate Universe project (historically Godot 4.6, now web/Three.js since the 2026-09-08 re-pivot).
 Maintained via the `/tech-debt` skill (`.claude/skills/tech-debt/`). Run `/tech-debt scan`
 at least once per sprint; items open for >3 sprints must be fixed or consciously re-accepted.
 
