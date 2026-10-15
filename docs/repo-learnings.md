@@ -219,7 +219,7 @@ issues remain open pending closure.
 - `production/stage.txt` says "Pre-Production"; CLAUDE.md says "Production".
 - All 4 ADRs + technical-preferences + entities.json are browser-era.
 - `/add-scene`, `/add-npc`, `/add-dialogue`, `/add-room` skills describe non-shipping
-  pipelines; CCGS testing skills are Godot-aware.
+  pipelines; skill-testing skills reference a non-existent `CCGS Skill Testing Framework` directory (now scrubbed to `.claude/skill-testing/`).
 - `capture_baselines.sh` references room scenes that don't exist.
 - Missing: `docs/architecture/architecture.md`, `control-manifest.md`,
   `design/accessibility-requirements.md`, `sprint-002-retro.md`, `production/qa/bugs/`,
