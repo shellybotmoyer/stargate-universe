@@ -1,16 +1,12 @@
 # Ship Exploration System
 
-> **⚠️ STALE implementation mapping — Godot 4.6 sections superseded by the 2026-09-08 Three.js re-pivot**
-
-> Engine-specific sections below (`scripts/procedural_ship.gd`, `room.gd`,
-> `tests/smoke/*.gd`, `.tscn` harnesses) reference Godot files that no longer
-> exist — the Three.js-era repo has no `scripts/` or `tests/` directories.
-> The design content, `data/ship_layout.json` wiring, and floor-gating rules
-> remain reference until re-mapped to the web implementation.
-
-> **Status**: Partially Implemented (Godot 4.6 — see Implemented vs. Designed below)
+> **Status**: Partially Implemented — design content, `data/ship_layout.json` wiring,
+> and floor-gating rules remain reference. Engine-specific Godot 4.6 sections
+> (`scripts/procedural_ship.gd`, `room.gd`, `tests/smoke/*.gd`, `.tscn` harnesses)
+> below are **historical** — these files no longer exist after the 2026-09-08
+> Three.js re-pivot. The web runtime is `src/*.js` + `data/`.
 > **Author**: User + Claude
-> **Last Updated**: 2026-06-09
+> **Last Updated**: 2026-06-09 (historical sections)
 > **Implements Pillar**: Pillar 1 (The Ship IS the World), Pillar 3 (Earned Discovery)
 
 ## Overview

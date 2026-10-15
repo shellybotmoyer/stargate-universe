@@ -188,9 +188,9 @@ and clues to Destiny's mission — but only if you budget your time well.
    Kino Remote: resources gathered, POIs discovered, time remaining when
    returned. No score screen — just information through the in-world UI.
 
-### Procedural Generation (Godot implementation — issues #85–#93)
+### Procedural Generation (Historical — Godot implementation, issues #85–#93)
 
-The Godot build does not author one ggez scene per planet; it **generates** each
+The Godot build did not author one ggez scene per planet; it **generated** each
 planet at dial time from a `PlanetSpec` and a per-biome data block, so every gate
 run yields a semi-random, resource-appropriate, walkable world. This replaces the
 hand-authored `PlanetDefinition` catalog above for runtime; the catalog fields
