@@ -21,16 +21,17 @@ sensor readings from star systems visited, and environmental storytelling from
 the ship's physical wear. The Ancients never inhabited Destiny — it launched
 unmanned — so the lore is the ship's own history, not a crew's.
 
-**Implementation status (as of 2026-06-09):** Floors 0–1 are hand-authored rooms
-wired in `data/ship_layout.json`. Floors 2+ are procedurally generated at runtime
-by `ProceduralShip` (see §Procedural Floor Architecture below) and floor-gated
-behind an escalating parts cost. The browser-era ggez/EventBus design in the
-sections below describes the aspirational vision; the Godot 4.6 implementation
-is documented in the new section first.
+**Implementation status:** Floors 0–1 are hand-authored rooms wired in
+`data/ship_layout.json`. The procedural floor generation, room conditions, and
+floor-gating logic described in the §Procedural Floor Architecture section below
+were implemented in the Godot era (now historical — those `.gd` files no longer
+exist after the 2026-09-08 Three.js re-pivot). The web runtime is `src/*.js` +
+`data/`. The ggez/EventBus design in the sections below describes the
+aspirational vision; re-map to `src/*.js` before use.
 
 ---
 
-## Procedural Floor Architecture (Implemented — Godot 4.6)
+## Procedural Floor Architecture (Historical — Godot 4.6)
 
 ### System Boundary
 
@@ -244,7 +245,7 @@ label.
    - **Tier 5** (S3): Fluent. Everything readable, including encrypted text.
 
 4. **Barrier types** [FORWARD-LOOKING]: Navigation obstacles gating access to new areas.
-   In Godot 4.6, sealed rooms are handled by `ProceduralShip._room_conditions`
+   In the Godot era (historical), sealed rooms were handled by `ProceduralShip._room_conditions`
    (state: "sealed" | "damaged" | "repairing" | "repaired") with repair via
    `RepairRobot` (#131). The designed barrier taxonomy below is aspirational:
    - **Power-gated doors**: Require power to section.
@@ -333,9 +334,9 @@ moment_duration = BASE_DISCOVERY_DURATION * section_importance_multiplier
 |--------|----------------|-----------|
 | Player Controller | Hard | Section entry detection, radial menu, contextual traversals |
 | Camera System | Hard | POI auto-framing, Discovery Moment reframe |
-| ProceduralShip | Hard (Godot 4.6) | Section states, floor unlock, room conditions, save/load |
-| GameState | Hard (Godot 4.6) | rooms_discovered collection, quest flags |
-| SceneRouter | Hard (Godot 4.6) | Scene transitions, instant_mode |
+| ProceduralShip | Hard (Godot 4.6 — historical) | Section states, floor unlock, room conditions, save/load |
+| GameState | Hard (Godot 4.6 — historical) | rooms_discovered collection, quest flags |
+| SceneRouter | Hard (Godot 4.6 — historical) | Scene transitions, instant_mode |
 
 **Downstream:**
 
@@ -359,7 +360,7 @@ moment_duration = BASE_DISCOVERY_DURATION * section_importance_multiplier
 
 ## Acceptance Criteria
 
-### Implemented (Godot 4.6)
+### Implemented (Godot 4.6 — historical, pre-re-pivot)
 
 - [x] Procedural floor generation: floors 3+ generated deterministically; 12-20 rooms; <=3 specials per floor.
 - [x] Floor-access gating: floor 1 always free; floor 2 via stairs (no cost); floors 3+ require elevator power + code + parts.
