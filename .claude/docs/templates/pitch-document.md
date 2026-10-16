@@ -119,7 +119,7 @@ player action."]
 | Launch | [Date] | Release build |
 
 **Team Size**: [X people, roles]
-**Engine**: [Godot / Unity / Unreal]
+**Engine**: [Three.js / Godot / Unity / Unreal — this repo uses vanilla Three.js (web-era)]
 **Estimated Budget**: [Range if applicable]
 
 ---

@@ -39,12 +39,8 @@
 
 ## Cross-cutting Engine Conventions (Watch For)
 
-- **Two floor-y conventions coexist** — `scripts/gate_room.gd` uses a `BoxMesh` floor
-  with visible top at y=0; `scripts/kenney_room.gd` uses Kenney `floor.glb` tiles with
-  visible top at y=0.3. Any utility, NPC spawn, or prop-placement helper that crosses
-  rooms must branch on the host scene's convention or be parameterized by floor-top-y.
-  Full details: `.claude/agent-memory/godot-gdscript-specialist/MEMORY.md`.
-- **`Interactable._ready()` overwrites `collision_layer = 4`** unconditionally —
-  subclasses needing extra bits must reassign AFTER `super()._ready()`, not in the
-  `.tscn`. If you're reviewing a PR that adds a new `Interactable` subclass needing
-  walk-blocker (1) or camera-occluder (2) bits, this is the first thing to check.
+> The conventions below were Godot-era and reference deleted files (`scripts/gate_room.gd`,
+> `scripts/kenney_room.gd`, `.tscn` scenes). They do NOT apply to the web-era Three.js
+> codebase (`src/*.js`). Rebuild conventions from the live source before relying on them.
+> Key web-era patterns: Three.js scene graph in `src/main.js`, component geometry in
+> `src/components.js`, ship layout driven by `data/ship_layout.json` IDs.

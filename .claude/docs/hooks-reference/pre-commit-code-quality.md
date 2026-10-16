@@ -39,6 +39,7 @@ if [ -n "$CODE_FILES" ]; then
         fi
 
         # Run language-specific linter (uncomment appropriate line)
+        # For JavaScript (this repo): npx eslint "$file" || EXIT_CODE=1
         # For GDScript: gdlint "$file" || EXIT_CODE=1
         # For C#: dotnet format --check "$file" || EXIT_CODE=1
         # For C++: clang-format --dry-run -Werror "$file" || EXIT_CODE=1
