@@ -136,9 +136,8 @@ const attachGateAudio = (w) => {
 attachGateAudio(destiny);
 const playOnce = (a) => { if (a.isPlaying) a.stop(); a.play(); };
 const oneShot = (buf, vol = 0.6, rate = 1) => { const a = new THREE.Audio(listener); a.setBuffer(buf); a.setVolume(vol * sfxLevel); a.setPlaybackRate(rate); a.play(); };
-const footBuffer = (surface) => { const ctx = listener.context, sr = ctx.sampleRate, len = Math.floor(sr * (surface === 'sand' ? 0.14 : 0.07)), buf = ctx.createBuffer(1, len, sr), out = buf.getChannelData(0); let lp = 0; for (let i = 0; i < len; i++) { const env = Math.pow(1 - i / len, surface === 'sand' ? 1.6 : 3.5); const n = Math.random() * 2 - 1; lp = lp * (surface === 'sand' ? 0.82 : 0.4) + n * (surface === 'sand' ? 0.18 : 0.6); out[i] = lp * env * (surface === 'sand' ? 0.9 : 0.5); } return buf; };
-const footBuffers = { sand: [buffers.sand1, buffers.sand2, buffers.sand3, buffers.sand4], deck: [buffers.step1, buffers.step2, buffers.step3, buffers.step4] }; void footBuffer;
-const footPool = Array.from({ length: 4 }, () => new THREE.Audio(listener)); let footIdx = 0, stepDist = 0;
+const footBuffers = { sand: [buffers.sand1, buffers.sand2, buffers.sand3, buffers.sand4], deck: [buffers.step1, buffers.step2, buffers.step3, buffers.step4] };
+const footPool = Array.from({ length: 4 }, () => new THREE.Audio(listener)); let footIdx = 0;
 const footstep = (surface, loud) => { const a = footPool[footIdx++ % footPool.length]; if (a.isPlaying) a.stop(); const pool = footBuffers[surface]; a.setBuffer(pool[Math.floor(Math.random() * pool.length)]); a.setPlaybackRate(0.9 + Math.random() * 0.25); a.setVolume((surface === 'sand' ? 0.5 : 0.35) * (loud ? 1.3 : 1) * sfxLevel); a.play(); };
 // door mechanism: positional thunk when the gear unlocks, slide hiss while the leaves move, heavy seat when they close
 const doorAudio = new Map();
@@ -458,7 +457,7 @@ const kickSand = (loud) => { const p = player.root.position, pos = dGeo.attribut
 const tickDust = (dt) => { const pos = dGeo.attributes.position.array, al = dGeo.attributes.aAlpha.array, sz = dGeo.attributes.aSize.array; for (let i = 0; i < DCOUNT; i++) { if (dLife[i] <= 0) { al[i] = 0; continue; } dLife[i] -= dt; dVel[i * 3 + 1] -= 3.5 * dt; pos[i * 3] += dVel[i * 3] * dt; pos[i * 3 + 1] += dVel[i * 3 + 1] * dt; pos[i * 3 + 2] += dVel[i * 3 + 2] * dt; const k = Math.max(0, dLife[i] / dMax[i]); al[i] = 0.85 * k; sz[i] = 0.22 + (1 - k) * 0.55; } dGeo.attributes.position.needsUpdate = true; dGeo.attributes.aAlpha.needsUpdate = true; dGeo.attributes.aSize.needsUpdate = true; };
 // footsteps fire from the animation's foot plants (player.js), so sound, dust and stride share one source of truth
 player.onStep = (side, speed) => { const loud = speed > 7; footstep(world === planet ? 'sand' : 'deck', loud); if (world === planet) kickSand(loud); };
-const tickFootsteps = () => {}; void stepDist;
+const tickFootsteps = () => {};
 
 // ---------------------------------------------------------------- gate travel + arrival
 let travel = null; const PLAYER_CHEST = 1.1;

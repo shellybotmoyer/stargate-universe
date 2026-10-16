@@ -284,7 +284,7 @@ export const COMPONENTS = {
 			const tag = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.125), glyphPlate()); tag.position.set(-0.6, 2.34, 0.21); g.add(tag); ctx.parts.trims.push(tag);
 			const kick = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.16, 0.04), ctx.mats.shell); kick.position.set(0, 0.3, 0.21); g.add(kick);
 			for (const sx of [-0.7, 0.7]) { const L = Math.min(ctx.roomH - 2.5, 1.6), pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, L, 10), ctx.mats.steel); pipe.position.set(sx, 2.5 + L / 2, 0.1); g.add(pipe); if (L < ctx.roomH - 2.5) { const jb = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.26, 0.2), ctx.mats.dark); jb.position.set(sx, 2.5 + L + 0.1, 0.1); g.add(jb); } } // ducts up to the ceiling, or into wall junctions in tall rooms
-			ctx.parts.scrubLamp = sl; ctx.parts.scrubBed = bed; void f;
+			ctx.parts.scrubLamp = sl; ctx.parts.scrubBed = bed;
 			return { anchor: fwd(s.ry).multiplyScalar(1.0).add(new THREE.Vector3(p.x, 0, p.z)) };
 		},
 	},
