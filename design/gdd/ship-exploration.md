@@ -1,9 +1,9 @@
 # Ship Exploration System
 
 > **Status**: Partially Implemented — design content, `data/ship_layout.json` wiring,
-> and floor-gating rules remain reference. Engine-specific Godot 4.6 sections
+> and floor-gating rules remain reference. Engine-specific sections below
 > (`scripts/procedural_ship.gd`, `room.gd`, `tests/smoke/*.gd`, `.tscn` harnesses)
-> below are **historical** — these files no longer exist after the 2026-09-08
+> are **historical** — these files no longer exist after the 2026-09-08
 > Three.js re-pivot. The web runtime is `src/*.js` + `data/`.
 > **Author**: User + Claude
 > **Last Updated**: 2026-06-09 (historical sections)
@@ -31,7 +31,7 @@ aspirational vision; re-map to `src/*.js` before use.
 
 ---
 
-## Procedural Floor Architecture (Historical — Godot 4.6)
+## Procedural Floor Architecture (Historical — pre-re-pivot)
 
 ### System Boundary
 
@@ -334,9 +334,9 @@ moment_duration = BASE_DISCOVERY_DURATION * section_importance_multiplier
 |--------|----------------|-----------|
 | Player Controller | Hard | Section entry detection, radial menu, contextual traversals |
 | Camera System | Hard | POI auto-framing, Discovery Moment reframe |
-| ProceduralShip | Hard (Godot 4.6 — historical) | Section states, floor unlock, room conditions, save/load |
-| GameState | Hard (Godot 4.6 — historical) | rooms_discovered collection, quest flags |
-| SceneRouter | Hard (Godot 4.6 — historical) | Scene transitions, instant_mode |
+| ProceduralShip | Hard (pre-re-pivot — historical) | Section states, floor unlock, room conditions, save/load |
+| GameState | Hard (pre-re-pivot — historical) | rooms_discovered collection, quest flags |
+| SceneRouter | Hard (pre-re-pivot — historical) | Scene transitions, instant_mode |
 
 **Downstream:**
 
@@ -360,7 +360,7 @@ moment_duration = BASE_DISCOVERY_DURATION * section_importance_multiplier
 
 ## Acceptance Criteria
 
-### Implemented (Godot 4.6 — historical, pre-re-pivot)
+### Implemented (pre-re-pivot — historical)
 
 - [x] Procedural floor generation: floors 3+ generated deterministically; 12-20 rooms; <=3 specials per floor.
 - [x] Floor-access gating: floor 1 always free; floor 2 via stairs (no cost); floors 3+ require elevator power + code + parts.
