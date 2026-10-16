@@ -56,6 +56,22 @@ PY
 rm -f "$DIST/src/recorder.js"   # dev-only (needs the local save server)
 
 echo "→ zip"
-( cd "$DIST" && rm -f sgu-destiny-html5.zip && zip -qr sgu-destiny-html5.zip index.html src data vendor assets )
+if command -v zip > /dev/null 2>&1; then
+  ( cd "$DIST" && rm -f sgu-destiny-html5.zip && zip -qr sgu-destiny-html5.zip index.html src data vendor assets )
+else
+  python3 - "$DIST" <<'PY'
+import sys, os, zipfile
+dist = sys.argv[1]
+out = os.path.join(dist, "sgu-destiny-html5.zip")
+if os.path.exists(out): os.remove(out)
+with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+    for root, dirs, files in os.walk(dist):
+        for f in files:
+            if f == "sgu-destiny-html5.zip": continue
+            full = os.path.join(root, f)
+            arc = os.path.relpath(full, dist)
+            z.write(full, arc)
+PY
+fi
 du -sh "$DIST/sgu-destiny-html5.zip" | awk '{print "   " $1 "  " $2}'
 echo "done → upload dist/sgu-destiny-html5.zip to itch.io as an HTML project (index.html at zip root)."
