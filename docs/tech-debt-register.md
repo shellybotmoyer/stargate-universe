@@ -1,15 +1,6 @@
 # Technical Debt Register
 
-## ⚠️ STALE — Godot-era document, superseded by the 2026-09-08 Three.js re-pivot
-
-This register tracks debt for the removed Godot stack: `scripts/*.gd`, `addons/vrm`,
-`gate_room.gd`, `room.gd`, GDScript conventions and `sprint-005` no longer exist in the
-repo (web era: `src/*.js`, `tools/`). TD-001/TD-002/TD-005 reference Godot files that
-were deleted; TD-003's `docs/architecture/` does not exist in the web tree. Treat as
-historical intent only — re-scan the web-era codebase (`src/*.js`) before rebuilding a
-register. The current forward queue lives in git history of main and the open PR stack.
-
-Last updated: 2026-10-16 · Sprint: web-era (post re-pivot)
+Last updated: 2026-10-17 · Sprint: web-era (post re-pivot)
 Total open items: 3 (all inherited from Godot era, re-accepted as historical) | Estimated total effort: ~M (one doc write + two evaluations)
 
 Tracks **conscious** technical-debt decisions for the Stargate Universe project (historically Godot 4.6, now web/Three.js since the 2026-09-08 re-pivot).
