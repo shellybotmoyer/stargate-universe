@@ -3,7 +3,7 @@
 **Problem.** `screencapture -v` wrote nothing and `ffmpeg -f avfoundation` hung: the agent's shell has
 no macOS Screen Recording permission (TCC), and granting it needs the user at a dialog.
 
-**Solution** (`web/gate-room/src/recorder.js`, `?record`):
+**Solution** (`src/recorder.js`, `?record`):
 1. Each frame after `renderer.render()`, `ctx.drawImage(glCanvas)` onto a 2D canvas (no
    `preserveDrawingBuffer` needed when copied in the same frame) and draw a minimal text HUD from
    game state (DOM HUD can't be captured).

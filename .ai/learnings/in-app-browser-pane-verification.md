@@ -1,6 +1,6 @@
 # Verifying a Three.js page in the Claude desktop in-app browser pane
 
-Field notes from driving `web/gate-room/` through the pane:
+Field notes from driving the game through the pane:
 
 - `canvas.requestPointerLock()` rejects with `SecurityError` inside the pane. Harmless in a real
   tab; wrap in `?.catch?.(() => {})` and drive camera yaw through a `window.__dbg` handle instead.

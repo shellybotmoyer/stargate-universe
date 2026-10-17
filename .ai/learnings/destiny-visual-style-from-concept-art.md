@@ -1,4 +1,4 @@
-# Destiny visual style — derived from design/concept-art (use `web/gate-room/src/ancient.js`)
+# Destiny visual style — derived from design/concept-art (use `src/ancient.js`)
 
 **Sources.** `concept-art/gate-room/gate-room-active.png`, `gate-room-dormant.png`, `gateroom-views-sheet.png`,
 `materials/ancient-metal-pbr-sheet.png`, `destiny-ship/*`, `ui/destiny-restored-hud-layout.png`.

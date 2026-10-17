@@ -1,6 +1,6 @@
 # Record gameplay as fixed-step frames piped to ffmpeg, not MediaRecorder
 
-**Context:** `web/gate-room` proof videos via `canvas.captureStream()` + `MediaRecorder` were choppy whenever the
+**Context:** proof videos via `canvas.captureStream()` + `MediaRecorder` were choppy whenever the
 window was occluded or the machine was busy: MediaRecorder timestamps frames by wall clock, so a starved render loop
 produces a video with real gaps and a slowed, stuttering picture — even though the simulation itself was fine.
 

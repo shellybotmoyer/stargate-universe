@@ -1,6 +1,6 @@
 # A synthetic input driver must re-assert held keys every tick
 
-**Context:** `web/gate-room` autoplay stalled mid-walk during a recorded run: the player stood still with `input.keys`
+**Context:** autoplay stalled mid-walk during a recorded run: the player stood still with `input.keys`
 empty while the driver believed `KeyW` was held. `input.js` clears every key on window `blur` (so a real player never
 runs into a wall after alt-tabbing), and taking a screenshot of the in-app pane blurs the page.
 

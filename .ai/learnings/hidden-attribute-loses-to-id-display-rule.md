@@ -1,6 +1,6 @@
 # `el.hidden = true` does nothing when your own CSS sets `display` on that element
 
-**Context:** The hotwire mini-game overlay (`web/gate-room/src/hotwire.js`) styled itself with
+**Context:** The hotwire mini-game overlay (`src/hotwire.js`) styled itself with
 `#hotwire{display:grid;…}` and closed itself with `el.hidden = true`. The panel stayed on screen after "PROTOCOL
 MATCHED" while `isOpen()` (which reads `el.hidden`) said it was closed — the game unpaused underneath a stuck overlay.
 
