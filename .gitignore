@@ -4,7 +4,6 @@ node_modules
 .env*
 .DS_Store
 __pycache__
-.godot/
 
 # Session state (ephemeral)
 production/session-state/
