@@ -1,6 +1,6 @@
 # Technical Debt Register
 
-Last updated: 2026-10-17 · Sprint: web-era (post re-pivot)
+Last updated: 2026-10-17 (heartbeat) · Sprint: web-era (post re-pivot)
 Total open items: 3 (all inherited from Godot era, re-accepted as historical) | Estimated total effort: ~M (one doc write + two evaluations)
 
 Tracks **conscious** technical-debt decisions for the Stargate Universe project (historically Godot 4.6, now web/Three.js since the 2026-09-08 re-pivot).
@@ -13,7 +13,7 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
 |----|----------|-------------|-------|--------|--------|----------|-------|--------|
 | TD-003 | Documentation | Missing architecture docs flagged "not blocking" in CLAUDE.md. 4 ADRs + a dependency graph exist; the synthesis docs do not. Generate via `/create-architecture`, `/create-control-manifest`. | `docs/architecture/architecture.md`, `docs/architecture/control-manifest.md`, `design/accessibility-requirements.md` | M | Low | Low | 2026-06-26 | Backlog |
 | TD-005 | Dependency | ~~VRM addon carries 15 FIXMEs / 13 TODOs.~~ VRM addon was removed in the Godot→Three.js re-pivot (2026-09-08). This item is now closed — see Resolved section. | ~~`addons/vrm/*`~~ | — | — | — | 2026-06-26 | Closed 2026-10-16 |
-| TD-009 | Code Quality | **New (web-era):** `src/main.js` is ~650 lines and growing — game loop, chapter engine, FTL/countdown systems, knockout loop, and frame dispatcher are all in one closure. Not yet a god object, but trending. Plan: extract `createFtlSystem()` and `createCountdownSystem()` into `src/ftl.js` / `src/countdown.js` modules when main.js exceeds ~800 lines. | `src/main.js` | M | Med | Med | 2026-10-16 | Backlog |
+| TD-009 | Code Quality | **New (web-era):** `src/main.js` is ~705 lines and growing — game loop, chapter engine, FTL/countdown systems, knockout loop, and frame dispatcher are all in one closure. Not yet a god object, but trending. Plan: extract `createFtlSystem()` and `createCountdownSystem()` into `src/ftl.js` / `src/countdown.js` modules when main.js exceeds ~800 lines. | `src/main.js` | M | Med | Med | 2026-10-16 | Backlog |
 | TD-010 | Test | **New (web-era):** No automated browser/headless test runner. CI runs `node --test` on unit-testable modules and `tsc --noEmit` + ESLint for static checks, but there is no Puppeteer/Playwright smoke that loads `index.html` and verifies the game boots. Autoplay reload-mode covers this manually but is not wired to CI. | `.github/workflows/ci.yml` | L | Med | Med | 2026-10-16 | Backlog |
 
 ## Resolved / closed
