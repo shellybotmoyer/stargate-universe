@@ -11,7 +11,7 @@ not supported.
 
 Use GitHub's private vulnerability reporting instead:
 
-**[Report a vulnerability →](https://github.com/Donchitos/Claude-Code-Game-Studios/security/advisories/new)**
+**[Report a vulnerability →](https://github.com/kopertop/stargate-universe/security/advisories/new)**
 
 Include as much detail as possible:
 - Description of the vulnerability and what it affects
@@ -26,40 +26,44 @@ Include as much detail as possible:
 
 ## What Is In Scope
 
-CCGS is a **local development tool** — it installs shell hooks and coordinates
-AI agents that run directly on your machine. Security issues are primarily about
-contributed code that executes in users' environments without their awareness.
+Stargate Universe — Destiny is a **browser game** (plain Three.js, ES modules, no
+bundler). Security issues are primarily about contributed code that executes
+in users' browsers or development environments without their awareness.
 
 ### High Severity
-- Hooks (`.claude/hooks/*.sh`) that execute malicious or undisclosed shell
-  commands on user machines
-- Skills or agents that exfiltrate environment variables, API keys, or secrets
-- Prompt injection via skill or agent definitions that causes Claude to bypass
-  safety measures or take unauthorized destructive actions
+- Malicious code in `src/*.js` or `data/*.json` that executes in browsers
+  without users' awareness
+- Build scripts (`build.sh`, `tools/*.py`) that execute malicious or
+  undisclosed shell commands on contributor machines
+- Pre-commit hooks (`.githooks/*`) that exfiltrate environment variables or
+  secrets
+- Prompt injection via skill or agent definitions that causes AI assistants
+  to bypass safety measures or take unauthorized destructive actions
 - Contributions that silently alter behavior in ways users cannot audit
 
 ### Medium Severity
-- Skills that make undisclosed outbound network requests
-- Agent definitions that escalate permissions or bypass user confirmation prompts
+- Skills or agent definitions that make undisclosed outbound network requests
+- Agent definitions that escalate permissions or bypass user confirmation
+  prompts
 - Hook patterns that behave differently across platforms to conceal behavior
 - Skills that write outside their documented scope without an explicit user
   approval step
 
 ### Out of Scope
-- The behavior of Claude or the Claude Code CLI itself
-  (report to [Anthropic](https://www.anthropic.com/security))
-- Bugs in the user's Claude Code installation or editor extension
+- The behavior of AI coding assistants (Claude, Codex, etc.) themselves
+  (report to the respective vendor)
+- Bugs in the user's AI tooling installation or editor extension
 - Theoretical vulnerabilities with no realistic attack path
 - Issues requiring physical access to the user's machine
 
 ## Security Guidelines for Contributors
 
-When contributing hooks, skills, or agents:
+When contributing code, hooks, skills, or agent definitions:
 
-- **Hooks must be POSIX-compatible** — use `grep -E`, not `grep -P`; avoid
+- **Git hooks must be POSIX-compatible** — use `grep -E`, not `grep -P`; avoid
   platform-specific syntax that behaves differently across operating systems
-- **No silent network calls** from hooks or skills unless explicitly documented
-  and opt-in by the user
+- **No silent network calls** from build scripts, hooks, or skills unless
+  explicitly documented and opt-in by the user
 - **No reading secrets or environment variables** beyond what is minimally
   required and clearly documented in the skill's header
 - **Skills must not write outside their documented scope** without an explicit
