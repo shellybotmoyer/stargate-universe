@@ -27,7 +27,7 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             with open(target) as f: existing = f.read()
             m = re.match(r'^(\s+)', existing.split('\n')[1]); indent = m.group(1) if m else '\t'; nl = '\n' if existing.endswith('\n') else ''
-        except Exception: pass
+        except Exception as e: print(f'edit_server: indentation detection failed, using defaults: {e}', file=sys.stderr)
         with open(target, 'w') as f: json.dump(data, f, indent=indent, ensure_ascii=True); f.write(nl)
         self.send_response(200); self.end_headers(); self.wfile.write(f'wrote {self.path} ({len(body)} bytes)'.encode())
     def reply(self, code, text):

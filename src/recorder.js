@@ -23,7 +23,7 @@ export const createRecorder = (glCanvas, hud, { fps = 30, base = '/rec', quality
 	const tick = async () => {
 		if (!active) return; compose();
 		const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', quality)); const i = frames++;
-		chain = chain.then(() => post(`${base}/frame?name=${encodeURIComponent(name)}&i=${i}`, blob)).catch(() => {}); // strictly ordered
+		chain = chain.then(() => post(`${base}/frame?name=${encodeURIComponent(name)}&i=${i}`, blob)).catch((e) => { console.warn('recorder: frame upload failed (continuing chain)', e?.message ?? e); }); // strictly ordered
 		await chain;
 	};
 	const start = async (n = 'gameplay') => { name = n.replace(/\.(mp4|webm)$/, ''); fit(); frames = 0; await post(`${base}/start?name=${encodeURIComponent(name)}&fps=${fps}`); active = true; return `recording ${name}.mp4 at ${fps} fps (${c.width}×${c.height})`; };
