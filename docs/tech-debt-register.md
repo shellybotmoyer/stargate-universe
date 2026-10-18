@@ -1,6 +1,6 @@
 # Technical Debt Register
 
-Last updated: 2026-10-17 (heartbeat) · Sprint: web-era (post re-pivot)
+Last updated: 2026-10-18 (heartbeat) · Sprint: web-era (post re-pivot)
 Total open items: 3 (all inherited from Godot era, re-accepted as historical) | Estimated total effort: ~M (one doc write + two evaluations)
 
 Tracks **conscious** technical-debt decisions for the Stargate Universe project (historically Godot 4.6, now web/Three.js since the 2026-09-08 re-pivot).
@@ -27,6 +27,10 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
 | TD-006 | Documentation | `/sound-fetch` skill still described the browser stack (Three.js `audio-manager.ts`, R2 upload via `wrangler`, `resolveAssetUrl()`, `bun run typecheck`, mp3). | Ported Steps 4–8 + format table + path convention to Godot: `Audio` autoload, in-repo `sounds/*.ogg`, `godot --headless --import` sidecar, `tests/run.sh` verify. (Note: Godot stack has since been removed; this resolution is historical.) | 2026-06-26 |
 | TD-007 | Test | Smoke suite (`tests/smoke/`) was SceneTree-based, not GDUnit4, and centred on the E1 vertical slice. | Tests removed with Godot stack. Web-era CI uses `node --test`, `tsc --noEmit`, ESLint. See TD-010 for the remaining gap (no browser smoke). | 2026-10-16 |
 | TD-008 | Code Quality | `scripts/crew_viewer.gd.uid` was untracked (orphaned Godot import sidecar). | Committed alongside its `.gd`, then both deleted with Godot stack. | 2026-06-26 |
+| TD-101 | Architecture | FTL rhythm + countdown system inline in `src/main.js` closure — bloats the game-loop file. | Extracted to `src/ftl.js` (167 LOC) via `createFtlSystem(ctx)` dependency injection. Same DI pattern as `hotwire.js`/`flow.js`. Wired into main.js in commit c4a67c9. | 2026-10-17 |
+| TD-102 | Code Quality | No linter — silent code-style drift, dead variables, missing optional chaining. | Added `eslint.config.js` (flat config, ES modules, browser globals + THREE readonly). CI lint step added (45e4d93). Codebase lint-clean. | 2026-10-17 |
+| TD-103 | Test | Unit test coverage gap — only a few of 25 source modules had tests. | All 25 source modules now covered: 943 unit tests across 27 files. Uses Node 18+ built-in runner, mock ctx pattern, no framework deps. | 2026-10-17 |
+| TD-104 | Code Quality | Silent `catch {}` blocks in `src/main.js` swallow errors invisibly — debugging blind spots. | Replaced last 2 silent catch blocks (`saveGame` catch, `knockout_lines.json` fetch `.catch(() => {})`) with `console.warn`. Fullscreen `.catch?.(() => {})` intentionally left (expected user-gesture failure). Commit 2470e9f. | 2026-10-18 |
 
 ## Notes
 
@@ -38,3 +42,7 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
   reference deleted files and are closed. TD-005 (VRM addon) is closed. TD-003 (missing
   architecture docs) is still valid for the web-era codebase. Two new items (TD-009, TD-010)
   were added for web-era debt identified during this scan.
+- **2026-10-18 update:** added 4 resolved items (TD-101 through TD-104) tracking the
+  web-era module-extraction, lint, test-coverage, and silent-catch work shipped on the
+  `heartbeat/pr195-replacement` branch (PR #197). All four were referenced by commit
+  messages but absent from the register — now recorded for audit completeness.
