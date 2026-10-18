@@ -73,5 +73,5 @@ export const grantXp = (n) => {
 	while (rpg.xp >= xpToNext(rpg.level)) { rpg.xp -= xpToNext(rpg.level); rpg.level++; rpg.talentPoints++; ups++; }
 	addLog(`+${n} XP${ups ? ` — Level ${rpg.level}! +${ups} talent point` : ''}`); rpg.hp = stats().maxHp; emit(); return ups;
 };
-export const save = () => { try { localStorage.setItem('sgu.rpg', JSON.stringify({ ...rpg, log: rpg.log.slice(-30) })); } catch {} };
-export const load = () => { try { const s = JSON.parse(localStorage.getItem('sgu.rpg') || 'null'); if (s) Object.assign(rpg, s); } catch {} };
+export const save = () => { try { localStorage.setItem('sgu.rpg', JSON.stringify({ ...rpg, log: rpg.log.slice(-30) })); } catch (e) { console.warn('rpg: failed to save game state', e); } };
+export const load = () => { try { const s = JSON.parse(localStorage.getItem('sgu.rpg') || 'null'); if (s) Object.assign(rpg, s); } catch (e) { console.warn('rpg: failed to load saved game state', e); } };
