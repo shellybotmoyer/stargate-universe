@@ -1,5 +1,12 @@
 # Event Bus
 
+> **⚠️ STALE engine mapping — ggez-era sections superseded by the 2026-09-08 Three.js re-pivot**
+>
+> References to `mitt`, TypeScript, and npm describe the ggez-era framework
+> removed in `abfb5ed` — the Three.js-era repo runs plain `src/*.js` + `index.html`
+> (`build.sh`). The system design (event naming, domains, error isolation,
+> re-entry protection) remains reference until re-mapped onto the web implementation.
+
 > **Status**: Designed
 > **Author**: User + Claude
 > **Last Updated**: 2026-03-29
