@@ -209,7 +209,7 @@ const ftlJump = () => {
 const ftlRedrop = () => { shake = 1.4; oneShot(buffers.ftlDrop, 0.9); oneShot(shutdownBuf, 0.5, 0.55); addLog('Destiny dropped out of FTL'); alertUntil = performance.now() + 12000; openFtlWindow(); setTimeout(() => dialGate(destiny), 900); oneShot(buffers.radio, 0.6); ui.subtitle('Brody', 'We have dropped out again — same address is dialing. Whatever you did not finish, finish it.', { radio: true }); };
 // Knockout loop (design: no death, issue #92): black out, wake on an infirmary bed, TJ has a line for whatever dropped you.
 let knockoutLines = { speaker: 'TJ', pools: { generic: ['You took a knock out there. Nothing that will not mend.'] } }, knockedOut = false;
-fetch(`${ASSETS}data/knockout_lines.json`).then((r) => r.json()).then((j) => { knockoutLines = j; }).catch(() => {});
+fetch(`${ASSETS}data/knockout_lines.json`).then((r) => r.json()).then((j) => { knockoutLines = j; }).catch((e) => { console.warn('knockout_lines.json load failed, using fallback:', e?.message ?? e); });
 const knockOut = (cause) => {
 	if (knockedOut) return; knockedOut = true; if (kino.active) recallKino(); input.keys.clear(); ui.setPrompt(null); oneShot(heartBuf, 0.8); setTimeout(() => oneShot(heartBuf, 0.6, 0.9), 1000);
 	flash.style.transition = 'opacity 1.1s'; flash.style.background = '#000'; flash.style.opacity = '1'; addLog(`Knocked out: ${cause.replace(/_/g, ' ')}`);
@@ -544,7 +544,7 @@ window.__dbg = { input, player, camera, orbit, quest, rpg, ride: rideElevator, s
 // ---------------------------------------------------------------- save / load (localStorage) + title screen
 const SAVE_KEY = 'sgu.save';
 let gameStarted = false; // saves only once a game is running (startChapter fires onStep during boot/load)
-const saveGame = () => { if (!quest.chapter || !gameStarted) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ chapter: quest.chapter.id, stepIndex: quest.stepIndex, flags: [...quest.flags], lastScan, deck: destiny.deck, ftl: { window: ftl.window, cooldown: ftl.cooldown }, growth: destiny.ship.growBeds.map((b) => b.growth), countdown: countdown && { t: countdown.t, total: countdown.total, label: countdown.label, cause: countdown.cause }, savedAt: Date.now() })); saveRpg(); } catch {} };
+const saveGame = () => { if (!quest.chapter || !gameStarted) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify({ chapter: quest.chapter.id, stepIndex: quest.stepIndex, flags: [...quest.flags], lastScan, deck: destiny.deck, ftl: { window: ftl.window, cooldown: ftl.cooldown }, growth: destiny.ship.growBeds.map((b) => b.growth), countdown: countdown && { t: countdown.t, total: countdown.total, label: countdown.label, cause: countdown.cause }, savedAt: Date.now() })); saveRpg(); } catch (e) { console.warn('save failed:', e?.message ?? e); } };
 const hasSave = () => { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } };
 /** Restore chapter/step/flags + RPG, rebuild Destiny state from flags, and put the player in the gate room. Planet-side steps rewind to the gate. */
 const loadGame = () => {
