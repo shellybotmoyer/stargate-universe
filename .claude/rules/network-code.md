@@ -1,9 +1,13 @@
 ---
-paths:
-  - "src/networking/**"
+paths: []
 ---
 
 # Network Code Rules
+
+> **Web-era note:** The game is single-player — there is no `src/networking/` directory
+> and no networking layer. These rules are retained for reference in case a future
+> milestone adds networked features. `paths: []` means this rule file will not match
+> any files in the current repo.
 
 - Server is AUTHORITATIVE for all gameplay-critical state — never trust the client
 - All network messages must be versioned for forward/backward compatibility

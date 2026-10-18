@@ -1,9 +1,21 @@
 ---
 paths:
-  - "src/core/**"
+  - "src/components.js"
+  - "src/destination.js"
+  - "src/gate-room.js"
+  - "src/ship.js"
+  - "src/stargate.js"
+  - "src/wormhole.js"
 ---
 
 # Engine Code Rules
+
+> **Web-era note:** The repo uses flat `src/*.js` modules (no `src/core/` directory).
+> Engine-layer modules are the scene/world builders: `components.js`, `destination.js`,
+> `gate-room.js`, `ship.js`, `stargate.js`, `wormhole.js`. Three.js 0.180 is loaded via
+> import map — there is no `docs/engine-reference/` directory; consult the
+> [Three.js docs](https://threejs.org/docs/) and `.claude/docs/technical-preferences.md`
+> for engine version and conventions.
 
 - ZERO allocations in hot paths (update loops, rendering, physics) — pre-allocate, pool, reuse
 - All engine APIs must be thread-safe OR explicitly documented as single-thread-only
@@ -13,7 +25,6 @@ paths:
 - Changes to public interfaces require a deprecation period and migration guide
 - Use RAII / deterministic cleanup for all resources
 - All engine systems must support graceful degradation
-- Before writing engine API code, consult `docs/engine-reference/` for the current engine version and verify APIs against the reference docs
 
 ## Examples
 

@@ -1,9 +1,25 @@
 ---
 paths:
-  - "src/gameplay/**"
+  - "src/main.js"
+  - "src/rpg.js"
+  - "src/quest.js"
+  - "src/flow.js"
+  - "src/interact.js"
+  - "src/ancient.js"
+  - "src/hotwire.js"
+  - "src/input.js"
+  - "src/player.js"
+  - "src/kino.js"
+  - "src/music.js"
+  - "src/settings.js"
 ---
 
 # Gameplay Code Rules
+
+> **Web-era note:** The repo uses flat `src/*.js` modules (no `src/gameplay/` directory).
+> Gameplay-layer modules include `main.js` (game loop/chapter engine), `rpg.js`,
+> `quest.js`, `flow.js`, `interact.js`, `player.js`, `kino.js`, etc. Data-driven
+> config lives in `data/*.json`.
 
 - ALL gameplay values MUST come from external config/data files, NEVER hardcoded
 - Use delta time for ALL time-dependent calculations (frame-rate independence)

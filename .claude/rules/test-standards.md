@@ -5,6 +5,11 @@ paths:
 
 # Test Standards
 
+> **Web-era note:** Unit tests live in `tests/*.test.js` and run via
+> `node --test tests/*.test.js` (see `package.json`). The `tests/` directory
+> is added by PR #197 — on `main` before that merge, CI uses `node --check`
+> syntax validation only. Test runner: Node.js built-in `node:test`.
+
 - Test naming: `test_[system]_[scenario]_[expected_result]` pattern
 - Every test must have a clear arrange/act/assert structure
 - Unit tests must not depend on external state (filesystem, network, database)

@@ -1,9 +1,13 @@
 ---
 paths:
-  - "assets/data/**"
+  - "data/*.json"
 ---
 
 # Data File Rules
+
+> **Web-era note:** Data files live in `data/` (not `assets/data/`). The repo has
+> no `assets/data/` directory. Data files include `biomes.json`, `chapters.json`,
+> `characters.json`, `items.json`, `quests.json`, `ship_layout.json`, etc.
 
 - All JSON files must be valid JSON — broken JSON blocks the entire build pipeline
 - File naming: lowercase with underscores only, following `[system]_[name].json` pattern

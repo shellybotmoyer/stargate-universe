@@ -1,9 +1,15 @@
 ---
 paths:
-  - "src/ui/**"
+  - "src/ui.js"
+  - "src/console.js"
+  - "src/leveledit.js"
 ---
 
 # UI Code Rules
+
+> **Web-era note:** The repo uses flat `src/*.js` modules (no `src/ui/` directory).
+> UI-layer modules include `ui.js` (HUD/menus), `console.js` (dev console),
+> and `leveledit.js` (in-game level editor).
 
 - UI must NEVER own or directly modify game state — display only, use commands/events to request changes
 - All UI text must go through the localization system — no hardcoded user-facing strings

@@ -1,9 +1,14 @@
 ---
-paths:
-  - "prototypes/**"
+paths: []
 ---
 
 # Prototype Code Standards (Relaxed)
+
+> **Web-era note:** The repo has no `prototypes/` directory. Prototyping is done
+> in-tree via `src/autoplay.js` (smoke/reload mode) and `src/leveledit.js`
+> (in-game editor). These rules are retained for reference if a `prototypes/`
+> directory is added. `paths: []` means this rule file will not match any files
+> in the current repo.
 
 Prototypes are throwaway code for validating ideas. Standards are intentionally
 relaxed to maximize iteration speed. The goal is learning, not production quality.
