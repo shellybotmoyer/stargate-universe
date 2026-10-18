@@ -1,7 +1,7 @@
 # Technical Debt Register
 
 Last updated: 2026-10-18 (heartbeat) · Sprint: web-era (post re-pivot)
-Total open items: 3 (all inherited from Godot era, re-accepted as historical) | Estimated total effort: ~M (one doc write + two evaluations)
+Total open items: 3 (all inherited from Godot era, re-accepted as historical) + TD-009/010 (web-era) | Estimated total effort: ~M
 
 Tracks **conscious** technical-debt decisions for the Stargate Universe project (historically Godot 4.6, now web/Three.js since the 2026-09-08 re-pivot).
 Maintained via the `/tech-debt` skill (`.claude/skills/tech-debt/`). Run `/tech-debt scan`
@@ -13,7 +13,7 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
 |----|----------|-------------|-------|--------|--------|----------|-------|--------|
 | TD-003 | Documentation | Missing architecture docs flagged "not blocking" in CLAUDE.md. 4 ADRs + a dependency graph exist; the synthesis docs do not. Generate via `/create-architecture`, `/create-control-manifest`. | `docs/architecture/architecture.md`, `docs/architecture/control-manifest.md`, `design/accessibility-requirements.md` | M | Low | Low | 2026-06-26 | Backlog |
 | TD-005 | Dependency | ~~VRM addon carries 15 FIXMEs / 13 TODOs.~~ VRM addon was removed in the Godot→Three.js re-pivot (2026-09-08). This item is now closed — see Resolved section. | ~~`addons/vrm/*`~~ | — | — | — | 2026-06-26 | Closed 2026-10-16 |
-| TD-009 | Code Quality | **New (web-era):** `src/main.js` is ~702 lines and growing — game loop, chapter engine, FTL/countdown systems, knockout loop, and frame dispatcher are all in one closure. Not yet a god object, but trending. Plan: extract `createFtlSystem()` and `createCountdownSystem()` into `src/ftl.js` / `src/countdown.js` modules when main.js exceeds ~800 lines. | `src/main.js` | M | Med | Med | 2026-10-17 | Backlog |
+| TD-009 | Code Quality | `src/main.js` is ~702 lines — game loop, chapter engine, FTL/countdown systems, knockout loop, and frame dispatcher all in one closure. Not yet a god object, but trending. Plan: extract `createCountdownSystem()` into `src/countdown.js` (FTL already extracted on PR #197 branch as `src/ftl.js` via TD-101 — awaiting merge). Re-evaluate after PR #197 lands. | `src/main.js` | M | Med | Med | 2026-10-17 | Backlog |
 | TD-010 | Test | **New (web-era):** No automated browser/headless test runner. CI runs `node --test` on unit-testable modules and `tsc --noEmit` + ESLint for static checks, but there is no Puppeteer/Playwright smoke that loads `index.html` and verifies the game boots. Autoplay reload-mode covers this manually but is not wired to CI. | `.github/workflows/ci.yml` | L | Med | Med | 2026-10-16 | Backlog |
 
 ## Resolved / closed
@@ -27,7 +27,7 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
 | TD-006 | Documentation | `/sound-fetch` skill still described the browser stack (Three.js `audio-manager.ts`, R2 upload via `wrangler`, `resolveAssetUrl()`, `bun run typecheck`, mp3). | Ported Steps 4–8 + format table + path convention to Godot: `Audio` autoload, in-repo `sounds/*.ogg`, `godot --headless --import` sidecar, `tests/run.sh` verify. (Note: Godot stack has since been removed; this resolution is historical.) | 2026-06-26 |
 | TD-007 | Test | Smoke suite (`tests/smoke/`) was SceneTree-based, not GDUnit4, and centred on the E1 vertical slice. | Tests removed with Godot stack. Web-era CI uses `node --test`, `tsc --noEmit`, ESLint. See TD-010 for the remaining gap (no browser smoke). | 2026-10-16 |
 | TD-008 | Code Quality | `scripts/crew_viewer.gd.uid` was untracked (orphaned Godot import sidecar). | Committed alongside its `.gd`, then both deleted with Godot stack. | 2026-06-26 |
-| TD-101 | Architecture | FTL rhythm + countdown system inline in `src/main.js` closure — bloats the game-loop file. | Extracted to `src/ftl.js` (167 LOC) via `createFtlSystem(ctx)` dependency injection. Same DI pattern as `hotwire.js`/`flow.js`. Wired into main.js in commit c4a67c9. | 2026-10-17 |
+| TD-101 | Architecture | FTL rhythm + countdown system inline in `src/main.js` closure — bloats the game-loop file. | Extraction shipped on PR #197 branch (commit c4a67c9: `src/ftl.js` 167 LOC, `createFtlSystem(ctx)` DI pattern). **Not yet on main** — PR #197 awaits maintainer merge. main.js on `main` is still 702 lines with FTL+countdown inline (lines 196–250). Re-evaluate after PR #197 merges. | 2026-10-17 |
 | TD-102 | Code Quality | No linter — silent code-style drift, dead variables, missing optional chaining. | Added `eslint.config.js` (flat config, ES modules, browser globals + THREE readonly). CI lint step added (45e4d93). Codebase lint-clean. | 2026-10-17 |
 | TD-103 | Test | Unit test coverage gap — only a few of 25 source modules had tests. | All 25 source modules now covered: 943 unit tests across 27 files. Uses Node 18+ built-in runner, mock ctx pattern, no framework deps. | 2026-10-17 |
 | TD-104 | Code Quality | Silent `catch {}` blocks in `src/main.js` swallow errors invisibly — debugging blind spots. | Replaced last 2 silent catch blocks (`saveGame` catch, `knockout_lines.json` fetch `.catch(() => {})`) with `console.warn`. Fullscreen `.catch?.(() => {})` intentionally left (expected user-gesture failure). Commit 2470e9f. | 2026-10-18 |
@@ -46,3 +46,8 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
   web-era module-extraction, lint, test-coverage, and silent-catch work shipped on the
   `heartbeat/pr195-replacement` branch (PR #197). All four were referenced by commit
   messages but absent from the register — now recorded for audit completeness.
+  **Accuracy correction (same heartbeat):** TD-101 and TD-102/103/104 resolutions all
+  live on PR #197's branch, not on `main`. The register previously implied these were
+  resolved on main. TD-101 resolution text now explicitly states "Not yet on main" —
+  main.js on `main` is still 702 lines with FTL+countdown inline. TD-009 updated to
+  reflect FTL extraction is done (on PR branch) and only countdown extraction remains.
