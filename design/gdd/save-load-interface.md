@@ -6,12 +6,14 @@
 > is `src/*.js` + `data/`. The interface contract and the TS profile/checkpoint
 > model remain canonical reference until re-mapped onto the web implementation.
 
-> **Status**: Implemented — profile/checkpoint model (issues #77/#79/#80/#81/#82)
-> layered over the original Godot slot system (#44). The TS interface at the
-> bottom is the engine-agnostic origin; the Godot mapping is in "Profile +
-> checkpoint model" first, then the legacy "Slot model" it builds on.
+> **Status (Godot era — historical):** Implemented — profile/checkpoint model
+> (issues #77/#79/#80/#81/#82) layered over the original Godot slot system (#44).
+> **Status (web era — current):** The web runtime uses a single `localStorage`
+> save slot (`sgu.save` key, `src/main.js:saveGame()/loadGame()`). No profile
+> model yet; the TS profile/checkpoint design below is the canonical reference
+> for a future re-implementation on the web stack.
 > **Author**: User + Claude
-> **Last Updated**: 2026-06-01
+> **Last Updated**: 2026-10-19 (heartbeat — updated web-era status)
 
 ## Profile + checkpoint model (Godot, issues #77/#79/#80/#81/#82)
 
