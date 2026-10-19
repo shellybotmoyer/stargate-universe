@@ -43,7 +43,7 @@ if [ -n "$DESIGN_FILES" ]; then
 fi
 
 # Validate JSON data files -- block invalid JSON
-DATA_FILES=$(echo "$STAGED" | grep -E '^assets/data/.*\.json$')
+DATA_FILES=$(echo "$STAGED" | grep -E '^data/.*\.json$')
 if [ -n "$DATA_FILES" ]; then
     # Find a working Python command
     PYTHON_CMD=""
@@ -70,7 +70,7 @@ fi
 
 # Check for hardcoded gameplay values in gameplay code
 # Uses grep -E (POSIX extended) instead of grep -P (Perl) for cross-platform compatibility
-CODE_FILES=$(echo "$STAGED" | grep -E '^src/gameplay/')
+CODE_FILES=$(echo "$STAGED" | grep -E '^src/.*\.js$')
 if [ -n "$CODE_FILES" ]; then
     while IFS= read -r file; do
         if [ -f "$file" ]; then
