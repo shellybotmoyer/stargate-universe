@@ -205,10 +205,11 @@ label.
 ## Detailed Design (Aspirational / Forward-Looking)
 
 > The sections below describe the full designed vision. Items noted
-> [FORWARD-LOOKING] are designed but not yet built. The browser-era references
-> to the engine framework, `EventBus`, and `player:entered:section` have been superseded by
-> the Godot autoload architecture described in the Procedural Floor Architecture
-> section above.
+> [FORWARD-LOOKING] are designed but not yet built. The engine framework
+> references (`EventBus`, `player:entered:section`, Godot autoloads) are all
+> **historical** — see the Procedural Floor Architecture section above (marked
+> "Historical — pre-re-pivot"). The current web/Three.js runtime uses `src/*.js`
+> modules with no autoload system; re-map these patterns before implementation.
 
 ### Core Rules
 
