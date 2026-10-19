@@ -61,6 +61,10 @@ const css = `
 `;
 const el = (tag, attrs = {}, html = '') => { const e = document.createElement(tag); Object.assign(e, attrs); e.innerHTML = html; return e; };
 
+/** Create the HUD and Kino Remote UI overlay: compass, health/oxygen bars, dialogue, remote tabs (nav, clocks, save/load).
+ * @param {{getWorldName: () => string, onDial: (id: string) => void, onLaunchKino: () => void, canLaunchKino: () => boolean, planets: () => Array, chapterTitle: () => string, steps: () => Array, stepIndex: () => number, flags: Set, onResume: () => void}} ctx — game context hooks
+ * @returns {{hud: HTMLDivElement, remote: HTMLDivElement, update: (dt: number) => void, showRemote: (tab?: string) => void, hideRemote: () => void, dialogue: (text: string, who: string) => void, dismissDialogue: () => void, toast: (msg: string) => void}}
+ */
 export const createUI = (ctx) => {
 	// ctx: { getWorldName, onDial(planetId|'destiny'), onLaunchKino, canLaunchKino, planets(), chapterTitle(), steps(), stepIndex(), flags, onResume }
 	document.head.appendChild(el('style', {}, css));

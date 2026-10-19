@@ -1,6 +1,12 @@
 // In-page gameplay recorder: composites the WebGL frame + a text HUD onto a canvas and streams JPEG frames to the dev server,
 // which pipes them into ffmpeg at a fixed frame rate (tools/edit_server.py /rec/*). The game loop steps exactly 1/fps per
 // frame while recording, so the video is smooth even when the window is occluded or the machine is slow.
+/** Create a gameplay recorder that streams JPEG frames to the dev server for ffmpeg encoding.
+ * @param {HTMLCanvasElement} glCanvas — the WebGL game canvas to capture
+ * @param {HTMLElement} hud — the HUD overlay element to composite
+ * @param {{fps?: number, base?: string, quality?: number}} opts — frame rate (default 30), server endpoint base (default '/rec'), JPEG quality (default 0.86)
+ * @returns {{start: () => void, stop: () => void, frame: (dt: number) => void}}
+ */
 export const createRecorder = (glCanvas, hud, { fps = 30, base = '/rec', quality = 0.86 } = {}) => {
 	const c = document.createElement('canvas'); const ctx = c.getContext('2d');
 	let active = false, frames = 0, name = '', chain = Promise.resolve();

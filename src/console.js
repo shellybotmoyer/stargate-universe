@@ -1,5 +1,9 @@
 // Hidden developer console: ` (backquote) toggles a command line over the game. Commands are plain functions that return
 // a string to print. Typing goes to the console only — input.js ignores keys whose target is an <input>.
+/** Create the developer console overlay: backquote toggles visibility, commands are functions returning a string.
+ * @param {Object<string, () => string>} commands — map of command name → function returning output string
+ * @returns {{el: HTMLDivElement, toggle: () => void}}
+ */
 export const createConsole = (commands) => {
 	const el = document.createElement('div'); el.id = 'devcon'; el.hidden = true;
 	el.innerHTML = `<style>#devcon{position:fixed;left:0;right:0;top:0;z-index:50;background:rgba(6,8,12,.92);border-bottom:1px solid #8c7038;font:13px monospace;color:#e6d6a8;padding:8px 12px}

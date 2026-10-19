@@ -6,6 +6,15 @@ import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { ancientMaterial, ancientFloorMaterial, runwayLights, octagonFrame, wallSlit } from './ancient.js';
 
+/** Room dimensions (metres): width, length, height, gate Z offset, dais height. */
+export const ROOM = { width: 20, length: 40, height: 11, gateZ: -15, daisH: 0.18 };
+
+/** Build the gate room scene: floor, walls, gate ring, ramps, stairs, and collision boxes.
+ * @param {THREE.WebGLRenderer} renderer — needed for the Reflector floor material
+ * @returns {{group: THREE.Group, colliders: Array<{min: THREE.Vector3, max: THREE.Vector3}>}}
+ */
+export const createGateRoom = (renderer) => {
+
 const box = (w, h, d, mat, x, y, z, colliders, opts = {}) => {
 	const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
 	m.position.set(x, y, z);
@@ -63,9 +72,6 @@ const wallTexture = () => {
 
 // Hall footprint = the gate_room rect in data/ship_layout.json (800×400 plan units → 40×20 m, z ∈ [-20, 20]); ship.js
 // builds its walls/ceiling/doors from that data, this module dresses the interior. Gate stands 5 m in from the back wall.
-export const ROOM = { width: 20, length: 40, height: 11, gateZ: -15, daisH: 0.18 };
-
-export const createGateRoom = (renderer) => {
 	const group = new THREE.Group(); group.name = 'gateRoom';
 	const colliders = [];
 	const { width, length, height, gateZ, daisH } = ROOM;

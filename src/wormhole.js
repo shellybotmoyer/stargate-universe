@@ -1,6 +1,9 @@
 // Wormhole ride: camera flies down an energy tube. Self-contained scene; tick(t, k) with k = 0..1 progress.
 import * as THREE from 'three';
 
+/** Create the wormhole transit scene: energy tube geometry, animated shaders, and camera fly-through API.
+ * @returns {{scene: THREE.Scene, tick: (t: number, k: number) => void}}
+ */
 export const createWormhole = () => {
 	const scene = new THREE.Scene(); scene.background = new THREE.Color(0x020610);
 	const LEN = 320, R = 5;

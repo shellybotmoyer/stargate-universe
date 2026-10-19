@@ -22,6 +22,10 @@ const css = `
 	#flow .esc{position:absolute;right:26px;bottom:10px;font:11px monospace;color:#3f7fb0}
 `;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
+/** Create the flow-balance mini-game: coupled valves with pressure gauges. Follows the hotwire.js contract.
+ * @param {{sfx?: object}} [opts] — sound effects object (optional)
+ * @returns {{el: HTMLDivElement, play: () => Promise<boolean>, isOpen: () => boolean}}
+ */
 export const createFlow = ({ sfx = {} } = {}) => {
 	document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 	const el = document.createElement('div'); el.id = 'flow'; el.hidden = true; document.body.appendChild(el);

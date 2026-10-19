@@ -6,6 +6,10 @@ let simNow = () => performance.now(), waitFrame = (fn) => setTimeout(() => fn() 
 const sleep = (ms) => new Promise((r) => { const t0 = simNow(); waitFrame(() => simNow() - t0 >= ms && (r(), true)); }); // measured in simulated ms, checked every frame
 const press = (code) => { window.dispatchEvent(new KeyboardEvent('keydown', { code })); window.dispatchEvent(new KeyboardEvent('keyup', { code })); };
 
+/** Create the autoplay demo driver: plays through chapters hands-free using the real input path.
+ * @param {{simTime: () => number, waitFrame: (fn: () => boolean) => void}} d — game clock hooks (simTime in seconds, waitFrame for per-frame callbacks)
+ * @returns {{run: () => Promise<void>, runChapter: (id: string) => Promise<void>, status: object, log: string[]}}
+ */
 export const createAutoplay = (d) => {
 	simNow = () => d.simTime() * 1000; waitFrame = d.waitFrame;
 	const auto = { status: 'idle', log: [], running: false, abort: false, report: [] };

@@ -3,6 +3,7 @@
 // Event horizon = fBm + domain warp + polar swirl (animated shader, see below).
 import * as THREE from 'three';
 
+/** Stargate geometry constants: outer ring radius, inner ring radius, number of chevrons. */
 export const GATE = { rOuter: 3.0, rInner: 2.4, chevrons: 9 };
 
 const horizonShader = {
@@ -56,6 +57,9 @@ const horizonShader = {
 
 const metal = (c, rough = 0.55, metalness = 0.75) => new THREE.MeshStandardMaterial({ color: c, roughness: rough, metalness });
 
+/** Build the stargate mesh group: ring, chevrons, event horizon shader, and animation API.
+ * @returns {THREE.Group & {activate: () => void, shutdown: () => void, isOpen: () => boolean, update: (dt: number) => void}}
+ */
 export const createStargate = () => {
 	const g = new THREE.Group();
 	g.name = 'stargate';

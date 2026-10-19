@@ -6,6 +6,7 @@ import { ASSETS } from './assets.js';
 
 const MODEL_URL = `${ASSETS}models/quaternius/anim_lib/UAL1_Standard.glb`;
 const EXTRA_CLIPS_URL = `${ASSETS}models/quaternius/anim_lib/UAL2_Standard.glb`;
+/** Player physics constants: radius (m), height (m), walk speed (m/s), run speed, turn lerp rate, jump velocity, gravity. */
 export const PLAYER = { radius: 0.35, height: 1.72, walk: 4.2, run: 10.4, turnLerp: 10, jumpVel: 5.5, gravity: 15 };
 // Ground speed each in-place loop was authored for (m/s at 1.72 m height), measured from foot velocity during stance.
 // Clip timeScale = speed / CLIP_SPEED so a planted foot stays put on the floor; the gait is chosen by speed so the scale stays ~1.
@@ -14,6 +15,7 @@ const FOOT_PLANT_Y = 0.14, FOOT_SWING_Y = 0.2; // foot bone height (m above root
 
 // Semantic action names → library clip names. To swap in a Mixamo pack (FBX → GLB, retargeted to this skeleton or its own),
 // change MODEL_URL/EXTRA_CLIPS_URL and remap here; gameplay code only ever uses the keys.
+/** Map of semantic action names → Quaternius UAL library clip names. Gameplay code uses keys; swap clips here to remap animations. */
 export const CLIPS = {
 	idle: 'Idle_Loop', fidget: 'Idle_FoldArms_Loop', walk: 'Walk_Loop', carry: 'Walk_Carry_Loop', run: 'Jog_Fwd_Loop', sprint: 'Sprint_Loop', air: 'Jump_Loop',
 	interact: 'Interact', pickup: 'PickUp_Table', open: 'Chest_Open', repair: 'Fixing_Kneeling', dig: 'Farm_Harvest', talk: 'Idle_Talking_Loop', nod: 'Yes', device: 'Idle_TalkingPhone_Loop',

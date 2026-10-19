@@ -1,4 +1,7 @@
 // Unified keyboard + mouse + gamepad input. Read `state` each frame after calling poll().
+/** Shared input state: move vector, look delta, edge-triggered booleans, held keys, mouse delta, and sensitivity settings.
+ * Mutated each frame by poll(). Read after poll(), never assign directly.
+ */
 export const input = {
 	move: { x: 0, y: 0 },   // -1..1, x = strafe, y = forward
 	look: { x: 0, y: 0 },   // per-frame delta (radians-ish)
@@ -22,6 +25,9 @@ const pending = { jump: false, cycleView: false, redial: false, debug: false, in
 let padPrev = {};
 const dead = (v, d = 0.15) => (Math.abs(v) < d ? 0 : (v - Math.sign(v) * d) / (1 - d));
 
+/** Initialise keyboard, mouse, and gamepad event listeners on the given canvas.
+ * @param {HTMLCanvasElement} canvas — the canvas to bind pointer lock and mouse tracking to
+ */
 export const initInput = (canvas) => {
 	window.addEventListener('keydown', (e) => {
 		if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return; // typing into the dev console / editor panel
@@ -39,6 +45,9 @@ export const initInput = (canvas) => {
 	});
 };
 
+/** Poll input state: merges keyboard + gamepad into the shared `input` object. Edge-triggered flags are cleared after each call.
+ * @param {number} dt — frame delta time in seconds (for gamepad look scaling)
+ */
 export const poll = (dt) => {
 	const k = input.keys; input.interactHeld = false;
 	let x = (k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) - (k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0);

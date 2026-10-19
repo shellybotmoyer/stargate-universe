@@ -4,6 +4,9 @@ const list = [];
 const tmp = new THREE.Vector3();
 /** @param {{id:string, position:THREE.Vector3|THREE.Object3D, radius?:number, prompt:()=>string|null, action:()=>void, hold?:()=>number}} def */
 export const register = (def) => { list.push({ radius: 2.4, ...def, progress: 0 }); return def; };
+/** Remove an interactable from the proximity list by id.
+ * @param {string} id — the id passed to register()
+ */
 export const unregister = (id) => { const i = list.findIndex((d) => d.id === id); if (i >= 0) list.splice(i, 1); };
 const posOf = (d) => (d.position.isObject3D ? d.position.getWorldPosition(tmp) : tmp.copy(d.position));
 export let current = null;

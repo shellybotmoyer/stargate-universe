@@ -1,5 +1,8 @@
 // Kino drone mode: the camera becomes a floating reconnaissance orb. Fly it through an active gate to scan the far side.
 import * as THREE from 'three';
+/** Create a kino drone controller: a floating camera orb with fly controls and gate-crossing scan support.
+ * @returns {{orb: THREE.Group, active: boolean, yaw: number, pitch: number, vel: THREE.Vector3, scanT: number, launch: (pos: THREE.Vector3, yaw: number) => void, recall: () => void, update: (dt: number, input: object, camera: THREE.Camera) => void}}
+ */
 export const createKino = () => {
 	const orb = new THREE.Group();
 	const body = new THREE.Mesh(new THREE.SphereGeometry(0.16, 20, 14), new THREE.MeshStandardMaterial({ color: 0x555a60, roughness: 0.35, metalness: 0.8 }));

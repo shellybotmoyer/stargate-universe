@@ -7,6 +7,7 @@ import { ancientMaterial, ancientFloorMaterial } from './ancient.js';
 import { COMPONENTS, DEFAULT_PROPS, ROOM_PROPS } from './components.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
+/** Ship layout constants: door width, door height, wall thickness, deck height (metres). Decks stack DECK_H apart. */
 export const DOOR_W = 2.4, DOOR_H = 3.2, WALL_T = 0.3, DECK_H = 12; // decks stack DECK_H apart (gate hall is 11 m tall)
 /** Rooms fed by the crew-deck conduit (dark until `setQuartersPower(true)`).
  *  IDs must match data/ship_layout.json — if layout IDs change, update this set
