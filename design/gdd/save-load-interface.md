@@ -15,7 +15,14 @@
 > **Author**: User + Claude
 > **Last Updated**: 2026-10-19 (heartbeat — updated web-era status)
 
-## Profile + checkpoint model (Godot, issues #77/#79/#80/#81/#82)
+## Profile + checkpoint model (Godot, issues #77/#79/#80/#81/#82 — historical)
+
+> **Note (2026-10-20):** This entire section describes the removed Godot
+> implementation. The web/Three.js runtime uses a single `localStorage`
+> save slot (key `sgu.save`, `src/save.js` on PR #197 branch /
+> `src/main.js:saveGame()/loadGame()` on main). No profile or checkpoint
+> model exists yet. This section is canonical reference for a future
+> web-era re-implementation.
 
 The shipped save system groups saves under named **profiles** (one per
 playthrough). Each profile owns a **checkpoint timeline** — the player never
@@ -118,7 +125,10 @@ for just the capstone suite).
 
 ---
 
-## Slot model (Godot, issue #44 — legacy layer the profiles model builds on)
+## Slot model (Godot, issue #44 — historical legacy layer)
+
+> **Note (2026-10-20):** This section describes the removed Godot
+> implementation. Does not exist in the web/Three.js runtime.
 
 The shipped Godot implementation uses **save slots**: one directory per slot
 under a `saves_root`, each holding the snapshot, its rotating backups, and a

@@ -75,6 +75,13 @@ not busywork.
    > `design/gdd/stargate-planetary-runs.md` → Procedural Generation.
    > These Godot classes no longer exist; the web/Three.js resource model uses
    > `data/ship_layout.json` + `src/rpg.js` inventory state.
+
+   > **Web-era note (2026-10-20):** The current `src/rpg.js` resource model is
+   > a simplified version: ship parts, water, food, and lime are tracked as
+   > inventory quantities via the RPG module, not the historical
+   > `GameState.TRACKED_RESOURCES` + `Inventory` class system. The scarcity
+   > and procedural-generation design above is forward-looking — not yet
+   > implemented in the web/Three.js runtime.
    | Naquadah | Mid S1 | Power system repairs, high-tier fixes | Story event |
    | Medical Supplies | Early S1 | Crew health events, injury treatment | First aid discovery |
    | Ancient Components | Late S1 | Advanced repairs, unlocking Ancient tech | Ancient section discovered |

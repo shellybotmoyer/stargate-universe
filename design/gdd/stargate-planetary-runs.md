@@ -190,6 +190,12 @@ and clues to Destiny's mission — but only if you budget your time well.
 
 ### Procedural Generation (Historical — Godot implementation, issues #85–#93)
 
+> **Note (2026-10-20):** This entire section describes the removed Godot
+> implementation. The web/Three.js runtime does not yet have procedural
+> planet generation — planetary runs are forward-looking design. The
+> `PlanetSpec` / `PlanetGenerator` / `build_resource_table` architecture
+> below is the canonical reference for a future web-era re-implementation.
+
 The Godot build did not author one scene per planet; it **generated** each
 planet at dial time from a `PlanetSpec` and a per-biome data block, so every gate
 run yields a semi-random, resource-appropriate, walkable world. This replaces the
