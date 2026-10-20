@@ -22,29 +22,29 @@ no bundler, no TypeScript at runtime.
 
 ```
 main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown systems
-├── gate-room.js    — Destiny gate-room geometry + gate interface room
-├── stargate.js     — Stargate model, chevron animation, gate activation
-├── wormhole.js     — Wormhole transit effect
-├── destination.js  — Procedural planet generation from data/biomes.json
-├── ship.js (296)   — Deck layout from data/ship_layout.json, room geometry, lighting, grow beds
-├── components.js (284) — Procedural Ancient-tech prop meshes (beds, lockers, crates, scrubbers, tanks)
-├── ancient.js      — Shared Ancient material (triplanar PBR, world-space)
-├── player.js       — Quaternius UAL mannequin, locomotion blend, collision
-├── input.js        — Keyboard/mouse/gamepad input, pointer lock
-├── interact.js     — Proximity interactable system (register/update/prompt)
-├── quest.js (30)   — Declarative chapter/step engine (flag-driven advancement)
-├── rpg.js (76)     — Level/XP, HP/O2, inventory, equipment, talents
-├── settings.js     — Persistent settings (clockScale, accessibility options)
-├── ui.js (203)     — WoW-style HUD (gold-on-dark) + Kino Remote menu
-├── console.js      — Dev console (`ftl`, `goto`, `edit` commands)
-├── kino.js         — Kino remote probe (diegetic scout drone)
-├── hotwire.js      — Hotwire mini-game (panel repair)
-├── flow.js         — Flow-balance mini-game (coupled-valve life support puzzle)
-├── music.js        — Music layer loading + mood-driven transitions
-├── autoplay.js     — Automated smoke-test walker (keyboard simulation, reload mode)
-├── leveledit.js    — Level editor (crate style/loot, schematic deck parameter)
-├── recorder.js     — Frame capture / replay
-└── assets.js       — ASSETS base path constant (CDN vs local)
+├── gate-room.js (168) — Destiny gate-room geometry + gate interface room
+├── stargate.js (234)  — Stargate model, chevron animation, gate activation
+├── wormhole.js (52)   — Wormhole transit effect
+├── destination.js (130) — Procedural planet generation from data/biomes.json
+├── ship.js (310)   — Deck layout from data/ship_layout.json, room geometry, lighting, grow beds
+├── components.js (390) — Procedural Ancient-tech prop meshes (beds, lockers, crates, scrubbers, tanks)
+├── ancient.js (124) — Shared Ancient material (triplanar PBR, world-space)
+├── player.js (145) — Quaternius UAL mannequin, locomotion blend, collision
+├── input.js (79)   — Keyboard/mouse/gamepad input, pointer lock
+├── interact.js (32) — Proximity interactable system (register/update/prompt)
+├── quest.js (34)   — Declarative chapter/step engine (flag-driven advancement)
+├── rpg.js (144)    — Level/XP, HP/O2, inventory, equipment, talents
+├── settings.js (32) — Persistent settings (clockScale, accessibility options)
+├── ui.js (216)     — WoW-style HUD (gold-on-dark) + Kino Remote menu
+├── console.js (32) — Dev console (`ftl`, `goto`, `edit` commands)
+├── kino.js (33)    — Kino remote probe (diegetic scout drone)
+├── hotwire.js (69) — Hotwire mini-game (panel repair)
+├── flow.js (69)    — Flow-balance mini-game (coupled-valve life support puzzle)
+├── music.js (42)   — Music layer loading + mood-driven transitions
+├── autoplay.js (160) — Automated smoke-test walker (keyboard simulation, reload mode)
+├── leveledit.js (205) — Level editor (crate style/loot, schematic deck parameter)
+├── recorder.js (39) — Frame capture / replay
+└── assets.js (4)   — ASSETS base path constant (CDN vs local)
 ```
 
 ## 3. Core data flow
