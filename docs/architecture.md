@@ -12,7 +12,7 @@ no bundler, no TypeScript at runtime.
 | Renderer | Three.js WebGL (WebGPU ready via `?webgl=1` flag) | ACES tone mapping, PCF soft shadows, PMREM environment |
 | Language | ES modules (plain `.js`, `import/export`) | No transpile step; browser-native |
 | Build | `build.sh` → `tools/vendor.py` (Three.js addon graph resolution) → `dist/` + itch.io zip | No bundler; `index.html` loads `src/main.js` directly |
-| Tests | Node 18+ built-in test runner (`node --test tests/*.test.js`) | Zero framework deps; 31 tests across 3 modules |
+| Tests | Node 18+ built-in test runner (`node --test tests/*.test.js`) | Zero framework deps; test suite lives on PR #197 branch (28 files, 1007 tests) — not on main |
 | Data | JSON files in `data/` (chapters, ship layout, items, planets, etc.) | Fetched at runtime via `fetch()` |
 | Save | `localStorage` single-slot (`SAVE_KEY`) + version migration (`migrateSave()`) | `SAVE_VERSION` guards forward compat |
 | Audio | `AudioLoader` → `ASSETS/sounds/…`; procedural synthesis (`toneBuffer()`) for alarms/heartbeat | TTS generation: `tools/tts-bake/` |
@@ -134,15 +134,17 @@ Automated smoke-test walker. Keyboard simulation with escalating unstick logic
 and resumes from save, exercising save/load across chapter boundaries. Flow
 panel auto-solve, missed-FTL-window recovery.
 
-## 5. CI pipeline
+## 5. CI pipeline (main branch)
 
 `.github/workflows/ci.yml` — single `web-game` job:
-1. Checkout + Node 20 setup
+1. Checkout + Node 22 setup
 2. `node --check` on `src/*.js` (ESM-safe via `.mjs` copy)
 3. JSON validation on `data/*.json`
-4. `node --test tests/*.test.js` (31 unit tests)
-5. `./build.sh` → itch.io build artifact
-6. `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` env guard (Node 20 deprecation)
+4. `./build.sh` → itch.io build artifact
+5. `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` env guard (Node 20 deprecation)
+
+> **Note:** `node --test`, `tsc` typecheck, and `npm run lint` steps are on
+> PR #197's branch but not yet on main. They will be added when #197 merges.
 
 ## 6. File layout
 
@@ -158,7 +160,7 @@ stargate-universe/
 ├── data/               — 13 JSON files (chapters, layout, items, planets, etc.)
 ├── sounds/             — SFX + dialog voice lines (.wav)
 ├── models/             — Quaternius UAL mannequin (.glb)
-├── tests/              — 3 test files (rpg, settings, quest)
+├── tests/              — (not on main; 28 test files on PR #197 branch)
 ├── docs/               — GDDs, tech-debt register, learnings
 └── .github/workflows/  — CI pipeline
 ```
@@ -173,4 +175,4 @@ stargate-universe/
 | TD-101 | FTL extraction (`src/ftl.js`) | On PR #197 branch, not on main |
 | TD-102 | ESLint config + CI lint step | On PR #197 branch, not on main |
 | TD-103 | Unit test coverage (28 test files) | On PR #197 branch, not on main |
-| TD-104 | Silent catch blocks | Resolved on main (console.warn) |
+| TD-104 | Silent catch blocks | Fully resolved on main — all `catch {}` blocks replaced with `console.warn` |

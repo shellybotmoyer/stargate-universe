@@ -630,7 +630,7 @@ const frame = (dtIn) => {
 	if (input.remote && !kino.active && !hotwire.isOpen()) { if (paused) { ui.closeRemote(); player.stopAction(); } else if (quest.has('kino_acquired')) { ui.openRemote(); player.playAction('device', { loop: true }); } else ui.toast('You have no device to open yet'); }
 	if (input.launchKino && !paused && !travel && !kino.active) launchKino();
 	if (input.cycleView) setView(VIEWS[(VIEWS.indexOf(view) + 1) % VIEWS.length]);
-	if (input.fullscreen) { if (document.fullscreenElement) document.exitFullscreen?.(); else document.documentElement.requestFullscreen?.().catch?.(() => {}); }
+	if (input.fullscreen) { if (document.fullscreenElement) document.exitFullscreen?.(); else document.documentElement.requestFullscreen?.().catch?.((e) => console.warn('requestFullscreen failed:', e)); }
 	const dt = paused ? 0 : rawDt;
 	if (shake > 0) shake = Math.max(0, shake - dt);
 	if (dt > 0) {

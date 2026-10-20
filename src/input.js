@@ -36,7 +36,7 @@ export const initInput = (canvas) => {
 	});
 	window.addEventListener('keyup', (e) => input.keys.delete(e.code));
 	window.addEventListener('blur', () => input.keys.clear());
-	canvas.addEventListener('click', () => { if (input.lockEnabled && document.pointerLockElement !== canvas) canvas.requestPointerLock()?.catch?.(() => {}); });
+	canvas.addEventListener('click', () => { if (input.lockEnabled && document.pointerLockElement !== canvas) canvas.requestPointerLock()?.catch?.((e) => console.warn('pointerLock failed:', e)); });
 	window.addEventListener('mousemove', (e) => {
 		if (document.pointerLockElement === canvas) {
 			input.mouseDelta.x += e.movementX;
