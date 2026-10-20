@@ -11,35 +11,35 @@ no bundler, no TypeScript at runtime.
 |-------|--------|-------|
 | Renderer | Three.js WebGL (WebGPU ready via `?webgl=1` flag) | ACES tone mapping, PCF soft shadows, PMREM environment |
 | Language | ES modules (plain `.js`, `import/export`) | No transpile step; browser-native |
-| Build | `build.sh` → `tools/vendor.py` (Three.js addon graph resolution) → `dist/` + itch.io zip | No bundler; `index.html` loads `src/main.js` directly |
+| Build | `build.sh` (inline Python heredoc for Three.js addon graph resolution) → `dist/` + itch.io zip | No bundler; `index.html` loads `src/main.js` directly |
 | Tests | Node 18+ built-in test runner (`node --test tests/*.test.js`) | Zero framework deps; test suite lives on PR #197 branch (28 files, 1007 tests) — not on main |
 | Data | JSON files in `data/` (chapters, ship layout, items, planets, etc.) | Fetched at runtime via `fetch()` |
 | Save | `localStorage` single-slot (`SAVE_KEY`) + version migration (`migrateSave()`) | `SAVE_VERSION` guards forward compat |
 | Audio | `AudioLoader` → `ASSETS/sounds/…`; procedural synthesis (`toneBuffer()`) for alarms/heartbeat | TTS generation: `tools/tts-bake/` |
 | Assets | Repo-local `sounds/`, `models/` (Quaternius UAL), `data/` | `ASSETS` base path resolves CDN vs local |
 
-## 2. Module graph (24 source files, 3,445 LOC)
+## 2. Module graph (23 source files on main, 2,972 LOC — 24/3,445 with PR #197)
 
 ```
-main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown systems
+main.js (581 LOC on main, 702 with PR #197) — entry point, game loop, chapter engine, FTL/countdown systems
 ├── gate-room.js    — Destiny gate-room geometry + gate interface room
 ├── stargate.js     — Stargate model, chevron animation, gate activation
 ├── wormhole.js     — Wormhole transit effect
 ├── destination.js  — Procedural planet generation from data/biomes.json
-├── ship.js (310)   — Deck layout from data/ship_layout.json, room geometry, lighting, grow beds
-├── components.js (390) — Procedural Ancient-tech prop meshes (beds, lockers, crates, scrubbers, tanks)
+├── ship.js (296)   — Deck layout from data/ship_layout.json, room geometry, lighting, grow beds
+├── components.js (284) — Procedural Ancient-tech prop meshes (beds, lockers, crates, scrubbers, tanks)
 ├── ancient.js      — Shared Ancient material (triplanar PBR, world-space)
 ├── player.js       — Quaternius UAL mannequin, locomotion blend, collision
 ├── input.js        — Keyboard/mouse/gamepad input, pointer lock
 ├── interact.js     — Proximity interactable system (register/update/prompt)
-├── quest.js (34)   — Declarative chapter/step engine (flag-driven advancement)
-├── rpg.js (144)    — Level/XP, HP/O2, inventory, equipment, talents
+├── quest.js (30)   — Declarative chapter/step engine (flag-driven advancement)
+├── rpg.js (76)     — Level/XP, HP/O2, inventory, equipment, talents
 ├── settings.js     — Persistent settings (clockScale, accessibility options)
-├── ui.js (216)     — WoW-style HUD (gold-on-dark) + Kino Remote menu
+├── ui.js (203)     — WoW-style HUD (gold-on-dark) + Kino Remote menu
 ├── console.js      — Dev console (`ftl`, `goto`, `edit` commands)
 ├── kino.js         — Kino remote probe (diegetic scout drone)
 ├── hotwire.js      — Hotwire mini-game (panel repair)
-├── flow.js         — Flow-balance mini-game (coupled-valve life support puzzle)
+├── flow.js         — Flow-balance mini-game (coupled-valve life support puzzle) [PR #197 branch only]
 ├── music.js        — Music layer loading + mood-driven transitions
 ├── autoplay.js     — Automated smoke-test walker (keyboard simulation, reload mode)
 ├── leveledit.js    — Level editor (crate style/loot, schematic deck parameter)
@@ -151,14 +151,15 @@ panel auto-solve, missed-FTL-window recovery.
 ```
 stargate-universe/
 ├── index.html          — entry point, loads src/main.js
-├── build.sh            — build script (calls tools/vendor.py)
+├── build.sh            — build script (inline Python heredoc for addon graph resolution)
 ├── tools/
-│   ├── vendor.py       — Three.js addon graph resolution + index rewrite
+│   ├── gen_gate_sfx.py — procedural gate sound effect generation
+│   ├── music-bake/     — music asset baking
 │   ├── tts-bake/       — TTS voice line generation
 │   └── edit_server.py  — Level editor backend
-├── src/                — 24 ES modules (3,445 LOC)
+├── src/                — 23 ES modules (2,972 LOC on main; 24/3,445 with PR #197)
 ├── data/               — 13 JSON files (chapters, layout, items, planets, etc.)
-├── sounds/             — SFX + dialog voice lines (.wav)
+├── sounds/             — SFX + dialog voice lines (.ogg, .wav)
 ├── models/             — Quaternius UAL mannequin (.glb)
 ├── tests/              — (not on main; 28 test files on PR #197 branch)
 ├── docs/               — GDDs, tech-debt register, learnings
