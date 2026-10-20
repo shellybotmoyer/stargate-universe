@@ -63,7 +63,7 @@ For each story, find the evidence:
     containing the story slug
 
 **Integration stories**: Glob `tests/integration/[system]/[story-slug]_test.*`
-  - Also check `production/session-logs/` for playtest records mentioning the story
+  - Also check `production/notes/` for playtest records mentioning the story
 
 **Visual/Feel and UI stories**: Glob `production/qa/evidence/[story-slug]-evidence.*`
 

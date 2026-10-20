@@ -138,7 +138,7 @@ phases:
         command: /create-control-manifest
         required: true
         artifact:
-          glob: "docs/architecture/control-manifest.md"
+          glob: "docs/architecture.md (web-era — no separate control manifest)"
         description: "Flat programmer rules sheet generated from all Accepted ADRs"
 
       - id: accessibility-doc

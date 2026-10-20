@@ -7,7 +7,8 @@ echo "=== SESSION STATE BEFORE COMPACTION ==="
 echo "Timestamp: $(date)"
 
 # --- Active session state file ---
-STATE_FILE="production/session-state/active.md"
+# Web-era: session state in production/notes/ (session-state/ removed in re-pivot)
+STATE_FILE="production/notes/session-state.md"
 if [ -f "$STATE_FILE" ]; then
     echo ""
     echo "## Active Session State (from $STATE_FILE)"
@@ -21,7 +22,7 @@ if [ -f "$STATE_FILE" ]; then
 else
     echo ""
     echo "## No active session state file found"
-    echo "Consider maintaining production/session-state/active.md for better recovery."
+    echo "Consider maintaining production/notes/session-state.md for better recovery."
 fi
 
 # --- Files modified this session (unstaged + staged + untracked) ---
@@ -68,13 +69,12 @@ if [ "$WIP_FOUND" = false ]; then
 fi
 
 # --- Log compaction event ---
-SESSION_LOG_DIR="production/session-logs"
+# Web-era: session logs in production/notes/ (session-logs/ removed in re-pivot)
+SESSION_LOG_DIR="production/notes"
 mkdir -p "$SESSION_LOG_DIR" 2>/dev/null
 echo "Context compaction occurred at $(date)." \
     >> "$SESSION_LOG_DIR/compaction-log.txt" 2>/dev/null
 
-echo ""
-echo "## Recovery Instructions"
 echo "After compaction, read $STATE_FILE to recover full working context."
 echo "Then read any files listed above that are being actively worked on."
 echo "=== END SESSION STATE ==="

@@ -50,7 +50,7 @@ Then read silently before presenting anything else.
 - Count ADR files: `docs/architecture/adr-*.md`
 - Count story files: `production/epics/**/*.md` (excluding EPIC.md)
 - `.claude/docs/technical-preferences.md` — engine configured?
-- `docs/engine-reference/` — engine reference docs present?
+- `docs/architecture.md` — architecture doc present (web-era)
 - Glob `docs/adoption-plan-*.md` — note the filename of the most recent prior plan if any exist
 
 ### Infer phase (if no stage.txt)
@@ -151,11 +151,11 @@ For each story file found:
 | Artifact | Path | Impact if missing |
 |---|---|---|
 | TR registry | `docs/architecture/tr-registry.yaml` | HIGH — no stable requirement IDs |
-| Control manifest | `docs/architecture/control-manifest.md` | HIGH — no layer rules for stories |
+| Control manifest | `docs/architecture.md (web-era — no separate control manifest)` | HIGH — no layer rules for stories |
 | Manifest version stamp | In manifest header: `Manifest Version:` | MEDIUM — staleness checks blind |
 | Sprint status | `production/sprint-status.yaml` | MEDIUM — `/sprint-status` falls back to markdown |
 | Stage file | `production/stage.txt` | MEDIUM — phase auto-detect unreliable |
-| Engine reference | `docs/engine-reference/[engine]/VERSION.md` | HIGH — ADR engine checks blind |
+| Engine reference | `docs/architecture.md (web-era — engine is Three.js)` | HIGH — ADR engine checks blind |
 | Architecture traceability | `docs/architecture/architecture-traceability.md` | MEDIUM — no persistent matrix |
 
 ### 2f: Technical Preferences Audit
@@ -320,7 +320,7 @@ the TR registry from your existing GDDs and ADRs.
 ### 3b. Create control manifest
 Run `/create-control-manifest`
 **Time**: 30 min
-- [ ] docs/architecture/control-manifest.md created
+- [ ] docs/architecture.md (web-era — no separate control manifest) created
 
 ### 3c. Create sprint tracking file
 Run `/sprint-plan update`

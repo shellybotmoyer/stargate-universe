@@ -202,7 +202,7 @@ Wait for approval. Write the file only after "yes."
 
 ### Step 5c: Update Session State
 
-After writing, update `production/session-state/active.md` with:
+After writing, update `production/notes/session-state.md` with:
 - Task: Systems decomposition
 - Status: Systems index created
 - File: design/gdd/systems-index.md
@@ -284,7 +284,7 @@ This skill follows the collaborative design principle at every phase:
 4. **Incremental writing**: Update the systems index after each system is designed
 5. **Handoff**: Individual GDD authoring is owned by `/design-system`, which handles
    incremental section writing, cross-referencing, design review, and index updates
-6. **Session state updates**: Write to `production/session-state/active.md` after
+6. **Session state updates**: Write to `production/notes/session-state.md` after
    each milestone (index created, system designed, priorities changed)
 
 **Never** auto-generate the full systems list and write it without review.

@@ -3,7 +3,7 @@
 # Records what was worked on for audit trail and sprint tracking
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-SESSION_LOG_DIR="production/session-logs"
+SESSION_LOG_DIR="production/notes"
 
 mkdir -p "$SESSION_LOG_DIR" 2>/dev/null
 
@@ -11,8 +11,8 @@ mkdir -p "$SESSION_LOG_DIR" 2>/dev/null
 RECENT_COMMITS=$(git log --oneline --since="8 hours ago" 2>/dev/null)
 MODIFIED_FILES=$(git diff --name-only 2>/dev/null)
 
-# --- Clean up active session state on normal shutdown ---
-STATE_FILE="production/session-state/active.md"
+# Web-era: session state and logs in production/notes/ (session-state/ and session-logs/ removed in re-pivot)
+STATE_FILE="production/notes/session-state.md"
 if [ -f "$STATE_FILE" ]; then
     # Archive to session log before removing
     {
@@ -20,7 +20,7 @@ if [ -f "$STATE_FILE" ]; then
         cat "$STATE_FILE"
         echo "---"
         echo ""
-    } >> "$SESSION_LOG_DIR/session-log.md" 2>/dev/null
+    } >> "production/notes/session-log.md" 2>/dev/null
     rm "$STATE_FILE" 2>/dev/null
 fi
 
@@ -37,7 +37,7 @@ if [ -n "$RECENT_COMMITS" ] || [ -n "$MODIFIED_FILES" ]; then
         fi
         echo "---"
         echo ""
-    } >> "$SESSION_LOG_DIR/session-log.md" 2>/dev/null
+    } >> "production/notes/session-log.md" 2>/dev/null
 fi
 
 exit 0

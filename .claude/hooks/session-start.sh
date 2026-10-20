@@ -55,7 +55,8 @@ if [ -d "src" ]; then
 fi
 
 # --- Active session state recovery ---
-STATE_FILE="production/session-state/active.md"
+# Web-era: session state stored in production/notes/ (session-state/ removed in re-pivot)
+STATE_FILE="production/notes/session-state.md"
 if [ -f "$STATE_FILE" ]; then
     echo ""
     echo "=== ACTIVE SESSION STATE DETECTED ==="

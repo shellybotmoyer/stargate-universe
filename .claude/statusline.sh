@@ -81,7 +81,7 @@ fi
 # --- Epic/Feature/Task breadcrumb (Production+ only) ---
 breadcrumb=""
 if [ "$stage" = "Production" ] || [ "$stage" = "Polish" ] || [ "$stage" = "Release" ]; then
-  state_file="$cwd/production/session-state/active.md"
+  state_file="$cwd/production/notes/session-state.md"
   if [ -f "$state_file" ]; then
     # Parse structured STATUS block
     in_block=false

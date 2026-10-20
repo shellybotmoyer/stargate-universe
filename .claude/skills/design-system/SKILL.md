@@ -152,7 +152,7 @@ Use the template structure from `.claude/docs/templates/game-design-document.md`
 
 Ask: "May I create the skeleton file at `design/gdd/[system-name].md`?"
 
-After writing, update `production/session-state/active.md` with:
+After writing, update `production/notes/session-state.md` with:
 - Task: Designing [system-name] GDD
 - Current section: Starting (skeleton created)
 - File: design/gdd/[system-name].md
@@ -190,7 +190,7 @@ Context  ->  Questions  ->  Options  ->  Decision  ->  Draft  ->  Approval  ->  
 7. **Write**: Use the Edit tool to replace the `[To be designed]` placeholder with
    the approved content. Confirm the write.
 
-After writing each section, update `production/session-state/active.md` with the
+After writing each section, update `production/notes/session-state.md` with the
 completed section name.
 
 ### Section-Specific Guidance
@@ -412,7 +412,7 @@ Ask: "May I update the systems index at `design/gdd/systems-index.md`?"
 
 ### 5d: Update Session State
 
-Update `production/session-state/active.md` with:
+Update `production/notes/session-state.md` with:
 - Task: [system-name] GDD
 - Status: Complete (or In Review if design-review was run)
 - File: design/gdd/[system-name].md
@@ -462,7 +462,7 @@ orchestrates the overall flow; agents provide expert content.
 
 If the session is interrupted (compaction, crash, new session):
 
-1. Read `production/session-state/active.md` — it records the current system and
+1. Read `production/notes/session-state.md` — it records the current system and
    which sections are complete
 2. Read `design/gdd/[system-name].md` — sections with real content are done;
    sections with `[To be designed]` still need work

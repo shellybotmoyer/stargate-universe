@@ -396,7 +396,7 @@ Ask: "May I create the skeleton file at `design/ux/[filename].md`?"
 
 ---
 
-After writing the skeleton, update `production/session-state/active.md` with:
+After writing the skeleton, update `production/notes/session-state.md` with:
 - Task: Designing [screen/flow name] UX spec
 - Current section: Starting (skeleton created)
 - File: design/ux/[filename].md
@@ -428,7 +428,7 @@ Context  ->  Questions  ->  Options  ->  Decision  ->  Draft  ->  Approval  ->  
    - Options: "Yes, write it", "Wait — one more change"
    Once confirmed, use `Edit` to replace the `[To be designed]` placeholder with approved content.
 
-After writing each section, update `production/session-state/active.md`.
+After writing each section, update `production/notes/session-state.md`.
 
 ---
 
@@ -881,7 +881,7 @@ When all sections are approved and written:
 
 ### 6a: Update Session State
 
-Update `production/session-state/active.md` with:
+Update `production/notes/session-state.md` with:
 - Task: [screen-name] UX spec
 - Status: Complete (or In Review)
 - File: design/ux/[filename].md
@@ -918,7 +918,7 @@ this spec. Do not edit those files without asking — just name them.
 
 If the session is interrupted (compaction, crash, new session):
 
-1. Read `production/session-state/active.md` — it records the current screen
+1. Read `production/notes/session-state.md` — it records the current screen
    and which sections are complete.
 2. Read `design/ux/[filename].md` — sections with real content are done;
    sections with `[To be designed]` still need work.

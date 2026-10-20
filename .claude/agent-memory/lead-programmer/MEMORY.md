@@ -25,14 +25,19 @@
 - Phase names follow "Phase N: Verb Noun" pattern (e.g., "Phase 1: Find the Story")
 - Output format templates go in fenced code blocks
 
-### Known Canonical Paths (verify before referencing in new skills)
-- Tech debt register: `docs/tech-debt-register.md` (NOT `production/tech-debt.md`)
+### Known Canonical Paths (web-era — verified 2026-10-20)
+- Tech debt register: `docs/tech-debt-register.md`
+- Architecture doc: `docs/architecture.md` (generated 2026-10-19, closes TD-003)
 - Sprint files: `production/sprints/`
-- Epic story files: `production/epics/[epic-slug]/story-[NNN]-[slug].md`
-- Control manifest: `docs/architecture/control-manifest.md`
-- Session state: `production/session-state/active.md`
+- Next dev plan: `production/next-development-plan.md` (NOT `production/epics/` — that dir does not exist)
 - Systems index: `design/gdd/systems-index.md`
-- Engine reference: `docs/engine-reference/[engine]/VERSION.md`
+- Game data: `data/` (chapters.json, ship_layout.json, items.json, etc.)
+- Source modules: `src/*.js` (24 ES modules, 3,445 LOC)
+- Build: `build.sh` → `dist/sgu-destiny-html5.zip`
+- CI: `.github/workflows/ci.yml` (syntax check, JSON validation, itch.io build)
+- Learnings: `.ai/learnings/` (one lesson per file)
+- **Removed (Godot era):** `docs/engine-reference/`, `production/session-state/`,
+  `docs/architecture.md (web-era — no separate control manifest)`, `production/epics/` — none of these exist.
 
 ### Skills Completed
 - `story-done` — end-of-story completion handshake (Phase 1-8, writes story file)

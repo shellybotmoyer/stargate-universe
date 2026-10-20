@@ -69,9 +69,9 @@ Read for in-scope systems:
 - In-scope GDDs only (Approved or Designed status, filtered by Step 2a results)
 - `docs/architecture/architecture.md` — module ownership and API boundaries
 - Accepted ADRs **whose domains cover in-scope systems only** — read the "GDD Requirements Addressed", "Decision", and "Engine Compatibility" sections; skip ADRs for unrelated domains
-- `docs/architecture/control-manifest.md` — manifest version date from header
+- `docs/architecture.md (web-era — no separate control manifest)` — manifest version date from header
 - `docs/architecture/tr-registry.yaml` — for tracing requirements to ADR coverage
-- `docs/engine-reference/[engine]/VERSION.md` — engine name, version, risk levels
+- `docs/architecture.md (web-era — engine is Three.js)` — engine name, version, risk levels
 
 Report: "Loaded [N] GDDs, [M] ADRs, engine: [name + version]."
 

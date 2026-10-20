@@ -48,7 +48,7 @@ Read the following files to understand the full design intent:
 - `design/gdd/game-concept.md` — core fantasy and game pillars
 - `design/gdd/systems-index.md` — MVP systems and their priorities
 - `docs/architecture/architecture.md` — layer structure
-- `docs/architecture/control-manifest.md` — technical rules for implementation
+- `docs/architecture.md (web-era — no separate control manifest)` — technical rules for implementation
 - Key GDDs for the systems being sliced
 
 ---
@@ -94,8 +94,8 @@ Define in bullet points:
 
 Ask the user to confirm scope before building.
 
-Once confirmed, write a session checkpoint to `production/session-state/active.md`
-(create `production/session-state/` if it does not exist). Include: concept name,
+Once confirmed, write a session checkpoint to `production/notes/session-state.md`
+(create `production/notes/` if it does not exist). Include: concept name,
 validation question, systems in scope, art quality level, and current phase ("Phase
 4 — Implement"). Update this file at the end of each build day with what was
 completed. This is the primary recovery mechanism if the session ends mid-slice —
@@ -117,7 +117,7 @@ If yes, create the directory. Every file must begin with:
 ```
 
 **Quality standards** — higher than concept prototype, not full production:
-- Follow architecture layers from `docs/architecture/control-manifest.md`
+- Follow architecture layers from `docs/architecture.md (web-era — no separate control manifest)`
 - Naming conventions from `.claude/docs/technical-preferences.md`
 - No hardcoded gameplay values — use constants or config files
 - Basic error handling on critical paths

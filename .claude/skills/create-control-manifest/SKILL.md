@@ -15,7 +15,7 @@ answers "what do I do?" and "what must I never do?" — organized by architectur
 layer, extracted from all Accepted ADRs, technical preferences, and engine
 reference docs. Where ADRs explain *why*, the manifest tells you *what*.
 
-**Output:** `docs/architecture/control-manifest.md`
+**Output:** `docs/architecture.md (web-era — no separate control manifest)`
 
 **When to run:** After `/architecture-review` passes and ADRs are in Accepted
 status. Re-run whenever new ADRs are accepted or existing ADRs are revised.
@@ -36,10 +36,10 @@ status. Re-run whenever new ADRs are accepted or existing ADRs are revised.
   forbidden patterns
 
 ### Engine Reference
-- Read `docs/engine-reference/[engine]/VERSION.md` for engine + version
-- Read `docs/engine-reference/[engine]/deprecated-apis.md` — these become
+- Read `docs/architecture.md (web-era — engine is Three.js)` for engine + version
+- Read `https://discourse.threejs.org/ (Three.js deprecation notices)` — these become
   forbidden API entries
-- Read `docs/engine-reference/[engine]/current-best-practices.md` if it exists
+- Read `https://threejs.org/docs/ (Three.js API reference)` if it exists
 
 Report: "Loaded [N] Accepted ADRs, engine: [name + version]."
 
@@ -152,7 +152,7 @@ Apply the verdict:
 Use `AskUserQuestion`:
 - Prompt: "May I write the Control Manifest?"
 - Options:
-  - `[A] Yes — write to docs/architecture/control-manifest.md`
+  - `[A] Yes — write to docs/architecture.md (web-era — no separate control manifest)`
   - `[B] Show me the full draft first, then ask again`
   - `[C] Not yet — I want to make more changes`
 
@@ -258,7 +258,7 @@ rule, see the referenced ADR.
 ### Forbidden APIs ([engine version])
 These APIs are deprecated or unverified for [engine + version]:
 - `[api name]` — deprecated since [version] / unverified post-cutoff
-- Source: `docs/engine-reference/[engine]/deprecated-apis.md`
+- Source: `https://discourse.threejs.org/ (Three.js deprecation notices)`
 
 ### Cross-Cutting Constraints
 - [constraint that applies everywhere, regardless of layer]

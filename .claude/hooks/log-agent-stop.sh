@@ -21,7 +21,7 @@ else
 fi
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-SESSION_LOG_DIR="production/session-logs"
+SESSION_LOG_DIR="production/notes"
 
 mkdir -p "$SESSION_LOG_DIR" 2>/dev/null
 

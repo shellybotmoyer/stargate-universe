@@ -47,7 +47,7 @@ Read in full:
 - `production/epics/[epic-slug]/EPIC.md` — epic overview, governing ADRs, GDD requirements table
 - The epic's GDD (`design/gdd/[filename].md`) — read all 8 sections, especially Acceptance Criteria, Formulas, and Edge Cases
 - All governing ADRs listed in the epic — read the Decision, Implementation Guidelines, Engine Compatibility, and Engine Notes sections
-- `docs/architecture/control-manifest.md` — extract rules for this epic's layer; note the Manifest Version date from the header
+- `docs/architecture.md (web-era — no separate control manifest)` — extract rules for this epic's layer; note the Manifest Version date from the header
 - `docs/architecture/tr-registry.yaml` — load all TR-IDs for this system
 
 **ADR existence validation**: After reading the governing ADRs list from the epic, confirm each ADR file exists on disk. If any ADR file cannot be found, **stop immediately** before decomposing any story:
@@ -189,7 +189,7 @@ For each story, write `production/epics/[epic-slug]/story-[NNN]-[slug].md`:
 > **Layer**: [Foundation / Core / Feature / Presentation]
 > **Type**: [Logic | Integration | Visual/Feel | UI | Config/Data]
 > **Estimate**: [hours or t-shirt size — fill before sprint planning]
-> **Manifest Version**: [date from control-manifest.md header]
+> **Architecture Version**: [date from docs/architecture.md header]
 > **Last Updated**: [set by /dev-story when implementation begins]
 
 ## Context

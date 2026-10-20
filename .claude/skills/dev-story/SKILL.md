@@ -32,7 +32,7 @@ drives implementation to completion — including writing the test.
 
 **If a path is provided**: read that file directly.
 
-**If no argument**: check `production/session-state/active.md` for the active
+**If no argument**: check `production/notes/session-state.md` for the active
 story. If found, confirm: "Continuing work on [story title] — is that correct?"
 If not found, ask: "Which story are we implementing?" Glob
 `production/epics/**/*.md` and list stories with Status: Ready.
@@ -47,7 +47,7 @@ If not found, ask: "Which story are we implementing?" Glob
 |------|------|------------|
 | TR registry | `docs/architecture/tr-registry.yaml` | **STOP** — "TR registry not found at `docs/architecture/tr-registry.yaml`. Run `/architecture-review` to bootstrap the registry from your GDDs and ADRs." |
 | Governing ADR | path from story's ADR field | **STOP** — "ADR file [path] not found. Run `/architecture-decision` to create it, or correct the filename in the story's ADR field." |
-| Control manifest | `docs/architecture/control-manifest.md` | **WARN and continue** — "Control manifest not found — layer rules cannot be checked. Run `/create-control-manifest`." |
+| Control manifest | `docs/architecture.md (web-era — no separate control manifest)` | **WARN and continue** — "Control manifest not found — layer rules cannot be checked. Run `/create-control-manifest`." |
 
 If the TR registry or governing ADR is missing, set the story status to **BLOCKED** in the session state and do not spawn any programmer agent.
 
@@ -78,7 +78,7 @@ Read `docs/architecture/[adr-file].md`. Extract:
 - The ADR Dependencies section
 
 ### The control manifest
-Read `docs/architecture/control-manifest.md`. Extract the rules for this story's layer:
+Read `docs/architecture.md (web-era — no separate control manifest)`. Extract the rules for this story's layer:
 - Required patterns
 - Forbidden patterns
 - Performance guardrails
@@ -175,7 +175,7 @@ Brief the agent with file paths and targeted reading instructions — do not ser
 1. **Story file**: `[story-path]` — read in full
 2. **GDD requirement**: look up TR-ID `[TR-XXX-NNN]` in `docs/architecture/tr-registry.yaml` — use the `requirement` field as source of truth
 3. **ADR**: `docs/architecture/[adr-file].md` — read the **Decision** and **Implementation Guidelines** sections only
-4. **Control manifest**: `docs/architecture/control-manifest.md` — read rules for the **[layer]** layer only
+4. **Control manifest**: `docs/architecture.md (web-era — no separate control manifest)` — read rules for the **[layer]** layer only
 5. **Engine preferences**: `.claude/docs/technical-preferences.md` — read naming conventions and performance budgets
 6. **Test file path**: `[path from story's Test Evidence section]` — this file must be created as part of implementation
 7. **Test requirement** (Logic and Integration stories only): The test file MUST be created at `[path from the story's Test Evidence section]`. Write the test alongside the implementation — do not defer it. The story cannot be closed via `/story-done` without this file present. Each acceptance criterion must have at least one test function covering it. Test file naming: `[system]_[feature]_test.[ext]`. Function naming: `test_[scenario]_[expected_outcome]`. No random seeds, no time-dependent assertions, no external I/O.
@@ -255,7 +255,7 @@ Ready for: `/code-review [file1] [file2]` then `/story-done [story-path]`
 
 ## Phase 7: Update Session State
 
-Silently append to `production/session-state/active.md`:
+Silently append to `production/notes/session-state.md`:
 
 ```
 ## Session Extract — /dev-story [date]

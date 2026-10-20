@@ -118,7 +118,7 @@ After a gate resolves, record the verdict in the relevant document's status head
 ```
 
 For phase gates, record in `docs/architecture/architecture.md` or
-`production/session-state/active.md` as appropriate.
+`production/notes/session-state.md` as appropriate.
 
 ---
 
@@ -375,7 +375,7 @@ or before finalizing any engine-specific implementation approach
 
 **Context to pass**:
 - The specific API or feature being used
-- Engine version and LLM knowledge cutoff (from `docs/engine-reference/[engine]/VERSION.md`)
+- Engine version and LLM knowledge cutoff (from `docs/architecture.md (web-era — engine is Three.js)`)
 - Relevant excerpt from breaking-changes or deprecated-apis docs
 
 **Prompt**:

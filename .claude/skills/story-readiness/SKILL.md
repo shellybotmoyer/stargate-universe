@@ -59,7 +59,7 @@ Report the scope before proceeding: "Validating [N] story files."
 Before checking any stories, load reference documents once (not per-story):
 
 - `design/gdd/systems-index.md` — to know which systems have approved GDDs
-- `docs/architecture/control-manifest.md` — to know which manifest rules exist
+- `docs/architecture.md (web-era — no separate control manifest)` — to know which manifest rules exist
   (if the file does not exist, note it as missing once; do not re-flag per story)
   Also extract the `Manifest Version:` date from the header block if the file exists.
 - `docs/architecture/tr-registry.yaml` — index all entries by `id`. Used to
@@ -124,7 +124,7 @@ items pass or are explicitly marked N/A with a stated reason.
     (story may predate registry, or registry needs an `/architecture-review` run).
   - Auto-pass if the story has no TR-ID reference OR if the registry does not exist.
 - [ ] **Manifest version is current**: If the story has a `Manifest Version:` date
-  in its header AND `docs/architecture/control-manifest.md` exists:
+  in its header AND `docs/architecture.md (web-era — no separate control manifest)` exists:
   - If story version matches current manifest `Manifest Version:` → pass.
   - If story version is older than current manifest → NEEDS WORK: new rules may
     apply. Fix: review changed manifest rules, update story if any forbidden/required
@@ -137,7 +137,7 @@ items pass or are explicitly marked N/A with a stated reason.
   pure data/config change), "N/A — no engine API involved" is acceptable.
 - [ ] **Control manifest rules noted**: Relevant layer rules from the control
   manifest are referenced, OR "N/A — manifest not yet created" is stated.
-  This item auto-passes if `docs/architecture/control-manifest.md` does not
+  This item auto-passes if `docs/architecture.md (web-era — no separate control manifest)` does not
   exist yet (do not penalize stories written before the manifest was created).
 
 ### Scope Clarity

@@ -33,7 +33,7 @@ read that file directly.
 
 **If no argument is provided:**
 
-1. Check `production/session-state/active.md` for the currently active story.
+1. Check `production/notes/session-state.md` for the currently active story.
 2. If not found there, read the most recent file in `production/sprints/` and
    look for stories marked IN PROGRESS.
 3. If multiple in-progress stories are found, use `AskUserQuestion`:
@@ -66,7 +66,7 @@ Also read:
 - The referenced GDD section — just the acceptance criteria and key rules, not
   the full document. Use this to cross-check the registry text is still accurate.
 - The referenced ADR(s) — just the Decision and Consequences sections
-- `docs/architecture/control-manifest.md` header — extract the current
+- `docs/architecture.md (web-era — no separate control manifest)` header — extract the current
   `Manifest Version:` date (used in Phase 4 staleness check)
 
 ---
@@ -164,7 +164,7 @@ slightly different location). If no test file is found at either location:
 
 **For Integration stories**: read the story's **Test Evidence** section for the exact
 required path. Use `Glob` to check that exact path first, then search
-`tests/integration/[system]/` broadly, then check `production/session-logs/` for a
+`tests/integration/[system]/` broadly, then check `production/notes/` for a
 playtest record referencing this story.
 If none found: flag as **BLOCKING** (same rule as Logic).
 
@@ -199,15 +199,15 @@ Run these checks automatically:
 
 2. **Manifest version staleness check**: Compare the `Manifest Version:` date
    embedded in the story header against the `Manifest Version:` date in the
-   current `docs/architecture/control-manifest.md` header.
+   current `docs/architecture.md (web-era — no separate control manifest)` header.
    - If they match → pass silently.
    - If the story's version is older → flag as ADVISORY:
      `ADVISORY: Story was written against manifest v[story-date]; current manifest
      is v[current-date]. New rules may apply. Run /story-readiness to check.`
-   - If control-manifest.md does not exist → skip this check.
+   - If docs/architecture.md does not exist → skip this check.
 
 3. **ADR constraints check**: Read the referenced ADR's Decision section. Check
-   for forbidden patterns from `docs/architecture/control-manifest.md` (if it
+   for forbidden patterns from `docs/architecture.md (web-era — no separate control manifest)` (if it
    exists). `Grep` for patterns explicitly forbidden in the ADR.
 
 4. **Hardcoded values check**: `Grep` the implemented files for numeric literals
@@ -379,7 +379,7 @@ The `validate-commit.sh` hook will verify design doc references and check for ha
 ### Session State Update
 
 After updating the story file, silently append to
-`production/session-state/active.md`:
+`production/notes/session-state.md`:
 
     ## Session Extract — /story-done [date]
     - Verdict: [COMPLETE / COMPLETE WITH NOTES / BLOCKED]

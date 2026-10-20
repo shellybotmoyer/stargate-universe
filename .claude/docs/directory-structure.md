@@ -38,4 +38,4 @@ The following directories from the Godot stack no longer exist after the 2026-09
 - `addons/` — Godot addons including VRM integration (removed)
 - `prototypes/` — Throwaway prototypes (not recreated in web era)
 - `docs/engine-reference/` — Godot engine API snapshots (removed)
-- `production/session-state/` and `production/session-logs/` — Not recreated
+- `production/session-state/` and `production/notes/` — Not recreated

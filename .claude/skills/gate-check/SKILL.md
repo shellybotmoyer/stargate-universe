@@ -73,7 +73,7 @@ The project progresses through these stages:
 - [ ] Engine chosen (CLAUDE.md Technology Stack is not `[CHOOSE]`)
 - [ ] Technical preferences configured (`.claude/docs/technical-preferences.md` populated)
 - [ ] At least 1 Architecture Decision Record in `docs/architecture/`
-- [ ] Engine reference docs exist in `docs/engine-reference/`
+- [ ] Architecture doc exists at `docs/architecture.md` (web-era)
 
 **Quality Checks:**
 - [ ] Architecture decisions cover core systems (rendering, input, state management)

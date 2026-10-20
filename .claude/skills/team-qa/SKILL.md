@@ -50,7 +50,7 @@ Before doing anything else, gather the full scope:
 1. Detect the current sprint or feature scope from the argument:
    - If argument is a sprint identifier (e.g., `sprint-03`): Glob `production/sprints/` for files matching `*[sprint-identifier]*.md`. Read the matched file. If multiple match, use the most recently modified.
    - If argument is `feature: [system-name]`: glob story files tagged for that system
-   - If no argument: read `production/session-state/active.md` and `production/sprint-status.yaml` (if present) to infer the active sprint
+   - If no argument: read `production/notes/session-state.md` and `production/sprint-status.yaml` (if present) to infer the active sprint
 
 2. Read `production/stage.txt` to confirm the current project phase.
 
@@ -237,7 +237,7 @@ Verdict: **BLOCKED** — smoke check failed or critical blocker prevented cycle 
 
 ## Session State Update
 
-After the final phase completes (sign-off report written or BLOCKED verdict reached), silently append to `production/session-state/active.md`:
+After the final phase completes (sign-off report written or BLOCKED verdict reached), silently append to `production/notes/session-state.md`:
 
 ```
 <!-- QA RUN: [date] | Sprint: [sprint identifier or "ad-hoc"] | Verdict: [PASS/FAIL/CONCERNS] | Report: production/qa/qa-[date].md -->

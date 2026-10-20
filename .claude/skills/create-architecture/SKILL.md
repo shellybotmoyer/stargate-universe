@@ -41,15 +41,15 @@ Before anything else, load the full project context in this order:
 
 Read the engine reference library completely:
 
-1. `docs/engine-reference/[engine]/VERSION.md`
+1. `docs/architecture.md (web-era — engine is Three.js)`
    → Extract: engine name, version, LLM cutoff, post-cutoff risk levels
-2. `docs/engine-reference/[engine]/breaking-changes.md`
+2. `https://discourse.threejs.org/ (Three.js migration notes)`
    → Extract: all HIGH and MEDIUM risk changes
-3. `docs/engine-reference/[engine]/deprecated-apis.md`
+3. `https://discourse.threejs.org/ (Three.js deprecation notices)`
    → Extract: APIs to avoid
-4. `docs/engine-reference/[engine]/current-best-practices.md`
+4. `https://threejs.org/docs/ (Three.js API reference)`
    → Extract: post-cutoff best practices that differ from training data
-5. All files in `docs/engine-reference/[engine]/modules/`
+5. All files in `src/*.js (game modules)`
    → Extract: current API patterns per domain
 
 If no engine is configured, stop and prompt:
@@ -384,7 +384,7 @@ Show the proposed Document Status block inline, then use `AskUserQuestion`:
 
 ## Phase 8: Handoff
 
-**Step 1 — Update session state**: Write a summary to `production/session-state/active.md` covering: artifact written, TD/LP sign-off verdicts, any blockers, required ADRs remaining, and next step.
+**Step 1 — Update session state**: Write a summary to `production/notes/session-state.md` covering: artifact written, TD/LP sign-off verdicts, any blockers, required ADRs remaining, and next step.
 
 **Step 2 — Output the handoff** using exactly this template (no freeform prose, no rephrasing of section titles):
 

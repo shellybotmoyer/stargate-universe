@@ -62,10 +62,10 @@ Read all inputs appropriate to the mode:
 - `docs/architecture/architecture.md` if it exists
 
 ### Engine Reference
-- `docs/engine-reference/[engine]/VERSION.md`
-- `docs/engine-reference/[engine]/breaking-changes.md`
-- `docs/engine-reference/[engine]/deprecated-apis.md`
-- All files in `docs/engine-reference/[engine]/modules/`
+- `docs/architecture.md (web-era — engine is Three.js)`
+- `https://discourse.threejs.org/ (Three.js migration notes)`
+- `https://discourse.threejs.org/ (Three.js deprecation notices)`
+- All files in `src/*.js (game modules)`
 
 ### Project Standards
 - `.claude/docs/technical-preferences.md`
@@ -564,7 +564,7 @@ append when it already exists.
 ### Session State Update
 
 After writing all approved files, silently append to
-`production/session-state/active.md`:
+`production/notes/session-state.md`:
 
     ## Session Extract — /architecture-review [date]
     - Verdict: [PASS / CONCERNS / FAIL]

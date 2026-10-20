@@ -75,7 +75,7 @@ After reading stories, load supporting context once (not per story):
   to verify, and the boundary conditions that tests must cover. If an Edge Cases
   section is absent from the GDD, note it per GDD: "No Edge Cases section found — edge
   case coverage will be inferred from acceptance criteria only."
-- `docs/architecture/control-manifest.md` — scan for forbidden patterns that
+- `docs/architecture.md (web-era — no separate control manifest)` — scan for forbidden patterns that
   automated tests should guard against (if the file exists)
 
 If no GDD is referenced in a story, note it as a gap but do not block the plan.
@@ -200,7 +200,7 @@ list when running that skill.*
 | [story] | [What question must the session answer?] | [N] | [new player / experienced] |
 
 **Sign-off requirement**: Playtest notes must be written to
-`production/session-logs/playtest-[sprint]-[story-slug].md` and reviewed by
+`production/notes/playtest-[sprint]-[story-slug].md` and reviewed by
 the [designer / qa-lead] before the story can be marked COMPLETE.
 
 If no stories require playtest validation: *No playtest sessions required for
@@ -255,7 +255,7 @@ Next steps:
 - For Logic/Integration stories, create the test files at the listed paths
   before marking stories done — `/story-done` checks for them"
 
-Silently append to `production/session-state/active.md` (create the file if it does not exist):
+Silently append to `production/notes/session-state.md` (create the file if it does not exist):
 
 ```
 <!-- QA-PLAN: [date] | System: [system/sprint identifier] | Plan written: production/qa/qa-plan-[identifier]-[date].md -->
