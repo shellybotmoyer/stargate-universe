@@ -5,7 +5,7 @@
 > (`.tscn`), `e1_flow.gd`, and other Godot-era artifacts that were removed in
 > the re-pivot. The web-era game (`src/`, `data/chapters.json`) supersedes it;
 > current planning lives in `production/next-development-plan.md` and
-> `.ai/learnings/`.
+> `.ai/learnings/`. **The entire file is historical — every task, acceptance criterion, and code reference below points to Godot/GDScript artifacts that no longer exist.** Do not use any tasks or criteria below for web-era work.
 
 ## Sprint Goal
 

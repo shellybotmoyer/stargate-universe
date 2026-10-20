@@ -6,7 +6,7 @@ This describes the removed Godot TTSClient → LuxTTS sidecar integration
 (`scripts/tts_client.gd`, `tools/tts-onnx-poc/godot/`). Web-era repo has
 `tools/tts-bake/` and `src/music.js`; the HTTP-sidecar architecture and GDScript
 call sites do not exist. Treat as historical intent; re-map to web-era audio paths
-before use.
+before use. **The entire file is historical — every section below references Godot/GDScript artifacts that no longer exist.** The web-era TTS pipeline is `tools/tts-bake/` (pre-baked voice lines) + `src/music.js` (runtime audio). Do not use any code paths, file references, or troubleshooting steps below for web-era work.
 
 Generate **spoken dialogue at runtime** in the engine — any line, including
 player names and unplanned conditions — using **pre-computed character voices**.

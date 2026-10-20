@@ -10,7 +10,7 @@ This reference describes the removed Godot cold-open cinematic
 `src/gate-room.js`, and `src/main.js` (see `src/main.js` cold-open start at
 line ~443); the GDScript call sites and Godot assets do not exist. The
 atmosphere notes, dialog transcript, and voice-line additions below are still
-canonical reference material — re-map the implementation pointers before use.
+canonical reference material — re-map the implementation pointers before use. **The entire file is historical for implementation purposes — every code path and file reference below points to Godot/GDScript artifacts that no longer exist.** Only the atmosphere notes and dialog transcript remain canonical. Do not use any implementation instructions below for web-era work.
 
 > **Source:** transcribed from the reference recording `SGU Openning.m4a` (the *Stargate
 > Universe* "Air, Part 1" cold open — the Icarus Base evacuation through the gate onto

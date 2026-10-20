@@ -6,7 +6,7 @@ This brief targets the removed Godot HUD (`scripts/hud.gd` + `objects/hud.tscn`)
 The web-era HUD lives in `src/ui.js` / `src/console.js` (and related `src/*.js`);
 all GDScript file/line references in this doc are dead. The redesign goals and
 gold-on-dark palette may still inform the web UI, but acceptance criteria must be
-re-mapped to `src/*.js` before use.
+re-mapped to `src/*.js` before use. **The entire file is historical — every section below references Godot/GDScript artifacts (autoloads, .tscn scenes, GDScript conventions, Godot-specific constraints) that no longer exist.** Do not use any code paths, file references, or acceptance criteria below for web-era work without re-mapping to `src/*.js`.
 
 > **Purpose:** A complete, self-contained brief for the code agent who implements the
 > WoW-style HUD. Read this top-to-bottom before touching code. Every phase lists

@@ -8,7 +8,7 @@ This describes the removed Godot cold-open cinematic
 opening declaratively from `data/chapters.json` (chapter `e1_air`, step `arrive`)
 via `src/autoplay.js`, `src/gate-room.js`, and `src/main.js`; the GDScript call
 sites and Godot test harness do not exist. The dialogue transcript below is still
-canonical reference material — re-map the implementation pointers before use.
+canonical reference material — re-map the implementation pointers before use. **The entire file is historical for implementation purposes — every code path, file reference, and test reference below points to Godot/GDScript artifacts that no longer exist.** Only the dialogue transcript (section §1 onward) remains canonical. Do not use any implementation instructions below for web-era work.
 
 > **What this is.** The script for the E1 *cold open* — the pre-flashback opening where the
 > Icarus crew is shoved through the Stargate onto the derelict *Destiny* and Scott hands the

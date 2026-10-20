@@ -6,7 +6,7 @@ This review describes the removed Godot 4.6 stack (`scripts/*.gd`, `project.godo
 `addons/`, `objects/*.tscn`) — none of those exist in the current web-era tree
 (`src/*.js`, `tools/`). GDScript conventions, autoload order, save-system internals
 and `sprint-005` references no longer apply. Treat as historical context only; do
-NOT use it to locate files or plan web-era work.
+NOT use it to locate files or plan web-era work. **The entire file is historical — every section below references Godot/GDScript artifacts (autoloads, SceneTree tests, .tscn scenes, .gdshader files, GDScript conventions) that no longer exist.** Do not use any code paths, file references, or patterns below for web-era work.
 
 Compiled 2026-07-03 from a full-repo review (code, tests, tooling, design docs, production
 history, GitHub tracker). Written as atomic, self-contained memory entries so each one can be
