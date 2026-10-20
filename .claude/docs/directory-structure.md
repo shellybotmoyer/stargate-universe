@@ -7,7 +7,7 @@ Updated 2026-10-20 for the web/Three.js era (post re-pivot from Godot, 2026-09-0
 ├── index.html                   # Entry point — loads src/main.js as ES module
 ├── CLAUDE.md                    # Master configuration
 ├── .claude/                     # Agent definitions, skills, hooks, rules, docs
-├── src/                         # Game source code — 23 ES modules (.js), 3,445 LOC. (24 with flow.js on PR #197 branch)
+├── src/                         # Game source code — 24 ES modules (.js), 3,445 LOC (flow.js on local main since commit ba80d90)
 ├── data/                        # Game data — 13 JSON files + AGENTS.md (chapters, ship_layout, items, etc.)
 ├── sounds/                      # SFX + dialog voice lines (.ogg, .wav) + music/ and dialog/ subdirs
 ├── models/                      # 3D models — Quaternius UAL mannequin, environment props (.glb) + Textures/
