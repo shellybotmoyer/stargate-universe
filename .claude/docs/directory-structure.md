@@ -9,8 +9,8 @@ Updated 2026-10-20 for the web/Three.js era (post re-pivot from Godot, 2026-09-0
 ├── .claude/                     # Agent definitions, skills, hooks, rules, docs
 ├── src/                         # Game source code — 23 ES modules (.js), 3,445 LOC. (24 with flow.js on PR #197 branch)
 ├── data/                        # Game data — 13 JSON files + AGENTS.md (chapters, ship_layout, items, etc.)
-├── sounds/                      # SFX + dialog voice lines (.wav)
-├── models/                      # 3D models — Quaternius UAL mannequin (.glb)
+├── sounds/                      # SFX + dialog voice lines (.ogg, .wav) + music/ and dialog/ subdirs
+├── models/                      # 3D models — Quaternius UAL mannequin, environment props (.glb) + Textures/
 ├── assets/                      # Static game assets (items/)
 ├── design/                      # Game design documents
 │   ├── gdd/                     # Game design docs (systems-index, camera, FTL, etc.)
@@ -38,4 +38,4 @@ The following directories from the Godot stack no longer exist after the 2026-09
 - `addons/` — Godot addons including VRM integration (removed)
 - `prototypes/` — Throwaway prototypes (not recreated in web era)
 - `docs/engine-reference/` — Godot engine API snapshots (removed)
-- `production/session-state/` and `production/notes/` — Not recreated
+- `production/session-state/` and `production/session-logs/` — Not recreated
