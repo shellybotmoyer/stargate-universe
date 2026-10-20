@@ -172,7 +172,7 @@ stargate-universe/
 | TD-003 | Missing architecture docs | **Closed by this document** |
 | TD-009 | `main.js` 702 LOC — countdown extraction pending | Open (M effort) |
 | TD-010 | No browser/headless smoke test in CI | Open (L effort) |
-| TD-101 | FTL extraction (`src/ftl.js`) | On PR #197 branch, not on main |
-| TD-102 | ESLint config + CI lint step | On PR #197 branch, not on main |
-| TD-103 | Unit test coverage (28 test files) | On PR #197 branch, not on main |
-| TD-104 | Silent catch blocks | Fully resolved on main — all `catch {}` blocks replaced with `console.warn` |
+| TD-101 | FTL extraction (`src/ftl.js`) | On PR #197 branch, not on origin/main |
+| TD-102 | ESLint config + CI lint step | On PR #197 branch, not on origin/main |
+| TD-103 | Unit test coverage (28 test files) | On PR #197 branch, not on origin/main |
+| TD-104 | Silent catch blocks | Fully resolved on local main — all `catch {}` blocks replaced with `console.warn` |
