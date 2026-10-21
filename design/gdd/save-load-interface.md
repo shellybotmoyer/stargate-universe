@@ -110,7 +110,14 @@ migration can always fall back to the original layout):
 - Resume is **checkpoint-targeted**, not "most recent" — `load_and_resume_*`
   restores the requested checkpoint even when newer ones exist.
 
-### Test coverage (issue #82 capstone)
+### Test coverage (issue #82 capstone — historical, Godot-era)
+
+> **Stale — Godot-era only.** The suites below reference `.gd`/`.tscn` files
+> that no longer exist after the 2026-09-08 Three.js re-pivot. `tests/run.sh`
+> does not exist in the web-era repo. Web-era save/load tests live in
+> `tests/save.test.js` (on PR #197 branch, not origin/main). This table is
+> preserved as historical reference for a future profile/checkpoint
+> re-implementation on the web stack.
 
 | Suite | Proves |
 |---|---|
@@ -119,9 +126,6 @@ migration can always fall back to the original layout):
 | `tests/save/load_browser.tscn` | Two-level title browser populate/sections/ring/resume/back/delete against the real `title.gd` |
 | `tests/save/ingame_ui.tscn` | In-game save + profile-management UI |
 | `tests/save/integration.tscn` | **End-to-end across a simulated restart**: New Game → ring rolls → manual → episode → "quit" (re-resolve from disk) → two-level browse → targeted + Continue resume; plus **migration safety** (lossless, source-preserved, idempotent, validated-by-resume) |
-
-Run all of them with `tests/run.sh save` (or `tests/run.sh save-integration`
-for just the capstone suite).
 
 ---
 

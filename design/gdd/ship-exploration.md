@@ -70,7 +70,13 @@ Defined in `data/room_types.json`, read at startup by `ProceduralShip._load_cata
 Per-floor generation caps: specials ≤ 3 per floor; special draw fires only past
 room 3 and at 20% probability (`_draw_child_type`). Floor room count cap is 12–20.
 
-### FTL Loop and Ship Systems (Implemented)
+### FTL Loop and Ship Systems (Implemented — historical, Godot-era)
+
+> **Stale — Godot-era only.** The table below references `scripts/*.gd` autoloads
+> that no longer exist after the 2026-09-08 Three.js re-pivot. The web-era FTL
+> system lives in `src/main.js` (lines 195–251) with extraction to `src/ftl.js`
+> on PR #197 branch. Consumption logic is in `src/rpg.js`. These entries are
+> preserved as historical reference for design continuity.
 
 | Issue | System | Key symbol |
 |---|---|---|
@@ -79,9 +85,14 @@ room 3 and at 20% probability (`_draw_child_type`). Floor room count cap is 12�
 | #134 | `Consumption` autoload — resource drain per FTL tick | `scripts/consumption.gd` |
 | #131 | `RepairRobot` — heals sealed/damaged rooms, emits `repair_completed` | `scripts/repair_robot.gd` |
 
-### Floor-Gating Cost Curve
+### Floor-Gating Cost Curve (historical — Godot-era constants)
 
-Constants (all in `scripts/procedural_ship.gd`):
+> **Stale — Godot-era only.** Constants below lived in `scripts/procedural_ship.gd`
+> which no longer exists. The web-era ship layout is JSON-driven from
+> `data/ship_layout.json` via `src/ship.js`. These formulas are preserved as
+> design reference for a future floor-gating re-implementation.
+
+Constants (all in `scripts/procedural_ship.gd` — historical):
 
 ```
 FLOOR_UNLOCK_COST_BASE  = 5          # parts per floor index
@@ -107,10 +118,10 @@ because `PARTS_BUDGET_MARGIN_PCT=120` ensures the budget always exceeds the bare
 unlock cost by at least 20%. The curve is monotonically escalating: each floor
 costs 5 more parts than the previous. Physical parts seeding (salvage panels in
 `power_node`, `storage`, and `control_room`/`engineering` type rooms; 3 parts each)
-is governed by `room.gd::_spawn_salvage_panel` and tracked via the budget metadata.
+is governed by `room.gd::_spawn_salvage_panel` (historical — Godot-era) and tracked via the budget metadata.
 
 Filler floor\_weights (DO NOT MODIFY — changing them perturbs the deterministic
-RNG seed and breaks floor-room-count assertions in `tests/smoke/test_procedural_ship.gd`):
+RNG seed and breaks floor-room-count assertions in `tests/smoke/test_procedural_ship.gd` — historical, Godot-era):
 
 | Type | floor\_weight |
 |---|---|
@@ -120,7 +131,13 @@ RNG seed and breaks floor-room-count assertions in `tests/smoke/test_procedural_
 | recycling | 2 |
 | crew\_quarters | 2 |
 
-### Per-Type Authored Set-Dressing (Implemented — Issue #135)
+### Per-Type Authored Set-Dressing (Implemented — Issue #135 — historical, Godot-era)
+
+> **Stale — Godot-era only.** The `RoomBuilder` class, `_spawn_kenney_prop()`,
+> `Label3D`, and `.tscn` references below are from the removed Godot stack.
+> Web-era set dressing is handled by `src/components.js` (procedural Ancient-tech
+> prop meshes) and `src/ship.js` (room geometry, lighting). Design content in
+> `data/room_types.json` remains canonical reference.
 
 Special rooms are built on shared template shells but look generic without
 additional detail. Issue #135 adds a **data-driven, per-room-TYPE set-dressing
