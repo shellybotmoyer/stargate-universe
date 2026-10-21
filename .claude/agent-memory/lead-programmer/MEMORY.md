@@ -37,7 +37,8 @@
 - CI: `.github/workflows/ci.yml` (syntax check, JSON validation, itch.io build)
 - Learnings: `.ai/learnings/` (one lesson per file)
 - **Removed (Godot era):** `docs/engine-reference/`, `production/session-state/`,
-  `docs/architecture.md (web-era — no separate control manifest)`, `production/epics/` — none of these exist.
+  `docs/architecture/control-manifest.md` (Godot-era, replaced by web-era `docs/architecture.md`),
+  `production/epics/` — none of these exist.
 
 ### Skills Completed
 - `story-done` — end-of-story completion handshake (Phase 1-8, writes story file)
