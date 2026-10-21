@@ -85,8 +85,9 @@ and clues to Destiny's mission — but only if you budget your time well.
 > before it can cross** (an "arm" latch) — otherwise a Kino that *spawns* on a
 > gate (recon drone by the planet's return gate, or one that just arrived in the
 > gate room) would instantly bounce straight back. See `kino_drone.gd`
-> `_try_gate_crossing` / `_gate_armed`. Gate-open state is the planet-agnostic
-> `GameState.is_gate_open()`.
+> `_try_gate_crossing` / `_gate_armed` *(historical — Godot-era, see file header)*.
+> Gate-open state is the planet-agnostic `GameState.is_gate_open()`
+> *(historical — Godot-era)*.
 
 1. **FTL drop cycle**: Destiny periodically drops out of FTL near star systems.
    The drop creates a **gate window** — a period during which the Stargate can
@@ -219,7 +220,7 @@ survive as the data the spec carries.
   `settlement`, `negotiation`). A biome whose hazard block declares
   `requires_flag` is excluded from selection until that GameState flag is set.
 
-- **Dial / selection flow** (the integration seam, issue #93):
+- **Dial / selection flow** (the integration seam, issue #93 — *historical, Godot-era*):
   `GameState.build_next_planet_spec(name_hint, force_biome, force_seed)` is the
   single entry point that turns a gate dial into a complete, persisted spec. It
   (a) increments `planets_dialed` and derives a deterministic run seed from it
@@ -234,7 +235,7 @@ survive as the data the spec carries.
   run pins `force_biome="desert"` + the authored `air_lime_world` seed so the
   scripted opener is unchanged.
 
-- **Kino scan profile** (issue #93): `GameState.planet_scan_profile(spec)` returns
+- **Kino scan profile** (issue #93 — *historical, Godot-era*): `GameState.planet_scan_profile(spec)` returns
   a render-ready summary of the upcoming planet — biome label, breathability +
   composition, temperature, radiation/toxins, hazard type, gate window, and the
   resource labels the run will yield (scarcest first). `planet.gd` layers this
@@ -242,7 +243,7 @@ survive as the data the spec carries.
   player reads "what's down there" **before/while choosing to cross**, extending
   the existing Kino recon + compass surfaces.
 
-- **No-death recovery** (issue #92): every biome hazard routes through the single
+- **No-death recovery** (issue #92 — *historical, Godot-era*): every biome hazard routes through the single
   `GameState.knock_out(cause)` entry point instead of any death/stranding path.
   A downed run banks only the minimum-necessary unit of the run's scarce target
   resource, forfeits the rest + the remaining window, fully heals the player, and
