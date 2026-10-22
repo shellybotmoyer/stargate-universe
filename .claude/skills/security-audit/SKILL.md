@@ -106,7 +106,7 @@ Note: Client-side anti-cheat is largely unenforceable. Focus on server-side vali
 - Do any plugins have known CVEs in the version being used?
 - Are plugin sources verified (official marketplace, reviewed repository)?
 
-Glob for: `addons/`, `plugins/`, `third_party/`, `vendor/` — list all external dependencies.
+Glob for: `node_modules/`, `vendor/`, `third_party/`, `dist/` — list all external dependencies. (Note: this is a web/Three.js repo — no `addons/` or `plugins/` dirs; those were Godot-era.)
 
 ---
 

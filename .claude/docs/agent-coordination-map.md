@@ -68,8 +68,8 @@ art-dir = art-director
 | prototyper | (works independently, reports findings to producer and relevant leads) |
 | security-engineer | network-programmer (security review), lead-programmer (secure patterns) |
 | accessibility-specialist | ux-designer (accessible patterns), ui-programmer (implementation), qa-tester (a11y testing) |
-| [engine]-specialist | engine sub-specialists (delegates subsystem-specific work) |
-| [engine] sub-specialists | (advises all programmers on engine subsystem patterns and optimization) |
+| ~~[engine]-specialist~~ | ~~engine sub-specialists~~ (removed — Godot-era, no engine specialists in web/Three.js repo) |
+| ~~[engine] sub-specialists~~ | ~~(advises all programmers on engine subsystem patterns)~~ (removed with Godot stack) |
 | live-ops-designer | economy-designer (live economy), community-manager (event comms), analytics-engineer (engagement metrics) |
 | community-manager | (works with producer for approval, release-manager for patch note timing) |
 
