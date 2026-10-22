@@ -18,7 +18,7 @@ no bundler, no TypeScript at runtime.
 | Audio | `AudioLoader` → `ASSETS/sounds/…`; procedural synthesis (`toneBuffer()`) for alarms/heartbeat | TTS generation: `tools/tts-bake/` |
 | Assets | Repo-local `sounds/`, `models/` (Quaternius UAL), `data/` | `ASSETS` base path resolves CDN vs local |
 
-## 2. Module graph (24 source files on local main, 3,445 LOC)
+## 2. Module graph (23 source files on origin/main, 24 on this branch, 3,445 LOC)
 
 ```
 main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown systems
