@@ -1,5 +1,12 @@
 # S4-08 — CSM (Cascaded Shadow Maps): deferred
 
+> **⚠️ STALE — pre-re-pivot browser-stack note.** References "WebGPU-first" renderer,
+> but the 2026-09-08 Three.js re-pivot uses `THREE.WebGLRenderer` only (no WebGPU path;
+> see `.claude/docs/technical-preferences.md` and `src/main.js:30`). The CSM technique
+> and three.js implementation pointers remain valid, but the WebGPU-specific guidance
+> below is obsolete. Re-check renderer capabilities against the current `src/main.js`
+> before implementing.
+
 **Status:** deferred to a later sprint.
 **Decision date:** 2026-05-21 (Sprint 4 in-flight)
 
@@ -51,9 +58,11 @@ Re-open S4-08 once any of the following is true:
 - The split scheme that holds up best for player-centric outdoor games is
   practical (PSSM) — `mode: "practical", lambda: 0.5` is a reasonable
   starting point.
-- WebGPU support: CSM in three.js uses WebGLRenderer shadow paths; verify
+- WebGPU support: ~~CSM in three.js uses WebGLRenderer shadow paths; verify
   WebGPU node-material parity before wiring (the project's renderer is
-  WebGPU-first with WebGL fallback).
+  WebGPU-first with WebGL fallback).~~ **Obsolete** — the web-era renderer is
+  `THREE.WebGLRenderer` only (no WebGPU path). CSM works directly; no WebGPU
+  parity check needed.
 
 ## Tracking
 
