@@ -27,8 +27,8 @@
 
 ## Testing
 
-- **Approach**: manual playtesting + `src/leveledit.js` dev recorder (`recorder.js` removed from dist by `build.sh`); no unit-test harness in the web-era tree
-- **Test Files**: manual scripts under `src/` when needed; syntax-checked by CI (`node --check`)
+- **Approach**: `node --test` unit tests (28 files, 1,007 tests, Node 18+ runner) on PR #197 branch + manual playtesting + `src/leveledit.js` dev recorder (`recorder.js` removed from dist by `build.sh`). Tests land on origin/main when PR #197 merges (see TD-103).
+- **Test Files**: `tests/*.test.js` — mock ctx pattern, no framework deps; syntax-checked by CI (`node --check`); `tsc --noEmit` typecheck + ESLint on PR #197 branch
 - **Required Checks**: game boots to first playable room (`src/main.js` → `src/gate-room.js`), interaction + quest transitions work, audio cues play, ship status rows render correctly
 
 ## Forbidden Patterns
