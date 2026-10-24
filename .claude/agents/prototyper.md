@@ -116,9 +116,13 @@ Use just enough structure to test the concept:
 
 ### Isolation Requirements
 
+> **⚠️ STALE (Godot era):** The `prototypes/` directory was removed in the
+> web/Three.js re-pivot (2026-09-08). Use a scratch directory under `/tmp/`
+> or create a throwaway branch instead. The paths below are historical.
+
 Prototype code must NEVER leak into the production codebase:
 
-- All prototype code lives in `prototypes/[prototype-name]/`
+- All prototype code lives in `prototypes/[prototype-name]/` *(historical — see note above)*
 - Every prototype file starts with a header comment:
   ```
   // PROTOTYPE - NOT FOR PRODUCTION
@@ -166,7 +170,7 @@ scope adjustments]
 surprising findings]
 ```
 
-Save the report to `prototypes/[prototype-name]/REPORT.md`
+Save the report to `prototypes/[prototype-name]/REPORT.md` *(historical — use `/tmp/[prototype-name]/REPORT.md` in the web era)*
 
 ### Prototype Lifecycle
 
