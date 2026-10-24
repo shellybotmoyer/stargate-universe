@@ -35,6 +35,10 @@ for production code.
 Use **auto-accept mode** with limited scope — faster iteration on throwaway code.
 Only use this when working in `prototypes/` directory.
 
+> **⚠️ WEB-ERA NOTE**: The `prototypes/` directory was removed in the 2026-09-08
+> Godot→web/Three.js re-pivot. Use `/tmp/` or `design/` for throwaway experiments.
+> This section is retained for historical reference only.
+
 ### During Code Review
 Use **read-only** permissions — Claude can read and search but not modify files.
 

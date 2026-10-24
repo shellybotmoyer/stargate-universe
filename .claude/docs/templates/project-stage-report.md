@@ -69,6 +69,8 @@
   - [ ] [Missing test area + risk]
 
 ### Prototypes
+> **⚠️ WEB-ERA NOTE**: `prototypes/` was removed in the 2026-09-08 re-pivot.
+> Report [N] = 0 for web-era repos; keep this section for pre-pivot historical reports.
 - **Active Prototypes**: [N] in `prototypes/`
   - ✅ [Prototype 1] — documented with README
   - ⚠️  [Prototype 2] — no README, unclear status
@@ -189,7 +191,7 @@ production/
   milestones/    [N] definitions
 
 tests/           [N] test files
-prototypes/      [N] directories
+prototypes/      [N] directories  # ⚠️ removed in web-era re-pivot — 0 for web-era repos
 ```
 
 ---

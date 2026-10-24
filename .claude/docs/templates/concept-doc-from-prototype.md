@@ -1,8 +1,13 @@
 # [Prototype Name] — Concept Document
 
+> **⚠️ WEB-ERA NOTE**: The `prototypes/` directory was removed in the 2026-09-08
+> Godot→web/Three.js re-pivot. This template is retained for reverse-documenting
+> any pre-pivot prototypes whose concept docs are still useful. For new
+> experiments, use `/tmp/` or `design/` and create concept docs manually.
+
 ---
 **Status**: Reverse-Documented from Prototype
-**Prototype Path**: `prototypes/[name]/`
+**Prototype Path**: `prototypes/[name]/` _(pre-pivot only)_
 **Date**: [YYYY-MM-DD]
 **Creator**: [User name]
 **Outcome**: [Success | Partial Success | Failed | Needs More Testing]
