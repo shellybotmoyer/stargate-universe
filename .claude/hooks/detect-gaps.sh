@@ -3,6 +3,13 @@
 # Event: SessionStart
 # Purpose: Detect missing documentation when code/prototypes exist
 # Cross-platform: Windows Git Bash compatible (uses grep -E, not -P)
+#
+# WEB-ERA NOTE (2026-09-08 re-pivot): This repo is a Three.js browser game.
+# Source is flat src/*.js (no src/core/, src/engine/, src/gameplay/ subdirs).
+# prototypes/ directory was removed in the re-pivot. Checks 2-4 below are
+# guarded with [ -d ] tests that short-circuit on absent directories, so
+# they are harmless no-ops but will never fire. Source extension list trimmed
+# to .js/.ts only.
 
 # Exit on error for debugging (but don't fail the session)
 set +e
@@ -27,7 +34,7 @@ fi
 
 # Check if source code exists
 if [ -d "src" ]; then
-  SRC_CHECK=$(find src -type f \( -name "*.cs" -o -name "*.cpp" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.rs" -o -name "*.py" -o -name "*.js" -o -name "*.ts" \) 2>/dev/null | head -1)
+  SRC_CHECK=$(find src -type f \( -name "*.js" -o -name "*.ts" \) 2>/dev/null | head -1)
   if [ -n "$SRC_CHECK" ]; then
     FRESH_PROJECT=false
   fi
@@ -46,7 +53,7 @@ fi
 # --- Check 1: Substantial codebase but sparse design docs ---
 if [ -d "src" ]; then
   # Count source files (cross-platform, handles Windows paths)
-  SRC_FILES=$(find src -type f \( -name "*.cs" -o -name "*.cpp" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.rs" -o -name "*.py" -o -name "*.js" -o -name "*.ts" \) 2>/dev/null | wc -l)
+  SRC_FILES=$(find src -type f \( -name "*.js" -o -name "*.ts" \) 2>/dev/null | wc -l)
 else
   SRC_FILES=0
 fi
@@ -68,6 +75,8 @@ if [ "$SRC_FILES" -gt 50 ] && [ "$DESIGN_FILES" -lt 5 ]; then
 fi
 
 # --- Check 2: Prototypes without documentation ---
+# WEB-ERA: prototypes/ directory was removed in the 2026-09-08 re-pivot.
+# This check is a harmless no-op (the [ -d "prototypes" ] test short-circuits).
 if [ -d "prototypes" ]; then
   PROTOTYPE_DIRS=$(find prototypes -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
   UNDOCUMENTED_PROTOS=()
@@ -95,48 +104,19 @@ if [ -d "prototypes" ]; then
 fi
 
 # --- Check 3: Core systems without architecture docs ---
-if [ -d "src/core" ] || [ -d "src/engine" ]; then
-  if [ ! -d "docs/architecture" ]; then
-    echo "⚠️  GAP: Core engine/systems exist but no docs/architecture/ directory"
-    echo "    Suggested action: Create docs/architecture/ and run /architecture-decision"
-  else
-    ADR_COUNT=$(find docs/architecture -type f -name "*.md" 2>/dev/null | wc -l)
-    ADR_COUNT=$(echo "$ADR_COUNT" | tr -d ' ')
-
-    if [ "$ADR_COUNT" -lt 3 ]; then
-      echo "⚠️  GAP: Core systems exist but only $ADR_COUNT ADR(s) documented"
-      echo "    Suggested action: /reverse-document architecture src/core/[system]"
-    fi
+# WEB-ERA: src/core/ and src/engine/ don't exist (flat src/*.js). Check for
+# the single docs/architecture.md file instead of a docs/architecture/ dir.
+if [ -d "src" ]; then
+  if [ ! -f "docs/architecture.md" ]; then
+    echo "⚠️  GAP: Source code exists but no docs/architecture.md file"
+    echo "    Suggested action: Create docs/architecture.md with system overview"
   fi
 fi
 
 # --- Check 4: Gameplay systems without design docs ---
-if [ -d "src/gameplay" ]; then
-  # Find major gameplay subdirectories (those with 5+ files)
-  GAMEPLAY_SYSTEMS=$(find src/gameplay -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
-
-  if [ -n "$GAMEPLAY_SYSTEMS" ]; then
-    while IFS= read -r system_dir; do
-      system_dir=$(echo "$system_dir" | sed 's|\\|/|g')
-      system_name=$(basename "$system_dir")
-      file_count=$(find "$system_dir" -type f 2>/dev/null | wc -l)
-      file_count=$(echo "$file_count" | tr -d ' ')
-
-      # If system has 5+ files, check for corresponding design doc
-      if [ "$file_count" -ge 5 ]; then
-        # Check for design doc (allow variations: combat-system.md, combat.md)
-        design_doc_1="design/gdd/${system_name}-system.md"
-        design_doc_2="design/gdd/${system_name}.md"
-
-        if [ ! -f "$design_doc_1" ] && [ ! -f "$design_doc_2" ]; then
-          echo "⚠️  GAP: Gameplay system 'src/gameplay/$system_name/' ($file_count files) has no design doc"
-          echo "    Expected: design/gdd/${system_name}-system.md or design/gdd/${system_name}.md"
-          echo "    Suggested action: /reverse-document design src/gameplay/$system_name"
-        fi
-      fi
-    done <<< "$GAMEPLAY_SYSTEMS"
-  fi
-fi
+# WEB-ERA: src/gameplay/ doesn't exist (flat src/*.js). Skip — the flat
+# module layout doesn't map 1:1 to gameplay subsystems for gap detection.
+# Architecture.md already covers module-to-system mapping.
 
 # --- Check 5: Production planning ---
 if [ "$SRC_FILES" -gt 100 ]; then
