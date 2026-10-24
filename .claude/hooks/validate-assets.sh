@@ -1,10 +1,10 @@
 #!/bin/bash
 # Claude Code PostToolUse hook: Validates asset files after Write/Edit
-# Checks naming conventions for files in assets/ directory
+# Checks naming conventions for files in asset directories (data/, sounds/, models/)
 # Exit 0 = success (non-blocking, PostToolUse cannot block)
 #
 # Input schema (PostToolUse for Write/Edit):
-# { "tool_name": "Write", "tool_input": { "file_path": "assets/data/foo.json", "content": "..." } }
+# { "tool_name": "Write", "tool_input": { "file_path": "data/foo.json", "content": "..." } }
 
 INPUT=$(cat)
 
@@ -18,8 +18,9 @@ fi
 # Normalize path separators (Windows backslash to forward slash)
 FILE_PATH=$(echo "$FILE_PATH" | sed 's|\\|/|g')
 
-# Only check files in assets/
-if ! echo "$FILE_PATH" | grep -qE '(^|/)assets/'; then
+# Only check files in asset directories
+# WEB-ERA: assets/ was the Godot-era dir; web-era uses data/, sounds/, models/
+if ! echo "$FILE_PATH" | grep -qE '(^|/)(assets|data|sounds|models)/'; then
     exit 0
 fi
 
