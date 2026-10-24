@@ -6,6 +6,10 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, AskUserQuestion
 ---
 
+> ⚠️ **WEB-ERA NOTE (2026-09-08 re-pivot):** The `prototypes/` directory was
+> removed in the Godot → web/Three.js re-pivot. Skip prototype-related checks
+> or use `/tmp/` for throwaway experiments.
+
 # Guided Onboarding
 
 This skill is the entry point for new users. It does NOT assume you have a game

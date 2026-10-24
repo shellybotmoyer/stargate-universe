@@ -6,6 +6,10 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write
 ---
 
+> ⚠️ **WEB-ERA NOTE (2026-09-08 re-pivot):** The `prototypes/` directory no
+> longer exists. Gate checks referencing `prototypes/` should be skipped or
+> adapted — use `/tmp/` for throwaway experiments instead.
+
 # Phase Gate Validation
 
 This skill validates whether the project is ready to advance to the next development

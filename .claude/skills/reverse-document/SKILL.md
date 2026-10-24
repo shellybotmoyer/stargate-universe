@@ -6,6 +6,10 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 ---
 
+> ⚠️ **WEB-ERA NOTE (2026-09-08 re-pivot):** The `prototypes/` directory was
+> removed in the Godot → web/Three.js re-pivot. Example paths using
+> `prototypes/` are historical — use `design/` or `src/` as input paths instead.
+
 # Reverse Documentation
 
 This skill analyzes existing implementation (code, prototypes, systems) and generates

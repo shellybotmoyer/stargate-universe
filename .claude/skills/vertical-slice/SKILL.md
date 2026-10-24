@@ -9,6 +9,11 @@ agent: prototyper
 isolation: worktree
 ---
 
+> ⚠️ **WEB-ERA NOTE (2026-09-08 re-pivot):** The `prototypes/` directory was
+> removed in the Godot → web/Three.js re-pivot. Report and index paths
+> referencing `prototypes/` should use `/tmp/` or `design/` instead. The
+> workflow logic below is retained for reference.
+
 ## Purpose
 
 The **vertical slice** answers a different question from the concept prototype:

@@ -6,6 +6,10 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash
 ---
 
+> ⚠️ **WEB-ERA NOTE (2026-09-08 re-pivot):** The `prototypes/` directory was
+> removed in the Godot → web/Three.js re-pivot. Prototype-related stage
+> detection checks should be skipped — use `/tmp/` for throwaway experiments.
+
 # Project Stage Detection
 
 This skill scans your project to determine its current development stage, completeness

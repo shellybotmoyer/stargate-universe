@@ -6,6 +6,10 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 ---
 
+> ⚠️ **WEB-ERA NOTE (2026-09-08 re-pivot):** The `prototypes/` directory was
+> removed when the repo pivoted from Godot to web/Three.js. Throwaway prototypes
+> should use `/tmp/` instead. The workflow below is retained for reference.
+
 When this skill is invoked:
 
 1. **Read the concept description** from the argument. Identify the core
