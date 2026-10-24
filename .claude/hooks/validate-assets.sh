@@ -32,7 +32,8 @@ if echo "$FILENAME" | grep -qE '[A-Z[:space:]-]'; then
 fi
 
 # Check JSON validity for data files
-if echo "$FILE_PATH" | grep -qE '(^|/)assets/data/.*\.json$'; then
+# WEB-ERA: data files moved from assets/data/ to data/ in the 2026-09-08 re-pivot.
+if echo "$FILE_PATH" | grep -qE '(^|/)(assets/data|data)/.*\.json$'; then
     if [ -f "$FILE_PATH" ]; then
         # Find a working Python command
         PYTHON_CMD=""
