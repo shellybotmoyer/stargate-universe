@@ -2,8 +2,16 @@
 
 > **Status**: Designed
 > **Author**: User + Claude
-> **Last Updated**: 2026-03-30
+> **Last Updated**: 2026-10-25 (engine-mapping notes added)
 > **Implements Pillar**: Pillar 2 (Survival with Purpose)
+>
+> **Engine-mapping note (2026-10-25):** Godot-era implementation references
+> (`GameState.TRACKED_RESOURCES`, `resource_scarcity()`, `build_resource_table`,
+> `Inventory` class) appear in historical notes below and do not exist in the
+> web/Three.js runtime. The web-era resource model is a simplified version in
+> `src/rpg.js` (see inline web-era note). The resource/inventory design itself
+> (resource types, consumption formulas, scarcity thresholds, edge cases) is
+> engine-agnostic and remains canonical forward-looking reference.
 
 ## Overview
 
@@ -172,7 +180,7 @@ inventory).
 | **Event Bus** | Inbound (subscribe) | Subscribes to `player:interact` (cache looting triggers collection). |
 | **Ship State** | Inbound (consumer) | Ship State requests resources for repairs. Checks availability via `hasResource(type, amount)`. Consumes via `resource:consumed`. |
 | **Ship Exploration** | Inbound (source) | Supply caches provide resources. Exploration system calls `addResource(type, amount)` on cache loot. |
-| **Stargate & Planetary Runs** *(implemented)* | Inbound (source) | Primary source for Water, Food, Lime, and specialized resources. Planetary scavenging adds to the pool. The dial flow reads `resource_scarcity()` to target the scarcest tracked resource on each generated planet (`build_resource_table`). |
+| **Stargate & Planetary Runs** *(Godot-era historical; web-era TBD)* | Inbound (source) | Primary source for Water, Food, Lime, and specialized resources. Planetary scavenging adds to the pool. ~~The dial flow reads `resource_scarcity()` to target the scarcest tracked resource on each generated planet (`build_resource_table`).~~ **(Godot-era methods — do not exist in web runtime; see historical note in §Core Rules above.)** |
 | **Timer & Pressure** *(undesigned)* | Outbound (trigger) | Resource depletion can trigger timed crisis events. |
 | **Crew Dialogue & Choice** *(undesigned)* | Outbound (context) | Dialogue system reads resource levels for contextual crew reactions (rationing complaints, gratitude after resupply). |
 | **Episode Narrative** *(undesigned)* | Bidirectional | Episodes can grant/consume resources and story items. Resource thresholds can trigger episode events. |
