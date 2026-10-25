@@ -1,6 +1,6 @@
 # Technical Debt Register
 
-Last updated: 2026-10-19 (heartbeat — TD-003 closed: architecture.md generated for web-era codebase) · Sprint: web-era (post re-pivot)
+Last updated: 2026-10-25 (heartbeat — TD-101 line range corrected 196–250 → 193–252 to match architecture.md) · Sprint: web-era (post re-pivot)
 Total open items: 2 (TD-009/010 web-era) | Estimated total effort: ~M-L
 
 Tracks **conscious** technical-debt decisions for the Stargate Universe project (historically Godot 4.6, now web/Three.js since the 2026-09-08 re-pivot). All Godot-era items (TD-001 through TD-008) are archived as historical — their code references point to removed `.gd`/`.tscn` files.
