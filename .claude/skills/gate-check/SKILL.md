@@ -88,7 +88,7 @@ The project progresses through these stages:
 ### Gate: Pre-Production → Production
 
 **Required Artifacts:**
-- [ ] At least 1 prototype in `prototypes/` with a README
+- [ ] ~~At least 1 prototype in `prototypes/` with a README~~ (N/A — `prototypes/` removed in web-era re-pivot)
 - [ ] First sprint plan exists in `production/sprints/`
 - [ ] All MVP-tier GDDs from systems index are complete
 

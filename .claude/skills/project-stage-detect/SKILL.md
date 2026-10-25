@@ -46,10 +46,10 @@ Analyze project structure and content:
 - Look for milestone definitions
 - Find roadmap documents
 
-**Prototypes** (`prototypes/`):
-- Count prototype directories
-- Check for READMEs (documented vs undocumented)
-- Assess if prototypes are archived or active
+**Prototypes** (~~`prototypes/`~~ — removed in web-era re-pivot, skip this section):
+- ~~Count prototype directories~~
+- ~~Check for READMEs (documented vs undocumented)~~
+- ~~Assess if prototypes are archived or active~~
 
 **Architecture Docs** (`docs/architecture/`):
 - Count ADRs (Architecture Decision Records)
@@ -177,7 +177,7 @@ After generating the report, suggest relevant next steps:
 - **Concept exists but no systems index?** → `/map-systems` to decompose into systems
 - **Missing design docs?** → `/reverse-document design src/[system]`
 - **Missing architecture docs?** → `/architecture-decision` or `/reverse-document architecture`
-- **Prototypes need documentation?** → `/reverse-document concept prototypes/[name]`
+- ~~**Prototypes need documentation?** → `/reverse-document concept prototypes/[name]`~~ (N/A — `prototypes/` removed in web-era re-pivot)
 - **No sprint plan?** → `/sprint-plan`
 - **Approaching milestone?** → `/milestone-review`
 

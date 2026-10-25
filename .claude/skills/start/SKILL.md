@@ -32,7 +32,7 @@ Check:
 - **Game concept exists?** Check for `design/gdd/game-concept.md`.
 - **Source code exists?** Glob for source files in `src/` (`*.js`, `*.mjs`,
   `*.ts`, `*.cs`, `*.cpp`, `*.h`, `*.rs`, `*.py`).
-- **Prototypes exist?** Check for subdirectories in `prototypes/`.
+- **Prototypes exist?** ~~Check for subdirectories in `prototypes/`.~~ (N/A — removed in web-era re-pivot)
 - **Design docs exist?** Count markdown files in `design/gdd/`.
 - **Production artifacts?** Check for files in `production/sprints/` or
   `production/milestones/`.
