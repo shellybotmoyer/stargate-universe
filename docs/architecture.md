@@ -84,19 +84,20 @@ Steps carry `on_enter`/`on_exit` trigger arrays (subtitle, radio, toast,
 ftl_drop, dial, countdown, countdown_stop). World-state flags persist across
 chapters; only the current chapter's step flags are cleared on chapter start.
 
-### FTL rhythm system (`main.js` lines 195–251)
+### FTL rhythm system (`main.js` lines 193–209, tickFtl at 240–252)
 Timer-pressure loop: drop-out opens a jump window (default 600s × clockScale),
 countdown to zero triggers `ftlJump()`, then cooldown (90s) before re-drop if
 the chapter still needs the planet. Rush/Scott radio warnings at 120s/30s.
-`ftlRedrop()` re-opens the window for missed deadlines.
+`ftlRedrop()` re-opens the window for missed deadlines. Per-frame tick
+(`tickFtl()`) drives the window/cooldown clock and urgent-alarm state.
 
 ### Knockout loop (`main.js` lines 210–226)
 No-death design (issue #92): black out → wake on infirmary bed → TJ dialogue
 from `data/knockout_lines.json` (graceful fetch fallback). Cause-tagged lines
-(window_closed, asphyxiation, generic). `knockedOut` guard prevents re-entrancy.
+`(window_closed, asphyxiation, generic)`. `knockedOut` guard prevents re-entrancy.
 Heartbeat audio cue synthesized via `toneBuffer()`.
 
-### Story countdowns (`main.js` lines 229–238)
+### Story countdowns (`main.js` lines 227–239)
 Data-triggered deadlines (`countdown`/`countdown_stop` steps in chapters.json).
 Takes over the HUD clock. Expiry → `knockOut(cause)` → re-arms (resets t to
 total). Rush/Scott warnings at 120s/30s. `clockScale` accessibility multiplier
