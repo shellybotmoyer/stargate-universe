@@ -4,6 +4,54 @@
 			"dir": "-x",
 			"to": "stargate_corridor_east_connector",
 			"plaque": "Destiny Corridor"
+		},
+		{
+			"dir": "+x",
+			"to": "east_corridor_bottom",
+			"plaque": "East Corridor (Lower)"
+		},
+		{
+			"dir": "+x",
+			"to": "east_corridor_top",
+			"plaque": "East Corridor (Upper)"
+		},
+		{
+			"dir": "-z",
+			"to": "stargate_corridor_north_connector",
+			"plaque": "North Gate Access"
+		},
+		{
+			"dir": "+z",
+			"to": "stargate_corridor_south_connector",
+			"plaque": "South Gate Access"
+		}
+	],
+	"east_corridor_bottom": [
+		{
+			"dir": "+x",
+			"to": "control_interface_room",
+			"plaque": "Control Interface Room"
+		}
+	],
+	"east_corridor_top": [
+		{
+			"dir": "+x",
+			"to": "control_interface_room",
+			"plaque": "Control Interface Room"
+		}
+	],
+	"stargate_corridor_north_connector": [
+		{
+			"dir": "-z",
+			"to": "north_corridor",
+			"plaque": "North Corridor"
+		}
+	],
+	"stargate_corridor_south_connector": [
+		{
+			"dir": "+z",
+			"to": "south_corridor",
+			"plaque": "South Corridor"
 		}
 	],
 	"stargate_corridor_east_connector": [
