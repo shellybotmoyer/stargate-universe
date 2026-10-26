@@ -111,7 +111,7 @@ multi-week Engine builds will span many sessions.
 ## Phase 4: Implement
 
 Ask: "May I create the vertical slice directory at
-`prototypes/[concept-name]-vertical-slice/` and begin implementation?"
+`prototypes/[concept-name]-vertical-slice/` *(historical — use `/tmp/[concept-name]-vertical-slice/` in web era)* and begin implementation?"
 
 If yes, create the directory. Every file must begin with:
 
@@ -250,9 +250,9 @@ text with real observations.
 ```
 
 Ask: "May I write this report to
-`prototypes/[concept-name]-vertical-slice/REPORT.md`?"
+`prototypes/[concept-name]-vertical-slice/REPORT.md` *(historical — use `/tmp/` in web era)*?"
 
-If yes, write the file. Then update `prototypes/index.md` (create if it does not
+If yes, write the file. Then update `prototypes/index.md` *(historical — use `/tmp/index.md` in web era)* (create if it does not
 exist) — append one row to the vertical slice table: concept name, date, verdict,
 and a link to the REPORT.md. Note whether this was a first-run slice or a re-run
 after a PIVOT. The velocity log in this report is some of the most valuable data in
@@ -306,12 +306,12 @@ two questions (plain text, one at a time):
 1. "What systems or mechanics worked at this quality level and should be preserved in the revised design?"
 2. "What specifically failed — the core loop, the architecture, the pipeline, or the fun?"
 
-Ask: "May I write this to `prototypes/[concept-name]-vertical-slice/PIVOT-NOTE.md`?"
+Ask: "May I write this to `prototypes/[concept-name]-vertical-slice/PIVOT-NOTE.md` *(historical — use `/tmp/` in web era)*?"
 
 If yes, write the file with: what worked, what failed, the specific systems or
 architecture decisions that need revision, and what the next slice should prove
 differently. When `/vertical-slice` is next run after a PIVOT, check the
-`prototypes/` directory for a `PIVOT-NOTE.md` — use it to frame the new validation
+`prototypes/` directory *(historical — check `/tmp/` in web era)* for a `PIVOT-NOTE.md` — use it to frame the new validation
 question and inform scope decisions.
 
 - Revise affected GDDs with `/design-system [mechanic]`
@@ -330,8 +330,8 @@ Before abandoning the concept, confirm the verdict is sound:
 
 If 2+ boxes apply → KILL verdict is sound. If 0–1 apply → one targeted PIVOT may recover the concept.
 
-**Document the kill in `prototypes/GRAVEYARD.md`** (create if it doesn't exist).
-Ask: "May I append this to `prototypes/GRAVEYARD.md`?" If yes, add one entry:
+**Document the kill in `prototypes/GRAVEYARD.md`** *(historical — use `/tmp/GRAVEYARD.md` in web era)* (create if it doesn't exist).
+Ask: "May I append this to `prototypes/GRAVEYARD.md`?" *(historical — use `/tmp/GRAVEYARD.md` in web era)* If yes, add one entry:
 
 ```
 ## [Concept Name] Vertical Slice — YYYY-MM-DD
@@ -349,7 +349,7 @@ Ask: "May I append this to `prototypes/GRAVEYARD.md`?" If yes, add one entry:
 ### Important Constraints
 
 - Vertical slice code must NEVER be refactored into production — it is reference only
-- Production code must NEVER import from `prototypes/`
+- Production code must NEVER import from `prototypes/` *(historical — `/prototypes/` removed in web era; applies to `/tmp/` slice dirs)*
 - If recommendation is PROCEED, production implementation is written from scratch
   using the slice as a design reference only
 - Scope cuts are acceptable; quality cuts are not — a low-quality slice proves nothing
