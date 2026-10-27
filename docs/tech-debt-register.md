@@ -1,6 +1,6 @@
 # Technical Debt Register
 
-Last updated: 2026-10-27 (heartbeat — TD-107 resolved: added missing door between eli_quarters/Kino Room and aft_crew_corridor) · Sprint: web-era (post re-pivot)
+Last updated: 2026-10-27 (heartbeat — TD-108 resolved: added missing door between aft_storage_hall and south_corridor) · Sprint: web-era (post re-pivot)
 Total open items: 2 (TD-009/010 web-era) | Estimated total effort: ~M-L
 
 Tracks **conscious** technical-debt decisions for the Stargate Universe project (historically Godot 4.6, now web/Three.js since the 2026-09-08 re-pivot). All Godot-era items (TD-001 through TD-008) are archived as historical — their code references point to removed `.gd`/`.tscn` files.
@@ -13,6 +13,7 @@ Scoring: `priority = (impact × frequency) / effort`. Effort is T-shirt (S/M/L/X
 |----|----------|-------------|-------|--------|--------|----------|-------|--------|
 | TD-106 | Data | `control_interface_room` and `aft_storage_hall` share a 10.5m wall (world space, z=-75) but had no door — both rooms were `linked` in `room_connections.json`, so the auto-generation code (`ship.js:42`) skipped them. Players would see a solid wall between the control room and storage despite visual adjacency. **Resolved 2026-10-27:** Added explicit connection entry to `room_connections.json` with plaque "Aft Storage Hall". | `data/room_connections.json` | S | Low | Low | 2026-10-27 | 2026-10-27 |
 | TD-107 | Data | `eli_quarters` (Kino Room) and `aft_crew_corridor` (Aft Crew Corridor) share a 9.5m wall (world z=-105m, floor 0) but had no door — the Kino Room was only accessible via `cr_corridor_2`, not from the crew quarters area. **Resolved 2026-10-27:** Added explicit connection entry to `room_connections.json` with plaque "Aft Crew Corridor". | `data/room_connections.json` | S | Low | Low | 2026-10-27 | 2026-10-27 |
+| TD-108 | Data | `aft_storage_hall` (Aft Storage Hall) and `south_corridor` (South Corridor) share a 20m wall (x=1500, floor 0) but had no door — the Aft Storage Hall was only accessible from `cr_corridor_2` and `control_interface_room`, not from the South Corridor. **Resolved 2026-10-27:** Added bidirectional connection entries to `room_connections.json` with plaques "South Corridor" and "Aft Storage Hall". | `data/room_connections.json` | S | Low | Low | 2026-10-27 | 2026-10-27 |
 | TD-009 | Code Quality | `src/main.js` is ~702 lines — game loop, chapter engine, FTL/countdown systems, knockout loop, and frame dispatcher all in one closure. Not yet a god object, but trending. Plan: extract `createCountdownSystem()` into `src/countdown.js` (FTL already extracted on PR #197 branch as `src/ftl.js` via TD-101 — awaiting merge). Re-evaluate after PR #197 lands. | `src/main.js` | M | Med | Med | 2026-10-17 | Backlog |
 | TD-010 | Test | **New (web-era):** No automated browser/headless test runner. CI runs `node --test` on unit-testable modules and `tsc --noEmit` + ESLint for static checks, but there is no Puppeteer/Playwright smoke that loads `index.html` and verifies the game boots. Autoplay reload-mode covers this manually but is not wired to CI. | `.github/workflows/ci.yml` | L | Med | Med | 2026-10-16 | Backlog |
 

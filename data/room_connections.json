@@ -110,6 +110,11 @@
 			"dir": "+z",
 			"to": "infirmary",
 			"plaque": "Infirmary"
+		},
+		{
+			"dir": "+x",
+			"to": "aft_storage_hall",
+			"plaque": "Aft Storage Hall"
 		}
 	],
 	"control_approach_north": [
@@ -155,6 +160,11 @@
 			"dir": "+x",
 			"to": "aft_crew_corridor",
 			"plaque": "Aft Crew Corridor"
+		},
+		{
+			"dir": "-x",
+			"to": "south_corridor",
+			"plaque": "South Corridor"
 		}
 	],
 	"aft_crew_corridor": [
