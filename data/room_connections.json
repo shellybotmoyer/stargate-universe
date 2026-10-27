@@ -169,6 +169,13 @@
 			"plaque": "Crew Quarters Gamma"
 		}
 	],
+	"eli_quarters": [
+		{
+			"dir": "+x",
+			"to": "aft_crew_corridor",
+			"plaque": "Aft Crew Corridor"
+		}
+	],
 	"elevator_north": [
 		{
 			"dir": "elevator",
