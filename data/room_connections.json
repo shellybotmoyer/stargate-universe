@@ -131,6 +131,11 @@
 			"dir": "+x",
 			"to": "cr_corridor_2",
 			"plaque": "Crew Wing"
+		},
+		{
+			"dir": "+x",
+			"to": "aft_storage_hall",
+			"plaque": "Aft Storage Hall"
 		}
 	],
 	"cr_corridor_2": [
