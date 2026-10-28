@@ -183,3 +183,7 @@ stargate-universe/
 | TD-102 | ESLint config + CI lint step | On PR #197 branch, not on origin/main |
 | TD-103 | Unit test coverage (28 test files) | On PR #197 branch, not on origin/main |
 | TD-104 | Silent catch blocks | Fully resolved on local main — all `catch {}` blocks replaced with `console.warn` |
+| TD-105 | 4 rooms missing explicit room_connections entries | Resolved on local main — explicit connections added to `room_connections.json` |
+| TD-106 | Missing door: control_interface_room ↔ aft_storage_hall | Resolved on local main — connection added to `room_connections.json` |
+| TD-107 | Missing door: eli_quarters ↔ aft_crew_corridor | Resolved on local main — connection added to `room_connections.json` |
+| TD-108 | Missing door: aft_storage_hall ↔ south_corridor | Resolved on local main — bidirectional connections added to `room_connections.json` |
