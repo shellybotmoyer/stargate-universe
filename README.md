@@ -19,7 +19,7 @@ Or use the `game` entry in `.claude/launch.json`.
 ## Controls
 
 WASD move · Shift run · Space jump · E interact (hold to dig) · mouse look (click to capture) · TAB Kino Remote
-(quests, character, inventory, talents, ship map, gate, Kino, settings) · K launch Kino · V camera · F fullscreen.
+(quests, character, inventory, talents, ship, clocks, gate, Kino, log, settings) · K launch Kino · V camera · F fullscreen.
 
 Hidden dev console: **`** (backquote). Commands: `leveledit` (in-game first-person map builder), `noclip`, `power`,
 `tp x z`, `flag`, `give`, `chapter`, `help`.
