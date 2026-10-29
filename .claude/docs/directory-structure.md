@@ -20,7 +20,7 @@ Updated 2026-10-21 for the web/Three.js era (post re-pivot from Godot, 2026-09-0
 │   ├── reviews/                 # Repo review notes (solar-system-repo-review.md)
 │   ├── sgu-opening-reference.md # Opening scene reference
 │   └── voice-line-manifest.md   # Voice line manifest
-├── docs/                        # Technical documentation (architecture.md, tech-debt-register, repo-learnings, audio-inventory, deployment-targets, tts-dialogue, OPENING_SCENE_SCRIPT, hud-redesign/)
+├── docs/                        # Technical documentation (architecture.md, tech-debt-register, OPENING_SCENE_SCRIPT) + archive/ (Godot-era docs: repo-learnings, audio-inventory, deployment-targets, tts-dialogue, hud-redesign/)
 ├── tests/                       # Unit tests — 28 files, 1007 tests (Node 18+ runner). On PR #197 branch, not on main.
 ├── tools/                       # Build/pipeline tools (edit_server.py, gen_gate_sfx.py, music-bake/, tts-bake/)
 ├── build.sh                     # Build script → dist/ + itch.io zip (inline Python vendoring)
