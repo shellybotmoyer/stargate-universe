@@ -197,7 +197,7 @@ export const createUI = (ctx) => {
 	hud.querySelectorAll('#menu button').forEach((b) => (b.onclick = () => openRemote(b.dataset.tab === 'map' ? 'ship' : b.dataset.tab)));
 
 	// ---- title screen + controls card
-	const CONTROLS = [['WASD / L-stick', 'move'], ['Shift / RT', 'run'], ['Space / A', 'jump'], ['E / X', 'interact (hold to dig)'], ['Mouse / R-stick', 'look (click to capture)'], ['TAB / Start', 'Kino Remote (quest, gear, talents, ship, gate)'], ['K / Y', 'launch Kino'], ['V', 'camera view'], ['F', 'fullscreen'], ['B', 'terrain debug']];
+	const CONTROLS = [['WASD / L-stick', 'move'], ['Shift / RT', 'run'], ['Space / A', 'jump'], ['E / X', 'interact (hold to dig)'], ['Mouse / R-stick', 'look (click to capture)'], ['TAB / Start', 'Kino Remote (quest, character, inventory, talents, ship, clocks, gate, Kino, log, settings)'], ['K / Y', 'launch Kino'], ['V', 'camera view'], ['F', 'fullscreen'], ['B', 'terrain debug']];
 	const showTitle = ({ hasSave, onNew, onContinue, chapters = [], onChapter }) => {
 		chapterCard.innerHTML = `<div><div style="font:12px monospace;letter-spacing:.3em;color:#887">A THREE.JS PROTOTYPE</div><h1>STARGATE UNIVERSE</h1><p>Destiny · five episodes</p>
 			<button data-action="new">New Game</button>${hasSave ? '<button data-action="continue">Continue</button>' : ''}${chapters.length > 1 ? '<button data-action="chapters">Chapters</button>' : ''}<button data-action="controls">Controls</button><button data-action="settings">Settings</button>
