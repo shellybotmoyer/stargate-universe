@@ -180,7 +180,7 @@ walk-blocker AABB centroid is within 1.5 m of representative door positions
 The cluster mechanic (a special anchor forces an adjacent annex via
 `_compute_child_rect`/`_has_collision`/`_pick_free_dir`) is designed in issue #135
 §3 but **not implemented** in this sprint. An optional `cluster: {annex_type, dir_pref}`
-key in `room_types.json` is reserved for future use. No data-off flag is needed
+key in `room_types.json` (removed 2026-10-30, TD-109) was reserved for future use. No data-off flag is needed
 — the field is simply absent from all current entries.
 
 ---
