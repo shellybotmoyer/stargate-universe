@@ -13,7 +13,7 @@ no bundler, no TypeScript at runtime.
 | Language | ES modules (plain `.js`, `import/export`) | No transpile step; browser-native |
 | Build | `build.sh` (vendoring + import-map rewrite via inline Python) → `dist/` + itch.io zip | No bundler; `index.html` loads `src/main.js` directly |
 | Tests | Node 18+ built-in test runner (`node --test tests/*.test.js`) | Zero framework deps; test suite lives on PR #197 branch (28 files, 1007 tests) — not on origin/main |
-| Data | JSON files in `data/` (chapters, ship layout, items, planets, etc.) | Fetched at runtime via `fetch()` |
+| Data | JSON files in `data/` (chapters, ship layout, items, connections, knockout lines, etc.) | Fetched at runtime via `fetch()` |
 | Save | `localStorage` single-slot (`SAVE_KEY`) + version migration (`migrateSave()`) | `SAVE_VERSION` guards forward compat |
 | Audio | `AudioLoader` → `ASSETS/sounds/…`; procedural synthesis (`toneBuffer()`) for alarms/heartbeat | TTS generation: `tools/tts-bake/` |
 | Assets | Repo-local `sounds/`, `models/` (Quaternius UAL), `data/` | `ASSETS` base path resolves CDN vs local |
@@ -158,7 +158,7 @@ stargate-universe/
 │   ├── tts-bake/       — TTS voice line generation
 │   └── edit_server.py  — Level editor backend
 ├── src/                — 24 ES modules (3,445 LOC on local main)
-├── data/               — 13 JSON files (chapters, layout, items, planets, etc.)
+├── data/               — 6 JSON files (chapters, layout, items, connections, knockout lines, music moods)
 ├── sounds/             — SFX + dialog voice lines (.ogg, .wav)
 ├── models/             — Quaternius UAL mannequin + environment (.glb)
 ├── sprites/            — UI sprites, character portraits (PNG)
