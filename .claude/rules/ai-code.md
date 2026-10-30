@@ -5,7 +5,7 @@ paths: []
 # AI Code Rules
 
 > **Web-era note:** The game has no `src/ai/` directory — crew NPC behavior is
-> data-driven via `data/characters.json` and orchestrated from `src/main.js` /
+> data-driven (was `data/characters.json`, removed 2026-10-30 TD-109 — character data now hardcoded in `src/main.js`) and orchestrated from `src/main.js` /
 > `src/rpg.js`. These rules are retained for reference in case a future milestone
 > adds a dedicated AI module. `paths: []` means this rule file will not match
 > any files in the current repo.

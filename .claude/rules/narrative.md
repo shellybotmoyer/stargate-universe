@@ -6,7 +6,7 @@ paths: []
 
 > **Web-era note:** The repo has no `design/narrative/` directory. Narrative
 > content lives in `docs/OPENING_SCENE_SCRIPT.md` (STALE — Godot-era), character
-> data in `data/characters.json`, and dialogue/knockout lines in
+> character data (was `data/characters.json`, removed 2026-10-30 TD-109 — now hardcoded in `src/main.js`), and dialogue/knockout lines in
 > `data/knockout_lines.json`. These rules are retained for reference.
 > `paths: []` means this rule file will not match any files in the current repo.
 
