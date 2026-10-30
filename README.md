@@ -35,7 +35,7 @@ Hidden dev console: **`** (backquote). Commands: `leveledit` (in-game first-pers
 | Path | Contents |
 |---|---|
 | `index.html`, `src/` | The game (`main.js` wires everything; `ship.js` builds the deck from data; `components.js` is the prop registry) |
-| `data/` | `ship_layout.json` + `room_connections.json` (deck), `chapters.json` (episodes), `items.json`, planet/biome tables |
+| `data/` | `ship_layout.json` + `room_connections.json` (deck), `chapters.json` (episodes), `items.json`, `knockout_lines.json`, `music_moods.json` (design ref) |
 | `assets/items/` | 160 px inventory icons (sources in `sprites/ui/items`) |
 | `models/quaternius/` | CC0 rig + animation libraries (UAL1/UAL2) and modular character parts |
 | `sounds/` | SFX, composable music stems (`music/loops`), baked dialogue (`dialog/`) |
