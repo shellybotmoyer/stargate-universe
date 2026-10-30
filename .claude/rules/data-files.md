@@ -6,8 +6,11 @@ paths:
 # Data File Rules
 
 > **Web-era note:** Data files live in `data/` (not `assets/data/`). The repo has
-> no `assets/data/` directory. Data files include `biomes.json`, `chapters.json`,
-> `characters.json`, `items.json`, `quests.json`, `ship_layout.json`, etc.
+> no `assets/data/` directory. Current data files: `chapters.json`, `items.json`,
+> `knockout_lines.json`, `music_moods.json`, `room_connections.json`, `ship_layout.json`.
+> (`biomes.json`, `characters.json`, `quests.json`, `room_types.json`, `power_grid.json`,
+> `consumption.json`, and `planets.json` were removed 2026-10-30, TD-109 — data inlined
+> into `chapters.json` or hardcoded in `src/*.js` during the web-era pivot.)
 
 - All JSON files must be valid JSON — broken JSON blocks the entire build pipeline
 - File naming: lowercase with underscores only, following `[system]_[name].json` pattern
