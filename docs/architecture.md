@@ -25,7 +25,7 @@ main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown syst
 ├── gate-room.js (168) — Destiny gate-room geometry + gate interface room
 ├── stargate.js (234)  — Stargate model, chevron animation, gate activation
 ├── wormhole.js (52)   — Wormhole transit effect
-├── destination.js (130) — Procedural planet generation from data/biomes.json
+├── destination.js (130) — Procedural planet generation from chapter planet defs (inline biome data)
 ├── ship.js (310)   — Deck layout from data/ship_layout.json, room geometry, lighting, grow beds
 ├── components.js (390) — Procedural Ancient-tech prop meshes (beds, lockers, crates, scrubbers, tanks)
 ├── ancient.js (124) — Shared Ancient material (triplanar PBR, world-space)
