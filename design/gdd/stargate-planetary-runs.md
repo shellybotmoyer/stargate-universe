@@ -213,7 +213,7 @@ survive as the data the spec carries.
   the biome's hazards (heat/water drain, toxin oxygen drain, jungle damage traps,
   alien-tech security sensors) and urban settlement + negotiation residents.
 
-- **Biome data** lives in `data/biomes.json`: `desert`, `temperate`, `jungle`,
+- **Biome data** was defined in `data/biomes.json` (removed 2026-10-30, TD-109 — data inlined into `chapters.json` / hardcoded in `src/*.js` during the web-era pivot). Biome types: `desert`, `temperate`, `jungle`,
   `toxic`, `urban`, `alien_tech`. Each block carries terrain shaping, ground/sky
   palette, prop set + density, walkability cap, and a `hazard` block (gate window,
   water drain, plus biome-specific sub-blocks: `traps`, `sensors`, `oxygen_drain`,

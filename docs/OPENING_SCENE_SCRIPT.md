@@ -202,7 +202,7 @@ cinematic paces itself to that bed's playhead:
 Captions render as `SPEAKER — "line"`.
 
 > **Cast note — the medic.** Official name **Lt. James**; everyone calls her **TJ**. They are
-> ONE character: `data/characters.json` resolves `Lt James` / `Dr James` / `TJ` / `TJ Johansen`
+> ONE character: `data/characters.json` (removed 2026-10-30, TD-109) resolved `Lt James` / `Dr James` / `TJ` / `TJ Johansen`
 > to the same portrait (`tj-johansen.png`) and short name **TJ**. Cold-open captions use **TJ**
 > (what Scott yells); her infirmary dialogue keys off `Lt James` and still renders as TJ. The
 > in-world body remains the `lt_james` build in `character_factory.gd`.
@@ -351,5 +351,5 @@ are chaos (thuds, grunts, kawoosh, overlapping shouts), not dialog.
 | Cinematic framing | `scripts/cinematic.gd` (`letterbox_in/out`, `set_caption`, `flash`) | Bars / subtitles / shimmer flash |
 | Hand-off | `GameState.met_scott`, `GameState.advance_air_quest()`, `_restore_player_camera()` | Video → quest step 1 |
 | Drift guard | `tests/smoke/cold_open_lines.gd` | Locks captions + hand-off end-state |
-| Cast registry | `data/characters.json` | Lt James / TJ aliasing |
+| Cast registry | `data/characters.json` (removed, TD-109) | Lt James / TJ aliasing |
 | Atmosphere / sound spec | `design/sgu-opening-reference.md` | Companion doc (tone, SFX gaps) |

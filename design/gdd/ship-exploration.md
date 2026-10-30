@@ -57,7 +57,7 @@ Elevator power is restored by delivering the `ELEVATOR_FUSE_REQUIREMENT`
 
 ### Room Catalog Categories
 
-Defined in `data/room_types.json`, read at startup by `ProceduralShip._load_catalog()`:
+Defined in `data/room_types.json` (removed 2026-10-30, TD-109 — room categories now hardcoded in `src/ship.js` during the web-era pivot). Godot-era `ProceduralShip._load_catalog()` read this at startup:
 
 | Category | Examples | Notes |
 |---|---|---|
@@ -136,15 +136,15 @@ RNG seed and breaks floor-room-count assertions in `tests/smoke/test_procedural_
 > **Stale — Godot-era only.** The `RoomBuilder` class, `_spawn_kenney_prop()`,
 > `Label3D`, and `.tscn` references below are from the removed Godot stack.
 > Web-era set dressing is handled by `src/components.js` (procedural Ancient-tech
-> prop meshes) and `src/ship.js` (room geometry, lighting). Design content in
-> `data/room_types.json` remains canonical reference.
+> prop meshes) and `src/ship.js` (room geometry, lighting). `data/room_types.json`
+> was removed 2026-10-30 (TD-109) — room categories now hardcoded in `src/ship.js`.
 
 Special rooms are built on shared template shells but look generic without
 additional detail. Issue #135 adds a **data-driven, per-room-TYPE set-dressing
 layer** placed on top of the shared shell by `RoomBuilder._add_authored_setdressing()`.
 
 **Architecture:**
-- Data lives in `data/room_types.json` under a `setdressing` key per type.
+- Data lived in `data/room_types.json` (removed, TD-109) under a `setdressing` key per type.
 - Flag `authored_setdressing: true` + presence of `setdressing` dict gates placement.
 - `RoomBuilder._load_setdressing_catalog()` reads the JSON once (static cache via `_setdressing_loaded` flag).
 - `RoomBuilder.build()` calls `_add_authored_setdressing()` as 4th step after shell + accents + fill light.

@@ -97,7 +97,7 @@ recording is a chaotic mix); they map onto roles we already cast in
 | ~end | Eli | "Okay! I'm coming!" *(scramble — hands control to the player)* | H |
 
 > **`Help me find him.`** (4:02) is the diegetic line that launches the first quest —
-> step `find_rush` in `data/quests.json`. The cold open lands on **Scott yelling "Eli!
+> step `find_rush` in `data/quests.json` (removed 2026-10-30, TD-109 — quest data inlined into `chapters.json`). The cold open lands on **Scott yelling "Eli!
 > NOW!"** and **Eli's "Okay! I'm coming!"** — the button that snaps the camera back to the
 > player and starts gameplay (heading off to find Rush).
 
@@ -196,7 +196,7 @@ there). Several arrival lines are already `DONE` (e.g. `eli-ship-shake`, `eli-ga
 | Caption cutscene player | `scripts/standoff_cinematic.gd` | Space/E-advanced multi-line beats (the Rush hand-off) |
 | SFX playback | `scripts/audio.gd` (`Audio.play`) | Pooled one-shots for ambient/grunts |
 | Runtime VO | `scripts/tts_client.gd` (`say`) | Fallback synthesis for un-baked lines |
-| Quest runtime | `scripts/quest_log.gd` + `data/quests.json` step `find_rush` | "Help me find him." → activates the first quest |
+| Quest runtime | `scripts/quest_log.gd` + `data/quests.json` (removed, TD-109) step `find_rush` | "Help me find him." → activates the first quest |
 | Objective marker | `scripts/quest_waypoint.gd` | Points to Control Interface Room after hand-off |
 
 Prior related issues: **#136** (cold-open standoff cutscene), **#137** (E1 away-team split).
