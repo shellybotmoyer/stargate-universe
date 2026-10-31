@@ -22,8 +22,11 @@ paths:
 > **Web-era note:** The repo uses flat `src/*.js` modules (no `src/gameplay/` directory).
 > Gameplay-layer modules include `main.js` (game loop/chapter engine), `rpg.js`,
 > `quest.js`, `flow.js`, `interact.js`, `player.js`, `kino.js`, `save.js` (save/load,
-> extracted TD-101), `ftl.js` (FTL rhythm, extracted TD-101), `autoplay.js` (autonomous
+> extracted TD-101 — on PR #197 branch, not yet on main), `ftl.js` (FTL rhythm, extracted
+> TD-101 — on PR #197 branch, not yet on main), `autoplay.js` (autonomous
 > playthrough), etc. Data-driven config lives in `data/*.json`.
+> **Note:** `src/save.js` and `src/ftl.js` in the paths above do not exist on local main
+> yet — they will appear when PR #197 merges.
 
 - ALL gameplay values MUST come from external config/data files, NEVER hardcoded
 - Use delta time for ALL time-dependent calculations (frame-rate independence)
