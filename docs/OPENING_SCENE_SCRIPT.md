@@ -341,15 +341,18 @@ are chaos (thuds, grunts, kawoosh, overlapping shouts), not dialog.
 
 ## 8. Where to look in code
 
-| System | File | Role |
-|---|---|---|
-| Cold-open sequencer | `scripts/gate_room.gd::_play_prologue_cinematic()` (L548+) | The whole pass in §3 |
-| Playhead sync / captions | same file: `_await_audio()`, `_cap()` | Master-clock blocking + caption/VO cues |
-| Command hand-off | `_co_command_handoff()` | Scott→Young→TJ staging in the lull |
-| Crew ballistics | `_launch_ragdoll()`, `_co_wave1_scott()`, `_co_wave2()`, `_extra_pair()`, `_thud()` | Bodies/crates fly in and land |
-| Gate dial/collapse | `dial_and_open()`, `_collapse_gate()` | Open + snuff the wormhole |
-| Cinematic framing | `scripts/cinematic.gd` (`letterbox_in/out`, `set_caption`, `flash`) | Bars / subtitles / shimmer flash |
-| Hand-off | `GameState.met_scott`, `GameState.advance_air_quest()`, `_restore_player_camera()` | Video → quest step 1 |
-| Drift guard | `tests/smoke/cold_open_lines.gd` | Locks captions + hand-off end-state |
-| Cast registry | `data/characters.json` (removed, TD-109) | Lt James / TJ aliasing |
-| Atmosphere / sound spec | `design/sgu-opening-reference.md` | Companion doc (tone, SFX gaps) |
+All Godot-era file references below are **historical** (deleted in the 2026-09-08
+Three.js re-pivot). The "Web-era equivalent" column maps to the current codebase.
+
+| System | Godot-era file (deleted) | Web-era equivalent | Role |
+|---|---|---|---|
+| Cold-open sequencer | `scripts/gate_room.gd::_play_prologue_cinematic()` (L548+) | `src/autoplay.js` (chapter `e1_air`, step `arrive`) | Drives the opening scene declaratively from `data/chapters.json` |
+| Playhead sync / captions | same file: `_await_audio()`, `_cap()` | `src/autoplay.js` + `src/ui.js` (`ui.subtitle()`) | Autoplay pacing + subtitle rendering |
+| Command hand-off | `_co_command_handoff()` | `src/main.js` (quest step advancement via `quest.setFlag()`) | Scott→Young→TJ staging in the lull |
+| Crew ballistics | `_launch_ragdoll()`, `_co_wave1_scott()`, `_co_wave2()`, `_extra_pair()`, `_thud()` | `src/gate-room.js` (gate room rendering) | Bodies/crates fly in and land |
+| Gate dial/collapse | `dial_and_open()`, `_collapse_gate()` | `src/stargate.js` (`g.userData.dial()`, `g.userData.reset()`) | Open + snuff the wormhole |
+| Cinematic framing | `scripts/cinematic.gd` (`letterbox_in/out`, `set_caption`, `flash`) | `src/main.js` (`flash` element, `shake` var, `ui.subtitle()`) | Bars / subtitles / shimmer flash |
+| Hand-off | `GameState.met_scott`, `GameState.advance_air_quest()`, `_restore_player_camera()` | `src/quest.js` (quest flag system, `quest.setFlag('arrived')`) | Video → quest step 1 |
+| Drift guard | `tests/smoke/cold_open_lines.gd` | _Not yet on main_ (PR #197 adds test infrastructure) | Locks captions + hand-off end-state |
+| Cast registry | `data/characters.json` (removed, TD-109) | _Inlined in `src/main.js`_ (TD-109) | Lt James / TJ aliasing |
+| Atmosphere / sound spec | `design/sgu-opening-reference.md` | `design/sgu-opening-reference.md` (unchanged) | Companion doc (tone, SFX gaps) |
