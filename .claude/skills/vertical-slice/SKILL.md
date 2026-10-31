@@ -281,6 +281,7 @@ recommendation. Their verdict is final. Update REPORT.md if the verdict differs.
 
 Output a summary: the validation question, velocity data, and final recommendation.
 Link to `prototypes/[concept-name]-vertical-slice/REPORT.md`.
+<!-- web-era: prototypes/ removed in 2026-09-08 re-pivot; use /tmp/ or design/ instead -->
 
 **If PROCEED:**
 Your vertical slice validated the full game loop. The project is ready for
