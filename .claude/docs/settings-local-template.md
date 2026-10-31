@@ -33,7 +33,7 @@ for production code.
 
 ### During Prototyping
 Use **auto-accept mode** with limited scope — faster iteration on throwaway code.
-Only use this when working in `prototypes/` directory.
+Only use this when working in `prototypes/` directory *(historical — `prototypes/` removed; use `/tmp/` in web era, see note below)*.
 
 > **⚠️ WEB-ERA NOTE**: The `prototypes/` directory was removed in the 2026-09-08
 > Godot→web/Three.js re-pivot. Use `/tmp/` or `design/` for throwaway experiments.

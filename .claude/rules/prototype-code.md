@@ -24,14 +24,14 @@ relaxed to maximize iteration speed. The goal is learning, not production qualit
 - Quick-and-dirty solutions
 
 ## What's Still Required
-- Each prototype lives in its own subdirectory: `prototypes/[name]/`
+- Each prototype lives in its own subdirectory: `prototypes/[name]/` *(historical — use `/tmp/[name]/` in web era)*
 - Every prototype MUST have a `README.md` with:
   - What hypothesis is being tested
   - How to run the prototype
   - Current status (in-progress / concluded)
   - Findings (updated when prototype concludes)
-- No production code may reference or import from `prototypes/`
-- Prototypes must not modify files outside `prototypes/`
+- No production code may reference or import from `prototypes/` *(historical — applies to `/tmp/` prototype dirs in web era)*
+- Prototypes must not modify files outside `prototypes/` *(historical — applies to `/tmp/` in web era)*
 - Prototypes must not be deployed or shipped
 
 ## When a Prototype Succeeds

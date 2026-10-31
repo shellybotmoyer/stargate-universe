@@ -35,13 +35,13 @@ appropriate design or architecture documentation. Use this when:
 **Path**: Directory or file to analyze
 - `src/gameplay/combat/` → All combat-related code
 - `src/core/event-system.cpp` → Specific file
-- `prototypes/stealth-mech/` → Prototype directory
+- `prototypes/stealth-mech/` → Prototype directory *(historical — `prototypes/` removed in web era)*
 
 **Examples**:
 ```bash
 /reverse-document design src/gameplay/magic-system
 /reverse-document architecture src/core/entity-component
-/reverse-document concept prototypes/vehicle-combat
+/reverse-document concept prototypes/vehicle-combat *(historical — `prototypes/` removed in web era)*
 ```
 
 ### 2. Analyze Implementation
@@ -128,7 +128,7 @@ Based on type, use appropriate template:
 |------|----------|-------------|
 | `design` | `templates/design-doc-from-implementation.md` | `design/gdd/[system-name].md` |
 | `architecture` | `templates/architecture-doc-from-code.md` | `docs/architecture/[decision-name].md` |
-| `concept` | `templates/concept-doc-from-prototype.md` | `prototypes/[name]/CONCEPT.md` or `design/concepts/[name].md` |
+| `concept` | `templates/concept-doc-from-prototype.md` | `prototypes/[name]/CONCEPT.md` *(historical)* or `design/concepts/[name].md` |
 
 **Draft structure**:
 - Capture **what exists** (mechanics, patterns, implementation)
@@ -205,7 +205,7 @@ Would you like me to tackle any of these now?
 |----------------|-----------------|------------|
 | `src/gameplay/*` | design-doc-from-implementation.md | Gameplay mechanics → GDD |
 | `src/core/*`, `src/ai/*` | architecture-doc-from-code.md | Core systems → ADR |
-| `prototypes/*` | concept-doc-from-prototype.md | Experiments → concept doc |
+| `prototypes/*` *(historical)* | concept-doc-from-prototype.md | Experiments → concept doc |
 | `src/networking/*` | architecture-doc-from-code.md | Technical systems → ADR |
 | `src/ui/*` | design-doc-from-implementation.md | UI/UX → design spec |
 
