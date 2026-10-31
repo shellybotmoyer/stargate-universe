@@ -6,13 +6,16 @@ paths:
   - "src/ship.js"
   - "src/stargate.js"
   - "src/wormhole.js"
+  - "src/assets.js"
+  - "src/recorder.js"
 ---
 
 # Engine Code Rules
 
 > **Web-era note:** The repo uses flat `src/*.js` modules (no `src/core/` directory).
 > Engine-layer modules are the scene/world builders: `components.js`, `destination.js`,
-> `gate-room.js`, `ship.js`, `stargate.js`, `wormhole.js`. Three.js 0.180 is loaded via
+> `gate-room.js`, `ship.js`, `stargate.js`, `wormhole.js`, `assets.js` (asset loading),
+> `recorder.js` (playthrough recording). Three.js 0.180 is loaded via
 > import map — there is no `docs/engine-reference/` directory; consult the
 > [Three.js docs](https://threejs.org/docs/) and `.claude/docs/technical-preferences.md`
 > for engine version and conventions.
