@@ -1,7 +1,7 @@
 # Chapter steps complete on flags; room-entry steps complete by anchor convention
 
-**Design.** `data/chapters.json` uses the repo's `data/quests.json` step schema
-(`id, label, objective, target{room,anchor}, complete_when`) plus `xp`, `on_enter`/`on_exit` triggers
+**Design.** `data/chapters.json` follows the step schema originally defined in `data/quests.json`
+(removed TD-109 — schema now lives inline in chapters.json): `id, label, objective, target{room,anchor}, complete_when`) plus `xp`, `on_enter`/`on_exit` triggers
 (`subtitle`, `radio`, `toast`, `ftl_drop`, `dial`) and a per-chapter `planet` (biome + atmosphere +
 resource). Episode 2 "Water" is data only — same step types, an icy biome and `ice` as the resource.
 

@@ -1,5 +1,5 @@
 {
-  "$schema_note": "Same step schema as ../../data/quests.json (id, label, objective, target{room,anchor}, complete_when) plus: xp, on_enter triggers, and a per-chapter planet biome. Chapters are declarative: the engine only flips flags; worlds spawn what the chapter lists.",
+  "$schema_note": "Step schema (formerly in data/quests.json, removed TD-109): id, label, objective, target{room,anchor}, complete_when. Chapters add: xp, on_enter triggers, and a per-chapter planet biome. Chapters are declarative: the engine only flips flags; worlds spawn what the chapter lists.",
   "chapters": [
     {
       "id": "e1_air",
