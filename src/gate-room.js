@@ -4,7 +4,7 @@
 //   hall 14 wide × 30 long, 11 high. Gate stands at z=-11 on a raised dais.
 import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
-import { ancientMaterial, ancientFloorMaterial, runwayLights, octagonFrame, wallSlit } from './ancient.js';
+import { ancientMaterial, ancientFloorMaterial, runwayLights, wallSlit } from './ancient.js';
 
 /** Room dimensions (metres): width, length, height, gate Z offset, dais height. */
 export const ROOM = { width: 20, length: 40, height: 11, gateZ: -15, daisH: 0.18 };
@@ -13,7 +13,7 @@ export const ROOM = { width: 20, length: 40, height: 11, gateZ: -15, daisH: 0.18
  * @param {THREE.WebGLRenderer} renderer — needed for the Reflector floor material
  * @returns {{group: THREE.Group, colliders: Array<{min: THREE.Vector3, max: THREE.Vector3}>}}
  */
-export const createGateRoom = (renderer) => {
+export const createGateRoom = (_renderer) => {
 
 const box = (w, h, d, mat, x, y, z, colliders, opts = {}) => {
 	const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -27,7 +27,7 @@ const box = (w, h, d, mat, x, y, z, colliders, opts = {}) => {
 };
 
 // Canvas texture: window lattice (warm amber panes behind dark mullions)
-const latticeTexture = (cols, rows) => {
+const _latticeTexture = (cols, rows) => {
 	const c = document.createElement('canvas'); c.width = 512; c.height = 512;
 	const ctx = c.getContext('2d');
 	const grd = ctx.createRadialGradient(256, 256, 40, 256, 256, 380);
@@ -41,7 +41,7 @@ const latticeTexture = (cols, rows) => {
 };
 
 // Canvas texture: floor inlay — dark polished wood with concentric arc seams around the gate
-const floorTexture = () => {
+const _floorTexture = () => {
 	const c = document.createElement('canvas'); c.width = 1024; c.height = 2048;
 	const ctx = c.getContext('2d');
 	ctx.fillStyle = '#5a2b1c'; ctx.fillRect(0, 0, 1024, 2048);
@@ -60,7 +60,7 @@ const floorTexture = () => {
 	const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 };
 
-const wallTexture = () => {
+const _wallTexture = () => {
 	const c = document.createElement('canvas'); c.width = 256; c.height = 1024;
 	const ctx = c.getContext('2d');
 	ctx.fillStyle = '#4b5433'; ctx.fillRect(0, 0, 256, 1024);
@@ -77,10 +77,10 @@ const wallTexture = () => {
 	const { width, length, height, gateZ, daisH } = ROOM;
 	const zBack = gateZ - 5, zFront = zBack + length, zMid = (zBack + zFront) / 2;
 
-	const wallMat = ancientMaterial({ repeat: [4, 1.6], base: '#171c24', plates: 6 }); // Ancient plates (concept: materials sheet)
+	const _wallMat = ancientMaterial({ repeat: [4, 1.6], base: '#171c24', plates: 6 }); // Ancient plates (concept: materials sheet)
 	const stoneMat = ancientMaterial({ repeat: [1, 3], base: '#1f242c', plates: 3, roughness: 0.6 });
 	const darkMat = ancientMaterial({ repeat: [1, 1], base: '#0f1319', plates: 3, roughness: 0.5, metalness: 0.8 });
-	const ceilMat = ancientMaterial({ repeat: [3, 6], base: '#0c0f14', plates: 5, roughness: 0.7 });
+	const _ceilMat = ancientMaterial({ repeat: [3, 6], base: '#0c0f14', plates: 5, roughness: 0.7 });
 	const cyan = new THREE.MeshStandardMaterial({ color: 0xcfe6ff, emissive: 0xa8ccff, emissiveIntensity: 2.2 }); // cold white-blue slits
 	const amberScreen = new THREE.MeshStandardMaterial({ color: 0x9fd8ff, emissive: 0x4fa8ff, emissiveIntensity: 1.6 }); // blue console screens
 

@@ -273,7 +273,7 @@ export const COMPONENTS = {
 		build: (ctx, p, s) => {
 			// life-support wall unit: plated cabinet, a recessed bay where the lime bed sits behind a bar grille, intake louvres above,
 			// a header lamp, glyph tag, and two pipes running up into the ceiling. Bed turns from grey (spent) to white when reloaded.
-			const f = fwd(s.ry), g = new THREE.Group(); g.position.set(p.x, 0, p.z); g.rotation.y = s.ry; ctx.group.add(g);
+			const g = new THREE.Group(); g.position.set(p.x, 0, p.z); g.rotation.y = s.ry; ctx.group.add(g);
 			ctx.box(2.2, 2.4, 0.4, ctx.mats.dark, p.x, 1.3, p.z, true, s.ry);
 			for (const [w, h, x, y] of [[2.1, 0.05, 0, 2.47], [2.1, 0.05, 0, 0.13], [0.05, 2.4, -1.03, 1.3], [0.05, 2.4, 1.03, 1.3]]) { const t = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.03), ctx.mats.shell); t.position.set(x, y, 0.2); g.add(t); } // cabinet frame
 			const bay = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.3, 0.1), new THREE.MeshStandardMaterial({ color: 0x06080c, roughness: 0.9 })); bay.position.set(0, 1.05, 0.17); g.add(bay); // recessed bay
