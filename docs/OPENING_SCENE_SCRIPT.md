@@ -14,7 +14,7 @@ canonical reference material — re-map the implementation pointers before use. 
 > Icarus crew is shoved through the Stargate onto the derelict *Destiny* and Scott hands the
 > player the **Find Rush** objective. §1 is the **canonical scene** (exact dialogue, story
 > order); §3 maps it onto the shipped **verbatim ~2.5-minute cut** that
-> `scripts/gate_room.gd::_play_prologue_cinematic()` actually renders.
+> `scripts/gate_room.gd::_play_prologue_cinematic()` actually rendered.
 >
 > **Dialogue source.** Exact lines are from the *Stargate Universe* "Air, Part 1" episode
 > transcript (GateWorld, transcribed by Callie Sullivan). Action/staging is paraphrased.
@@ -205,7 +205,7 @@ Captions render as `SPEAKER — "line"`.
 > ONE character: `data/characters.json` (removed 2026-10-30, TD-109) resolved `Lt James` / `Dr James` / `TJ` / `TJ Johansen`
 > to the same portrait (`tj-johansen.png`) and short name **TJ**. Cold-open captions use **TJ**
 > (what Scott yells); her infirmary dialogue keys off `Lt James` and still renders as TJ. The
-> in-world body remains the `lt_james` build in `character_factory.gd`.
+> in-world body was the `lt_james` build in `character_factory.gd` (Godot-era, removed in re-pivot).
 
 ---
 
@@ -213,7 +213,7 @@ Captions render as `SPEAKER — "line"`.
 
 The shipped cut now plays **§1 verbatim** — every line, correct speaker, in order — over the
 ~165 s bed, with the camera **cutting to the speaker**. Playhead seconds below are approximate;
-the authoritative timings live in `scripts/gate_room.gd::_play_prologue_cinematic()`.
+the authoritative timings lived in `scripts/gate_room.gd::_play_prologue_cinematic()` (Godot-era, removed in re-pivot).
 
 Arrivals: each body flies a ballistic arc, plays a **Mixamo roll** (`dive_roll` Scott, varied for
 mil/civ, `crash` for hard hits), `get_up`, then `walk_to` a perimeter spot (`_co_arrival` /
