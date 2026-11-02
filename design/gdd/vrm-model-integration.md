@@ -283,7 +283,7 @@ Where:
 |------------|------|---------|
 | `@pixiv/three-vrm` | New npm package | VRM file parsing, spring bones, expressions, first-person |
 | Animation Pipeline | Existing | Skeleton retargeting, animation clip playback, animation graphs |
-| Player Controller (`src/game/starter-player-controller.ts`) | Existing | Visual attachment point (`object` Group), movement state for animation |
+| Player Controller (`src/player.js`) | Existing | Visual attachment point (`object` Group), movement state for animation |
 | Camera System (`design/gdd/camera-system.md`) | Existing | Camera mode (FPS/third-person) for head hiding, distance for LOD |
 | Crew Dialogue & Choice System (`design/gdd/crew-dialogue-choice.md`) | Existing | Expression triggers, viseme events during dialogue |
 | Crew AI & Schedule System | Future (VS tier) | Crew placement, visibility decisions, animation state triggers |
