@@ -267,7 +267,7 @@ quest = createQuestEngine({
 		setTimeout(() => ui.showChapter(`${ch.title} — Complete`, ch.steps.at(-1).objective + (next ? `<br><br>Next: <b>${next.title}</b> — ${next.subtitle}` : ''), next ? `Continue to ${next.title}` : 'The End (for now)', () => next && startChapter(next.id)), 1200);
 	},
 });
-await quest.load('./data/chapters.json'); if (LIVE?.chapters) quest.chapters = LIVE.chapters.chapters ?? LIVE.chapters;
+await quest.load(`${ASSETS}data/chapters.json`); if (LIVE?.chapters) quest.chapters = LIVE.chapters.chapters ?? LIVE.chapters;
 
 // ---------------------------------------------------------------- chapter start: build the chapter's planet, reset gates
 const startChapter = (id) => {
