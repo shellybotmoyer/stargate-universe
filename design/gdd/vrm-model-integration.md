@@ -85,7 +85,7 @@ even when no dialogue is playing.
 3. **Skeleton extraction**: The VRM humanoid provides a standardized bone hierarchy.
    A retargeting bridge maps VRM bone names (`hips`, `spine`, `chest`, `head`,
    `leftUpperArm`, etc.) to engine `RigDefinition` joint names. This mapping is
-   defined once in a static bone mapping table (`vrm-bone-map.ts`).
+   defined once in a static bone mapping table (`vrm-bone-map.js`).
 4. **Animation binding**: After retargeting, engine animation clips (authored in the
    animation editor) drive the VRM skeleton through the standard
    `RuntimeAnimationBundle` pipeline. Clips reference engine joint names; the
