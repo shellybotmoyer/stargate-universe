@@ -18,7 +18,7 @@ no bundler, no TypeScript at runtime.
 | Audio | `AudioLoader` → `ASSETS/sounds/…`; procedural synthesis (`toneBuffer()`) for alarms/heartbeat | TTS generation: `tools/tts-bake/` |
 | Assets | Repo-local `sounds/`, `models/` (Quaternius UAL), `data/` | `ASSETS` base path resolves CDN vs local |
 
-## 2. Module graph (23 source files on origin/main, 24 on local main, 26 on PR #197 branch, 3,445 LOC on local main)
+## 2. Module graph (23 source files on origin/main, 24 on local main, 26 on PR #197 branch, 3,447 LOC on local main)
 
 ```
 main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown systems
@@ -31,7 +31,7 @@ main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown syst
 ├── ancient.js (124) — Shared Ancient material (triplanar PBR, world-space)
 ├── player.js (145) — Quaternius UAL mannequin, locomotion blend, collision
 ├── input.js (79)   — Keyboard/mouse/gamepad input, pointer lock
-├── interact.js (32) — Proximity interactable system (register/update/prompt)
+├── interact.js (34) — Proximity interactable system (register/update/prompt)
 ├── quest.js (34)   — Declarative chapter/step engine (flag-driven advancement)
 ├── rpg.js (144)    — Level/XP, HP/O2, inventory, equipment, talents
 ├── settings.js (32) — Persistent settings (clockScale, accessibility options)
@@ -157,7 +157,7 @@ stargate-universe/
 │   ├── music-bake/     — music asset baking
 │   ├── tts-bake/       — TTS voice line generation
 │   └── edit_server.py  — Level editor backend
-├── src/                — 24 ES modules (3,445 LOC on local main)
+├── src/                — 24 ES modules (3,447 LOC on local main)
 ├── data/               — 6 JSON files (chapters, layout, items, connections, knockout lines, music moods)
 ├── sounds/             — SFX + dialog voice lines (.ogg, .wav)
 ├── models/             — Quaternius UAL mannequin + environment (.glb)
