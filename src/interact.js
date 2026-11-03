@@ -9,7 +9,9 @@ export const register = (def) => { list.push({ radius: 2.4, ...def, progress: 0 
  */
 export const unregister = (id) => { const i = list.findIndex((d) => d.id === id); if (i >= 0) list.splice(i, 1); };
 const posOf = (d) => (d.position.isObject3D ? d.position.getWorldPosition(tmp) : tmp.copy(d.position));
+/** The nearest interactable currently in range (or null). Read by the HUD to show/hide prompts. */
 export let current = null;
+/** True while the player holds the interact key on a hold-type interactable. */
 export let holding = false;
 /** Call every frame. Returns { prompt, progress } for the HUD, or null. */
 export const update = (dt, playerPos, pressed, held, worldName = null) => {
