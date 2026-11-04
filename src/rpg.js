@@ -84,12 +84,12 @@ export const addLog = (text) => { rpg.log.push(text); if (rpg.log.length > 80) r
 export const count = (id) => rpg.inventory[id] ?? 0;
 /** Add n units of an item to inventory and log the receipt. Emits change.
  * @param {string} id — item id
- * @param {number} [n=1] — quantity
+ * @param {number} [n=1] - quantity
  */
 export const addItem = (id, n = 1) => { rpg.inventory[id] = count(id) + n; addLog(`Received: ${ITEMS[id]?.name ?? id}${n > 1 ? ` ×${n}` : ''}`); emit(); };
 /** Remove n units of an item from inventory. Deletes the entry when count reaches zero. Emits change.
  * @param {string} id — item id
- * @param {number} [n=1] — quantity
+ * @param {number} [n=1] - quantity
  */
 export const removeItem = (id, n = 1) => { const c = count(id) - n; if (c <= 0) delete rpg.inventory[id]; else rpg.inventory[id] = c; emit(); };
 /** Equip an item to its slot: swaps out previous gear back to inventory, applies stat caps.

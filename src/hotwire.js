@@ -26,7 +26,7 @@ const css = `
 	#hotwire.fault .hw{animation:hwshake .4s}@keyframes hwshake{0%,100%{transform:none}25%{transform:translate(-6px,2px)}50%{transform:translate(5px,-3px)}75%{transform:translate(-3px,1px)}}
 `;
 /** Create the hotwire mini-game: memory-based jack-to-port patch panel with a void decoy.
- * @param {{sfx?: object}} [opts] — sound effects object (optional)
+ * @param {{sfx?: object}} [opts] - sound effects object (optional)
  * @returns {{el: HTMLDivElement, play: () => Promise<boolean>, isOpen: () => boolean}}
  */
 export const createHotwire = ({ sfx = {} } = {}) => {
