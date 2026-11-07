@@ -27,7 +27,7 @@ const css = `
 `;
 /** Create the hotwire mini-game: memory-based jack-to-port patch panel with a void decoy.
  * @param {{sfx?: object}} [opts] - sound effects object (optional)
- * @returns {{el: HTMLDivElement, play: () => Promise<boolean>, isOpen: () => boolean}}
+ * @returns {{el: HTMLDivElement, play: (opts?: any) => Promise<boolean>, isOpen: () => boolean, faults: number}}
  */
 export const createHotwire = ({ sfx = {} } = {}) => {
 	document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));

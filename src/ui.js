@@ -63,7 +63,7 @@ const el = (tag, attrs = {}, html = '') => { const e = document.createElement(ta
 
 /** Create the HUD and Kino Remote UI overlay: compass, health/oxygen bars, dialogue, remote tabs (nav, clocks, save/load).
  * @param {{getWorldName: () => string, onDial: (id: string) => void, onLaunchKino: () => void, canLaunchKino: () => boolean, planets: () => Array, chapterTitle: () => string, steps: () => Array, stepIndex: () => number, flags: Set, onResume: () => void}} ctx — game context hooks
- * @returns {{hud: HTMLDivElement, remote: HTMLDivElement, update: (dt: number) => void, showRemote: (tab?: string) => void, hideRemote: () => void, dialogue: (text: string, who: string) => void, dismissDialogue: () => void, toast: (msg: string) => void}}
+ * @returns {{refreshPlayer: () => void, refreshTracker: () => void, drawMinimap: (p: any, w: any) => string, setPrompt: (r: any) => void, subtitle: (who: string, text: string, opts?: any) => void, toast: (msg: string, dur?: number) => void, setClock: (text: string, cls?: string) => void, zone: (name: string) => void, showChapter: (title: string, sub: string, btn: string, cb: () => void) => void, showTitle: (cb: () => void) => void, openRemote: (tab?: string) => void, closeRemote: () => void, isRemoteOpen: () => boolean, renderRemote: () => string}}
  */
 export const createUI = (ctx) => {
 	// ctx: { getWorldName, onDial(planetId|'destiny'), onLaunchKino, canLaunchKino, planets(), chapterTitle(), steps(), stepIndex(), flags, onResume }

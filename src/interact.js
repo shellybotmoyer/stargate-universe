@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 const list = [];
 const tmp = new THREE.Vector3();
-/** @param {{id:string, position:THREE.Vector3|THREE.Object3D, radius?:number, prompt:()=>string|null, action:()=>void, hold?:()=>number}} def */
+/** @param {{id:string, position:THREE.Vector3|THREE.Object3D, radius?:number, prompt:()=>string|null, action:()=>void, hold?:()=>number, world?:any}} def */
 export const register = (def) => { list.push({ radius: 2.4, ...def, progress: 0 }); return def; };
 /** Remove an interactable from the proximity list by id.
  * @param {string} id — the id passed to register()
