@@ -10,7 +10,7 @@ import { ancientMaterial, ancientFloorMaterial, runwayLights, wallSlit } from '.
 export const ROOM = { width: 20, length: 40, height: 11, gateZ: -15, daisH: 0.18 };
 
 /** Build the gate room scene: floor, walls, gate ring, ramps, stairs, and collision boxes.
- * @param {THREE.WebGLRenderer} renderer — needed for the Reflector floor material
+ * @param {THREE.WebGLRenderer} _renderer — needed for the Reflector floor material
  * @returns {{group: THREE.Group, colliders: Array<{min: THREE.Vector3, max: THREE.Vector3}>}}
  */
 export const createGateRoom = (_renderer) => {
