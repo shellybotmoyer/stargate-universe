@@ -18,7 +18,7 @@ no bundler, no TypeScript at runtime.
 | Audio | `AudioLoader` → `ASSETS/sounds/…`; procedural synthesis (`toneBuffer()`) for alarms/heartbeat | TTS generation: `tools/tts-bake/` |
 | Assets | Repo-local `sounds/`, `models/` (Quaternius UAL), `data/` | `ASSETS` base path resolves CDN vs local |
 
-## 2. Module graph (23 source files on origin/main, 24 on local main, 26 on PR #197 branch, 3,447 LOC on local main)
+## 2. Module graph (23 source files on origin/main, 24 on local main, 26 on PR #197 branch, 3,461 LOC on local main)
 
 ```
 main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown systems
@@ -28,7 +28,7 @@ main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown syst
 ├── destination.js (130) — Procedural planet generation from chapter planet defs (inline biome data)
 ├── ship.js (310)   — Deck layout from data/ship_layout.json, room geometry, lighting, grow beds
 ├── components.js (390) — Procedural Ancient-tech prop meshes (beds, lockers, crates, scrubbers, tanks)
-├── ancient.js (124) — Shared Ancient material (triplanar PBR, world-space)
+├── ancient.js (129) — Shared Ancient material (triplanar PBR, world-space)
 ├── player.js (145) — Quaternius UAL mannequin, locomotion blend, collision
 ├── input.js (79)   — Keyboard/mouse/gamepad input, pointer lock
 ├── interact.js (34) — Proximity interactable system (register/update/prompt)
@@ -41,7 +41,7 @@ main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown syst
 ├── hotwire.js (69) — Hotwire mini-game (panel repair)
 ├── flow.js (69)    — Flow-balance mini-game (coupled-valve life support puzzle)
 ├── music.js (42)   — Music layer loading + mood-driven transitions
-├── autoplay.js (160) — Automated smoke-test walker (keyboard simulation, reload mode)
+├── autoplay.js (169) — Automated smoke-test walker (keyboard simulation, reload mode)
 ├── leveledit.js (205) — Level editor (crate style/loot, schematic deck parameter)
 ├── recorder.js (39) — Frame capture / replay
 └── assets.js (4)   — ASSETS base path constant (CDN vs local)
