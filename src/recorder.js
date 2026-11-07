@@ -3,13 +3,14 @@
 // frame while recording, so the video is smooth even when the window is occluded or the machine is slow.
 /** Create a gameplay recorder that streams JPEG frames to the dev server for ffmpeg encoding.
  * @param {HTMLCanvasElement} glCanvas — the WebGL game canvas to capture
- * @param {HTMLElement} hud — the HUD overlay element to composite
+ * @param {() => object} hud — callback returning HUD state ({chapter, label, zone, level, hp, o2, xp, carry, prompt?, subtitle?, overlay?})
  * @param {{fps?: number, base?: string, quality?: number}} opts — frame rate (default 30), server endpoint base (default '/rec'), JPEG quality (default 0.86)
- * @returns {{start: () => void, stop: () => void, frame: (dt: number) => void}}
+ * @returns {{start: (n?: string) => Promise<string>, stop: () => Promise<string>, tick: () => Promise<void>, isActive: () => boolean, fps: number}}
  */
 export const createRecorder = (glCanvas, hud, { fps = 30, base = '/rec', quality = 0.86 } = {}) => {
 	const c = document.createElement('canvas'); const ctx = c.getContext('2d');
-	let active = false, frames = 0, name = '', chain = Promise.resolve();
+	let active = false, frames = 0, name = '';
+	let chain = /** @type {Promise<unknown>} */ (Promise.resolve());
 	const fit = () => { const k = Math.min(1, 1024 / glCanvas.width), w = Math.round(glCanvas.width * k) & ~1, h = Math.round(glCanvas.height * k) & ~1; if (c.width !== w || c.height !== h) { c.width = w; c.height = h; } }; // even dims for yuv420p
 	const box = (x, y, w, h) => { ctx.fillStyle = 'rgba(8,8,12,0.72)'; ctx.fillRect(x, y, w, h); ctx.strokeStyle = 'rgba(212,168,82,0.8)'; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h); };
 	const text = (s, x, y, size = 22, color = '#f5ebcc', weight = '') => { ctx.font = `${weight} ${size}px -apple-system, system-ui, sans-serif`; ctx.fillStyle = '#000'; ctx.fillText(s, x + 2, y + 2); ctx.fillStyle = color; ctx.fillText(s, x, y); };
