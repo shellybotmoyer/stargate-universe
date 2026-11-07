@@ -2,13 +2,14 @@
 // the door graph (ship.route). Steps are handled by id from data/chapters.json, so a new chapter that reuses the step
 // vocabulary (talk_*, ftl_drop, scout_kino, gear_up, travel, mine, dial_home, give_brody, repair_*) runs without changes.
 // Usage: ?autoplay then window.__auto.run() (all chapters) or window.__auto.runChapter(). Progress in window.__auto.status/log.
-let simNow = () => performance.now(), waitFrame = (fn) => setTimeout(() => fn() || waitFrame(fn), 12); // rebound by createAutoplay to the game's simulated clock + per-frame hook
+/** @type {() => number} */ let simNow = () => performance.now();
+/** @type {(fn: () => boolean) => any} */ let waitFrame = (fn) => setTimeout(() => fn() || waitFrame(fn), 12); // rebound by createAutoplay to the game's simulated clock + per-frame hook
 const sleep = (ms) => new Promise((r) => { const t0 = simNow(); waitFrame(() => simNow() - t0 >= ms && (r(), true)); }); // measured in simulated ms, checked every frame
 const press = (code) => { window.dispatchEvent(new KeyboardEvent('keydown', { code })); window.dispatchEvent(new KeyboardEvent('keyup', { code })); };
 
 /** Create the autoplay demo driver: plays through chapters hands-free using the real input path.
- * @param {{simTime: () => number, waitFrame: (fn: () => boolean) => void}} d — game clock hooks (simTime in seconds, waitFrame for per-frame callbacks)
- * @returns {{run: () => Promise<void>, runChapter: (id: string) => Promise<void>, status: object, log: string[]}}
+ * @param {{simTime: () => number, waitFrame: (fn: () => boolean) => void, player: any, destiny: any, quest: any, input: any, cam: any, travel: any, hotwire: any, ui: any, kino: any, world: any, planet: any, rpg: any, flow: any}} d — game state + clock hooks (simTime in seconds, waitFrame for per-frame callbacks)
+ * @returns {{run?: (opts?: any) => Promise<void>, runChapter?: () => Promise<any>, status: string, log: any[], running: boolean, abort: boolean, report: any[]}}
  */
 export const createAutoplay = (d) => {
 	simNow = () => d.simTime() * 1000; waitFrame = d.waitFrame;
@@ -17,7 +18,11 @@ export const createAutoplay = (d) => {
 	const pos = () => d.player.root.position;
 	const ship = () => d.destiny.ship, A = () => d.destiny.anchors, step = () => d.quest.step(), stepId = () => step()?.id;
 	const gz = () => d.destiny.gate.position.z;
-	/** Walk toward (x,z) via the real key path; camera yaw steers so W moves toward the target. Runs on long legs. */
+	/** Walk toward (x,z) via the real key path; camera yaw steers so W moves toward the target. Runs on long legs.
+	 * @param {number} x
+	 * @param {number} z
+	 * @param {{run?: boolean, tol?: number, timeout?: number}} [opts]
+	 */
 	const walkTo = async (x, z, { run, tol = 0.7, timeout } = {}) => {
 		const dist0 = Math.hypot(x - pos().x, z - pos().z); run ??= dist0 > 10; timeout ??= (dist0 / (run ? 8 : 3.5)) * 1000 + 6000;
 		const t0 = simNow(); d.input.keys.add('KeyW'); if (run) d.input.keys.add('ShiftLeft');
@@ -35,7 +40,11 @@ export const createAutoplay = (d) => {
 		}
 		for (const k of ['KeyW', 'ShiftLeft', 'KeyA', 'KeyD', 'KeyS']) d.input.keys.delete(k); await sleep(200);
 	};
-	/** Route through doors to a room, then to an anchor (or the room centre). */
+	/** Route through doors to a room, then to an anchor (or the room centre).
+	 * @param {string} room
+	 * @param {string} [anchor]
+	 * @param {{run?: boolean, tol?: number, timeout?: number}} [opts]
+	 */
 	const goTo = async (room, anchor = 'RoomCenter', opts = {}) => {
 		const from = ship().roomAt(pos()); const path = from && from !== room ? ship().route(from, room) : [];
 		if (path === null) { say(`no route ${from} → ${room}`); return false; }
@@ -45,7 +54,7 @@ export const createAutoplay = (d) => {
 			if (door.elevator) { const a = A()[`${cur}:Elevator`] ?? ship().center(cur); await walkTo(a.x, a.z, { tol: 0.5, run: false }); facePropAt(cur, 'Elevator'); await interact(600); await waitFor(() => ship().roomAt(pos()) === next, 6000); await sleep(1200); cur = next; continue; }
 			const p = door.g.position, cc = ship().center(cur);
 			const n = door.axis === 'x' ? Math.sign(cc.x - p.x) : Math.sign(cc.z - p.z);
-			const before = door.axis === 'x' ? [p.x + n * 1.4, p.z] : [p.x, p.z + n * 1.4], after = door.axis === 'x' ? [p.x - n * 1.4, p.z] : [p.x, p.z - n * 1.4];
+			/** @type {[number, number]} */ const before = door.axis === 'x' ? [p.x + n * 1.4, p.z] : [p.x, p.z + n * 1.4], /** @type {[number, number]} */ after = door.axis === 'x' ? [p.x - n * 1.4, p.z] : [p.x, p.z - n * 1.4];
 			await walkTo(...before, { tol: 0.5 }); await sleep(450); await walkTo(...after, { tol: 0.5, run: false }); cur = next;
 		}
 		const t = A()[`${room}:${anchor}`] ?? ship().center(room); await walkTo(t.x, t.z, opts); return true;
@@ -60,7 +69,7 @@ export const createAutoplay = (d) => {
 
 	// ---- one handler per step vocabulary; each returns when it has done its part (the quest engine advances the step)
 	const H = {
-		arrive: async () => { document.querySelector('#chapter button')?.click(); await waitFor(() => !d.travel(), 8000); await sleep(800); },
+		arrive: async () => { (/** @type {HTMLElement} */ (document.querySelector('#chapter button')))?.click(); await waitFor(() => !d.travel(), 8000); await sleep(800); },
 		inspect_relay: async (s) => { await goTo(s.target.room, s.target.anchor); facePropAt(s.target.room, s.target.anchor); await interact(); },
 		find: async (s) => { // search the target room's salvage crates until the step's flag flips
 			await goTo(s.target.room, s.target.anchor); const want = () => d.quest.has(s.complete_when);
@@ -71,7 +80,7 @@ export const createAutoplay = (d) => {
 			await goTo(s.target.room, s.target.anchor); facePropAt(s.target.room, s.target.anchor); await interact(2000); // seat the fuse(s)
 			await interact(600); if (!(await waitFor(() => d.hotwire.isOpen(), 3000))) return;
 			await sleep(900); // patch each jack to the port carrying its label (the ports are still lit for a human at this point)
-			for (const j of document.querySelectorAll('#hotwire .jack')) { j.click(); await sleep(350); document.querySelector(`#hotwire .port[data-label="${j.dataset.label}"]`)?.click(); await sleep(450); }
+			for (const j of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#hotwire .jack'))) { j.click(); await sleep(350); (/** @type {HTMLElement} */ (document.querySelector(`#hotwire .port[data-label="${j.dataset.label}"]`)))?.click(); await sleep(450); }
 			await waitFor(() => !d.hotwire.isOpen(), 4000); await sleep(1800);
 		},
 		reach_control: async (s) => { await goTo(s.target.room, 'RoomCenter'); },
@@ -102,8 +111,8 @@ export const createAutoplay = (d) => {
 			await walkTo(0, 6, { run: true, tol: 1.2, timeout: 30000 }); face(0, 0);
 			if (!d.planet.gate.userData.active) { // dial Destiny from the Remote's Gate tab (skip if a retry finds the gate already open)
 				if (d.ui.isRemoteOpen()) { press('Tab'); await sleep(400); }
-				press('Tab'); await waitFor(() => d.ui.isRemoteOpen(), 3000); document.querySelector('#remote [data-tab="gate"]')?.click();
-				await waitFor(() => document.querySelector('#remote [data-dial="destiny"]:not([disabled])'), 4000); document.querySelector('#remote [data-dial="destiny"]')?.click();
+				press('Tab'); await waitFor(() => d.ui.isRemoteOpen(), 3000); (/** @type {HTMLElement} */ (document.querySelector('#remote [data-tab="gate"]')))?.click();
+				await waitFor(() => document.querySelector('#remote [data-dial="destiny"]:not([disabled])'), 4000); (/** @type {HTMLElement} */ (document.querySelector('#remote [data-dial="destiny"]')))?.click();
 				await sleep(400); if (d.ui.isRemoteOpen()) d.ui.closeRemote();
 				await waitFor(() => d.planet.gate.userData.active, 16000);
 			}
@@ -140,7 +149,7 @@ export const createAutoplay = (d) => {
 		try {
 			for (let i = 0; i < 8 && !auto.abort; i++) {
 				const r = await auto.runChapter(); auto.report.push(r); if (!r.ok) break;
-				await sleep(2500); const before = d.quest.chapter.id; document.querySelector('#chapter button')?.click(); await sleep(1500);
+				await sleep(2500); const before = d.quest.chapter.id; (/** @type {HTMLElement} */ (document.querySelector('#chapter button')))?.click(); await sleep(1500);
 				if (d.quest.chapter.id === before) { say('no next chapter'); break; }
 				if (reload) { await sleep(1500); sessionStorage.setItem(RESUME_KEY, JSON.stringify({ report: auto.report })); say(`reloading before ${d.quest.chapter.id}`); location.reload(); return; }
 				press('Tab'); await sleep(600); const remote = d.ui.isRemoteOpen(); if (remote) press('Tab'); auto.report.at(-1).remoteAfterHandoff = remote; await sleep(600);
@@ -151,7 +160,7 @@ export const createAutoplay = (d) => {
 	// resume a reload-mode run: press Continue on the title, then carry on with the saved report
 	const resume = sessionStorage.getItem(RESUME_KEY);
 	if (resume) (async () => {
-		const btn = await (async () => { for (let i = 0; i < 80; i++) { const b = document.querySelector('[data-action="continue"]'); if (b) return b; await new Promise((r) => setTimeout(r, 250)); } return null; })();
+		const btn = await (async () => { for (let i = 0; i < 80; i++) { const b = /** @type {HTMLElement} */ (document.querySelector('[data-action="continue"]')); if (b) return b; await new Promise((r) => setTimeout(r, 250)); } return null; })();
 		if (!btn) { say('resume: no Continue button'); sessionStorage.removeItem(RESUME_KEY); return; }
 		btn.click(); await new Promise((r) => setTimeout(r, 2500)); say(`resumed at ${d.quest.chapter?.id} › ${stepId()}`);
 		auto.resumed = (auto.resumed ?? 0) + 1; auto.run({ reload: true, report: JSON.parse(resume).report ?? [] });
