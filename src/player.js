@@ -37,7 +37,7 @@ export const loadPlayer = async ({ tint = 0x9d978d } = {}) => {
 	model.scale.setScalar(PLAYER.height / 1.83); // UAL mannequin is 1.83 m
 	const body = new THREE.MeshStandardMaterial({ color: tint, roughness: 0.5, metalness: 0.2 });
 	const joints = new THREE.MeshStandardMaterial({ color: new THREE.Color(tint).multiplyScalar(0.55), roughness: 0.6, metalness: 0.3 });
-	model.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; o.frustumCulled = false; o.material = o.material.name === 'M_Joints' ? joints : body; } });
+	model.traverse((o) => { const m = /** @type {THREE.Mesh} */ (o); if (m.isMesh) { m.castShadow = true; m.receiveShadow = false; m.frustumCulled = false; m.material = (/** @type {THREE.Material} */ (m.material)).name === 'M_Joints' ? joints : body; } });
 	root.add(model);
 
 	const clips = new Map();
@@ -45,6 +45,7 @@ export const loadPlayer = async ({ tint = 0x9d978d } = {}) => {
 		const c = a.clone(); c.tracks = c.tracks.filter((t) => !t.name.startsWith('root.position') && !t.name.startsWith('Armature.')); clips.set(c.name, c);
 	}
 	const mixer = new THREE.AnimationMixer(model);
+	/** @param {string} key @param {THREE.AnimationActionLoopStyles} [loop=THREE.LoopRepeat] */
 	const act = (key, loop = THREE.LoopRepeat) => { const name = CLIPS[key] ?? key; const c = clips.get(name); if (!c) throw new Error(`missing clip ${name}`); const a = mixer.clipAction(c); a.setLoop(loop, loop === THREE.LoopOnce ? 1 : Infinity); a.clampWhenFinished = loop === THREE.LoopOnce; return a; };
 	const loco = Object.fromEntries(['idle', 'fidget', 'walk', 'carry', 'run', 'sprint', 'air'].map((k) => [k, act(CLIPS[k])]));
 	for (const a of Object.values(loco)) { a.play(); a.setEffectiveWeight(0); }
@@ -78,7 +79,7 @@ export const loadPlayer = async ({ tint = 0x9d978d } = {}) => {
 	state.bone = (n) => model.getObjectByName(n);
 	state.attach = (obj, boneName) => { const b = state.bone(boneName); if (b) b.add(obj); return b; };
 
-	const skinned = []; model.traverse((o) => { if (o.isSkinnedMesh) skinned.push(o); });
+	const skinned = []; model.traverse((o) => { const m = /** @type {THREE.SkinnedMesh} */ (o); if (m.isSkinnedMesh) skinned.push(m); });
 	state.setFade = (f) => { for (const m of [body, joints]) { m.transparent = f > 0; m.opacity = 1 - f; m.depthWrite = f <= 0; } };
 	state.samplePoint = (out) => { const mesh = skinned[Math.floor(Math.random() * skinned.length)]; const i = Math.floor(Math.random() * mesh.geometry.attributes.position.count); return mesh.getVertexPosition(i, out).applyMatrix4(mesh.matrixWorld); };
 
