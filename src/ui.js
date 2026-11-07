@@ -62,8 +62,8 @@ const css = `
 const el = (tag, attrs = {}, html = '') => { const e = document.createElement(tag); Object.assign(e, attrs); e.innerHTML = html; return e; };
 
 /** Create the HUD and Kino Remote UI overlay: compass, health/oxygen bars, dialogue, remote tabs (nav, clocks, save/load).
- * @param {{getWorldName: () => string, onDial: (id: string) => void, onLaunchKino: () => void, canLaunchKino: () => boolean, planets: () => Array, chapterTitle: () => string, steps: () => Array, stepIndex: () => number, flags: Set, onResume: () => void}} ctx — game context hooks
- * @returns {{refreshPlayer: () => void, refreshTracker: () => void, drawMinimap: (p: any, w: any) => string, setPrompt: (r: any) => void, subtitle: (who: string, text: string, opts?: any) => void, toast: (msg: string, dur?: number) => void, setClock: (text: string, cls?: string) => void, zone: (name: string) => void, showChapter: (title: string, sub: string, btn: string, cb: () => void) => void, showTitle: (cb: () => void) => void, openRemote: (tab?: string) => void, closeRemote: () => void, isRemoteOpen: () => boolean, renderRemote: () => string}}
+ * @param {{getWorldName: () => string, onDial: (id: string) => void, onLaunchKino: () => void, canLaunchKino: () => boolean, planets: () => Array, chapterTitle: () => string, steps: () => Array, stepIndex: () => number, flags: Set, onResume: () => void, deckMap: () => {deck?: number, rooms?: Array, nodes?: Array, player?: {x: number, z: number}, current?: any, discovered?: any, yaw?: number, waypoint?: {x: number, z: number}, gate?: {x: number, z: number}}, shipStatus: () => Array<[string, string, boolean]>, clocks?: () => Array, lastScan?: () => ?{name: string, atmosphere: Object}, onOpen?: () => void}} ctx — game context hooks
+ * @returns {{refreshPlayer: () => void, refreshTracker: () => void, drawMinimap: (map: { rooms: any, nodes: any, player: {x: number, z: number}, yaw: number, waypoint: any, gate: any }) => void, setPrompt: (r: any) => void, subtitle: (who: string, text: string, opts?: any) => void, toast: (msg: string, dur?: number) => void, setClock: (text: string, cls?: string) => void, zone: (name: string) => void, showChapter: (title: string, sub: string, btn: string, cb: () => void) => void, showTitle: (opts: { hasSave: boolean, onNew: () => void, onContinue: () => void, chapters?: Array, onChapter: (id: string) => void }) => void, openRemote: (tab?: string) => void, closeRemote: () => void, isRemoteOpen: () => boolean, renderRemote: () => void}}
  */
 export const createUI = (ctx) => {
 	// ctx: { getWorldName, onDial(planetId|'destiny'), onLaunchKino, canLaunchKino, planets(), chapterTitle(), steps(), stepIndex(), flags, onResume }
@@ -152,7 +152,8 @@ export const createUI = (ctx) => {
 	};
 
 	// ---- Kino Remote (full mode, pauses the game)
-	/** Blueprint deck plan (SVG): discovered rooms lit, current room highlighted, player + objective markers. */
+	/** Blueprint deck plan (SVG): discovered rooms lit, current room highlighted, player + objective markers.
+	 * @param {any} map */
 	const deckMap = ({ rooms, player, current, discovered, waypoint }) => {
 		const x0 = Math.min(...rooms.map((r) => r.x0)) - 2, x1 = Math.max(...rooms.map((r) => r.x1)) + 2, z0 = Math.min(...rooms.map((r) => r.z0)) - 2, z1 = Math.max(...rooms.map((r) => r.z1)) + 2;
 		// plan view: ship's long axis left→right with the gate end on the left (map x = -world z), port/starboard = world x
