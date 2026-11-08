@@ -52,8 +52,8 @@ const buildDestiny = async () => {
 	const gz = ROOM.gateZ;
 	for (const sx of [-1, 1]) colliders.push(new THREE.Box3(new THREE.Vector3(sx * 2.9 - 0.7, 0, gz - 0.4), new THREE.Vector3(sx * 2.9 + 0.7, 8, gz + 0.4)));
 	const baseColliders = colliders.length, baseOccludable = [];
-	room.traverse((o) => { if (o.isMesh && o !== room.userData.reflector && o.geometry.type !== 'PlaneGeometry') baseOccludable.push(o); });
-	gate.traverse((o) => { if (o.isMesh && o.name !== 'eventHorizon') baseOccludable.push(o); });
+	room.traverse((o) => { const m = /** @type {THREE.Mesh} */ (o); if (m.isMesh && m !== room.userData.reflector && m.geometry.type !== 'PlaneGeometry') baseOccludable.push(m); });
+	gate.traverse((o) => { const m = /** @type {THREE.Mesh} */ (o); if (m.isMesh && m.name !== 'eventHorizon') baseOccludable.push(m); });
 	const ship = createShip(scene, colliders, { layout, connections, gateZ: gz });
 	return {
 		name: 'destiny', scene, room, ship, colliders, gate, occludable: [...ship.occludable, ...baseOccludable], rooms: ship.rooms, anchors: ship.anchors, data: { layout, connections }, baseColliders, baseOccludable,
@@ -116,7 +116,7 @@ music.load(); // streams in the background; silent until the first mood is set a
 let sfxLevel = 1;
 onSettings((s) => { listener.setMasterVolume(s.master); music.setLevel(s.music); sfxLevel = s.sfx; input.sensitivity = s.sensitivity; input.invertY = s.invertY; if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); } });
 const noiseBuffer = (len = 2, smooth = 0.985, gain = 6) => { const ctx = listener.context, n = ctx.sampleRate * len, buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0); let l = 0; for (let i = 0; i < n; i++) { l = l * smooth + (Math.random() * 2 - 1) * (1 - smooth); d[i] = l * gain; } return buf; };
-const makeNoise = (freq, type = 'lowpass') => { const a = new THREE.Audio(listener); a.setBuffer(noiseBuffer()); a.setLoop(true); a.setVolume(0); const f = listener.context.createBiquadFilter(); f.type = type; f.frequency.value = freq; a.setFilter(f); return a; };
+const makeNoise = (freq, type = 'lowpass') => { const a = new THREE.Audio(listener); a.setBuffer(noiseBuffer()); a.setLoop(true); a.setVolume(0); const f = listener.context.createBiquadFilter(); f.type = /** @type {BiquadFilterType} */ (type); f.frequency.value = freq; a.setFilter(f); return a; };
 const sfxRumble = makeNoise(140), sfxWhoosh = makeNoise(900, 'bandpass');
 const shutdownBuffer = () => {
 	const ctx = listener.context, sr = ctx.sampleRate, dur = 1.5, len = Math.floor(sr * dur), buf = ctx.createBuffer(1, len, sr), out = buf.getChannelData(0); let ph = 0, lp = 0;
@@ -163,7 +163,7 @@ await loadItems();
 let lastScan = null;
 let quest = null;
 const ui = createUI({
-	flags: { has: (f) => quest?.flags.has(f) ?? false },
+	flags: { has: (f) => /** @type {boolean} */ (quest?.flags.has(f) ?? false) },
 	chapterTitle: () => quest?.chapter?.title ?? '', steps: () => quest?.chapter?.steps ?? [], stepIndex: () => quest?.stepIndex ?? 0,
 	deckMap: () => ({ deck: destiny.deck, rooms: destiny.rooms.filter((r) => r.floor === destiny.deck), player: player.root.position, current: currentRoom, discovered: [...discovered], waypoint: world === destiny ? waypointPos() : null }),
 	clocks: () => { // Kino Remote CLOCKS tab: [label, value, fraction, colour]
@@ -232,7 +232,7 @@ const stopCountdown = () => { countdown = null; ui.setClock(''); };
 const tickCountdown = (dt) => {
 	if (!countdown) return;
 	if (!knockedOut) countdown.t = Math.max(0, countdown.t - dt); // the clock keeps drawing through a blackout, it just does not run
-	for (const [at, who, line] of [[120, 'Rush', 'Two minutes, Eli. I would very much like to be wrong about the shields.'], [30, 'Scott', 'Thirty seconds! Wherever you are, get it done!']]) if (countdown.t <= at && !countdown.warned.has(at)) { countdown.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
+	for (const [at, who, line] of /** @type {[number, string, string][]} */ ([[120, 'Rush', 'Two minutes, Eli. I would very much like to be wrong about the shields.'], [30, 'Scott', 'Thirty seconds! Wherever you are, get it done!']])) if (countdown.t <= at && !countdown.warned.has(at)) { countdown.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
 	ui.setClock(`${countdown.label}  ${mmss(countdown.t)}`, countdown.t <= 60 ? 'urgent' : '');
 	if (countdown.t > 0 && countdown.t <= 60 && !knockedOut) urgentAlarm(dt);
 	if (countdown.t === 0) { const c = countdown; knockOut(c.cause); c.t = c.total; c.warned.clear(); shake = 1.2; }
@@ -240,7 +240,7 @@ const tickCountdown = (dt) => {
 const tickFtl = (dt) => {
 	if (ftl.window > 0) {
 		ftl.window = Math.max(0, ftl.window - dt);
-		for (const [at, who, line] of [[120, 'Rush', 'Two minutes on the FTL clock, Eli. The ship does not wait for you.'], [30, 'Scott', 'Thirty seconds! Whatever you are doing, stop and run.']]) if (ftl.window <= at && !ftl.warned.has(at)) { ftl.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
+		for (const [at, who, line] of /** @type {[number, string, string][]} */ ([[120, 'Rush', 'Two minutes on the FTL clock, Eli. The ship does not wait for you.'], [30, 'Scott', 'Thirty seconds! Whatever you are doing, stop and run.']])) if (ftl.window <= at && !ftl.warned.has(at)) { ftl.warned.add(at); oneShot(buffers.radio, 0.6); ui.subtitle(who, line, { radio: true }); if (at === 30) alertUntil = performance.now() + 30000; }
 		if (ftl.window === 0) ftlJump();
 		if (!countdown) ui.setClock(`FTL JUMP  ${mmss(ftl.window)}`, ftl.window <= 60 ? 'urgent' : '');
 		if (!countdown && ftl.window > 0 && ftl.window <= 60) urgentAlarm(dt);
@@ -422,8 +422,8 @@ const updateOcclusion = () => {
 	const target = player.root.position.clone().add(new THREE.Vector3(0, 1.2, 0));
 	const dir = target.clone().sub(camera.position); const dist = dir.length(); dir.normalize();
 	raycaster.set(camera.position, dir); raycaster.far = dist - 0.3;
-	const hits = new Set(raycaster.intersectObjects(world.occludable, false).map((h) => h.object));
-	for (const mesh of hits) { if (faded.has(mesh)) continue; faded.set(mesh, mesh.material); const mat = mesh.material.clone(); mat.transparent = true; mat.opacity = 0.1; mat.depthWrite = false; mesh.material = mat; }
+	const hits = new Set(raycaster.intersectObjects(world.occludable, false).map((h) => /** @type {THREE.Mesh} */ (h.object)));
+	for (const mesh of hits) { if (faded.has(mesh)) continue; faded.set(mesh, mesh.material); const mat = /** @type {THREE.Material} */ (mesh.material).clone(); mat.transparent = true; mat.opacity = 0.1; mat.depthWrite = false; mesh.material = mat; }
 	for (const [mesh, orig] of faded) if (!hits.has(mesh)) { mesh.material.dispose(); mesh.material = orig; faded.delete(mesh); }
 };
 
@@ -577,7 +577,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) liste
 const newGame = () => { listener.context.resume(); destiny.scene.add(beacon); localStorage.removeItem(SAVE_KEY); localStorage.removeItem('sgu.rpg'); ui.showChapter(quest.chapter.title, quest.chapter.subtitle, 'Begin', () => { gameStarted = true; arriveAt(destiny); }); };
 /** Start at any chapter with the state earlier episodes would have left behind (cumulative stages, in chapter order). */
 const PREREQ_STAGES = {
-	e2_water: () => { const S = destiny.ship; S.setPower(true); S.installFuse(); S.takeKino(); S.repairScrubber(); S.sealBreach?.(); for (const f of ['relay_inspected', 'has_small_fuse', 'fuse_installed', 'power_restored', 'control_room_visited', 'life_support_diagnosed', 'any_breach_sealed', 'eli_quarters_visited', 'kino_acquired', 'locker_opened', 'scrubber_diagnosed', 'geared_up', 'scrubber_repaired']) quest.flags.add(f); for (const [id, n] of [['kino_orb', 1], ['kino_remote', 1], ['shovel', 1], ['field_backpack', 1], ['tac_vest', 1], ['rations', 2]]) if (count(id) < n) addItem(id, n - count(id)); equip('shovel'); equip('field_backpack'); equip('tac_vest'); },
+	e2_water: () => { const S = destiny.ship; S.setPower(true); S.installFuse(); S.takeKino(); S.repairScrubber(); S.sealBreach?.(); for (const f of ['relay_inspected', 'has_small_fuse', 'fuse_installed', 'power_restored', 'control_room_visited', 'life_support_diagnosed', 'any_breach_sealed', 'eli_quarters_visited', 'kino_acquired', 'locker_opened', 'scrubber_diagnosed', 'geared_up', 'scrubber_repaired']) quest.flags.add(f);		for (const [id, n] of /** @type {[string, number][]} */ ([['kino_orb', 1], ['kino_remote', 1], ['shovel', 1], ['field_backpack', 1], ['tac_vest', 1], ['rations', 2]])) if (count(id) < n) addItem(id, n - count(id)); equip('shovel'); equip('field_backpack'); equip('tac_vest'); },
 	e3_darkness: () => {},
 	e4_parts: () => { const S = destiny.ship; S.seatElevatorFuses(); S.setElevatorPower(true); S.setGrowLights(true); for (const f of ['has_bus_fuses', 'has_large_fuse', 'elevator_fuses_seated', 'elevator_powered', 'upper_deck_reached', 'hydroponics_visited', 'grow_lights_restored']) quest.flags.add(f); },
 	e5_light: () => { const S = destiny.ship; S.installConduit(); S.setQuartersPower(true); for (const f of ['conduit_seated', 'quarters_powered', 'quarters_visited']) quest.flags.add(f); },
@@ -605,7 +605,7 @@ if (location.search.includes('record')) {
 // ---------------------------------------------------------------- dev console (`) + in-game level editor
 const edit = createLevelEditor({
 	renderer, camera, destiny, input, envTex, rebuildShip, chapters: () => quest.chapters,
-	onEnter: () => { document.querySelector('.hud').hidden = true; player.root.visible = false; beacon.visible = false; ui.closeRemote(); input.lockEnabled = false; if (document.pointerLockElement) document.exitPointerLock(); camera.removeFromParent(); destiny.scene.add(camera); },
+	onEnter: () => { (/** @type {HTMLElement} */ (document.querySelector('.hud'))).hidden = true; player.root.visible = false; beacon.visible = false; ui.closeRemote(); input.lockEnabled = false; if (document.pointerLockElement) document.exitPointerLock(); camera.removeFromParent(); destiny.scene.add(camera); },
 	onExit: () => { location.href = `${location.pathname}?layout=live`; }, // play the edited map
 });
 const devcon = createConsole({
@@ -615,7 +615,7 @@ const devcon = createConsole({
 	power: (v = 'on') => { destiny.ship.setPower(v !== 'off'); return `power ${v}`; },
 	tp: (x, z, deck) => { if (deck != null && world === destiny) destiny.deck = +deck; player.root.position.set(+x, world.floorAt(+x, +z), +z); return `teleported to ${x}, ${z} (deck ${destiny.deck})`; },
 	flag: (f) => { quest.setFlag(f); return `flag ${f} set → step ${quest.step()?.id}`; },
-	give: (id, n = 1) => { for (let i = 0; i < +n; i++) addItem(id); return `gave ${n}× ${id}`; },
+	give: (id, n = '1') => { for (let i = 0; i < +n; i++) addItem(id); return `gave ${n}× ${id}`; },
 	chapter: (id) => { startChapter(id); return `chapter ${id}`; },
 });
 window.__dbg.edit = edit; window.__dbg.console = devcon; window.__dbg.renderer = renderer; window.__dbg.hotwire = hotwire; window.__dbg.flow = flow; window.__dbg.ftl = ftl; window.__dbg.knockOut = knockOut; window.__dbg.countdown = () => countdown;
@@ -662,7 +662,7 @@ const frame = (dtIn) => {
 			const airless = world === planet && planet?.def?.atmosphere?.breathable === false && !kino.active; // no suits: the lungs are the clock
 			rpg.o2 = airless ? Math.max(4, o2 - dt * 0.55) : dying ? Math.max(38, o2 - dt * 0.09) : Math.min(100, o2 + dt * 3);
 			if (airless && rpg.o2 <= 4 && !knockedOut) { rpg.hp = Math.max(0, rpg.hp - dt * 6); ui.refreshPlayer(); if (rpg.hp <= 0) knockOut('asphyxiation'); }
-			if (airless) { for (const [lvl, who, line] of [[50, 'Rush', 'Half your air, Eli. Whatever you have, it is enough — start back.'], [20, 'Eli', 'Can\'t... breathe. Gate. Now.']]) if (o2 > lvl && rpg.o2 <= lvl) ui.subtitle(who, line); }
+			if (airless) { for (const [lvl, who, line] of /** @type {[number, string, string][]} */ ([[50, 'Rush', 'Half your air, Eli. Whatever you have, it is enough — start back.'], [20, 'Eli', 'Can\'t... breathe. Gate. Now.']])) if (o2 > lvl && rpg.o2 <= lvl) ui.subtitle(who, line); }
 			if (Math.round(o2) !== Math.round(rpg.o2)) ui.refreshPlayer();
 		}
 		if (gameStarted) { tickFtl(dt); tickCountdown(dt); }
