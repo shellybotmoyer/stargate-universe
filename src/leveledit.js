@@ -31,7 +31,7 @@ const PANEL = `
 	</div>`;
 
 /**
- * @param ctx { renderer, camera, destiny, chapters (mutable array ref holder: {chapters}), rebuildShip(layout, connections),
+ * @param {Object} ctx - { renderer, camera, destiny, chapters (mutable array ref holder: {chapters}), rebuildShip(layout, connections),
  *              envTex, input, onEnter(), onExit() }
  */
 export const createLevelEditor = (ctx) => {
@@ -93,7 +93,7 @@ export const createLevelEditor = (ctx) => {
 
 	// ---- picking / placing (at the mouse; crosshair when pointer-locked)
 	const ray = new THREE.Raycaster();
-	const aim = () => { ray.setFromCamera(document.pointerLockElement === cv ? { x: 0, y: 0 } : mouse, camera); const floors = []; ship().group.traverse((o) => { if (o.userData.roomId) floors.push(o); }); return ray.intersectObjects([...floors, ...ship().propMeshes, ...ship().occludable], false)[0] ?? null; };
+	const aim = () => { ray.setFromCamera(/** @type {THREE.Vector2} */ (document.pointerLockElement === cv ? { x: 0, y: 0 } : mouse), camera); const floors = []; ship().group.traverse((o) => { if (o.userData.roomId) floors.push(o); }); return ray.intersectObjects([...floors, ...ship().propMeshes, ...ship().occludable], false)[0] ?? null; };
 	const click = () => {
 		if (state.mode !== 'ship') return; const hit = aim(); if (!hit) return;
 		if (state.placing && state.sel) {
@@ -179,7 +179,7 @@ export const createLevelEditor = (ctx) => {
 		state.layout = destiny.data.layout; state.connections = destiny.data.connections;
 		root = document.createElement('div'); root.innerHTML = `<style>${CSS}</style><aside id="le">${PANEL}</aside><div id="le-hud"></div><div id="le-cross"></div><div id="le-status">level editor — fly with WASD, right-drag to look</div>`; document.body.appendChild(root);
 		$ = (s) => root.querySelector(s);
-		root.querySelectorAll('.tabs button').forEach((b) => (b.onclick = () => { root.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('on', x === b)); $('#le-tab-ship').hidden = b.dataset.tab !== 'ship'; $('#le-tab-planets').hidden = b.dataset.tab !== 'planets'; }));
+		root.querySelectorAll('.tabs button').forEach((/** @type {HTMLElement} */ b) => (b.onclick = () => { root.querySelectorAll('.tabs button').forEach((/** @type {HTMLElement} */ x) => x.classList.toggle('on', x === b)); $('#le-tab-ship').hidden = b.dataset.tab !== 'ship'; $('#le-tab-planets').hidden = b.dataset.tab !== 'planets'; }));
 		$('#le-save').onclick = save; $('#le-download').onclick = download; $('#le-exit').onclick = exit;
 		$('#le-floor').onchange = (e) => { if (e.target.value === 'new') { state.floor = Math.max(...state.layout.map((r) => r.floor)) + 1; addRoom(); fillFloors(); } else state.floor = +e.target.value; state.sel = null; state.selProp = null; touch(); };
 		$('#le-add-room').onclick = addRoom; $('#le-del-room').onclick = deleteRoom; $('#le-power').onclick = () => { ship().setPower(!ship().powered); $('#le-power').textContent = `Power: ${ship().powered ? 'on' : 'off'}`; };
