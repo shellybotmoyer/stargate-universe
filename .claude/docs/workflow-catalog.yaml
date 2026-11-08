@@ -191,10 +191,9 @@ phases:
         command: /prototype
         required: false
         artifact:
-          glob: "prototypes/*/README.md"
-          min_count: 1
+          note: "Check /tmp/ or design/ for prototype README (prototypes/ dir removed in web-era re-pivot)"
         # ⚠️ WEB-ERA NOTE: prototypes/ dir removed in 2026-09-08 Godot→web/Three.js
-        # re-pivot. Use /tmp/ or design/ for throwaway experiments. Retained for reference.
+        # re-pivot. Use /tmp/ or design/ for throwaway experiments.
         description: "Build a throwaway prototype to validate the core mechanic is fun before committing to full production. Recommended for first-time mechanics or high-risk design decisions. Solo devs with proven concepts may skip."
 
       - id: create-epics
@@ -239,10 +238,9 @@ phases:
         command: /vertical-slice
         required: false
         artifact:
-          glob: "prototypes/*/REPORT.md"
-          min_count: 1
+          note: "Check /tmp/ or design/ for vertical slice report (prototypes/ dir removed in web-era re-pivot)"
         # ⚠️ WEB-ERA NOTE: prototypes/ dir removed in 2026-09-08 Godot→web/Three.js
-        # re-pivot. Use /tmp/ or design/ for throwaway experiments. Retained for reference.
+        # re-pivot. Use /tmp/ or design/ for throwaway experiments.
         description: "Build and playtest a vertical slice — a complete end-to-end pass through the core loop. Recommended before committing epics and stories to production. Skipping is a valid solo dev call but increases risk of late-stage design pivots. If built, must be played and documented before advancing."
 
   production:
