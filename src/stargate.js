@@ -230,5 +230,5 @@ export const createStargate = () => {
 		horizonMat.uniforms.uRipple.value = 1; horizonMat.uniforms.uRippleT.value = 0;
 		horizonMat.uniforms.uRipplePos.value.set(localX / rInner, localY / rInner);
 	};
-	return g;
+	return /** @type {THREE.Group & {activate: () => void, shutdown: () => void, isOpen: () => boolean, update: (dt: number) => void, ripple: (localX: number, localY: number) => void}} */ (g);
 };

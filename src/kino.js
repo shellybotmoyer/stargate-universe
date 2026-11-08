@@ -9,11 +9,10 @@ export const createKino = () => {
 	const lens = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), new THREE.MeshStandardMaterial({ color: 0x66f0ff, emissive: 0x33d0ff, emissiveIntensity: 3 }));
 	lens.position.set(0, 0, 0.15); orb.add(body, lens);
 	const light = new THREE.PointLight(0x66e0ff, 4, 6); orb.add(light);
-	const state = { orb, active: false, yaw: 0, pitch: 0, vel: new THREE.Vector3(), scanT: 0 };
-	state.launch = (pos, yaw) => { orb.position.copy(pos); state.yaw = yaw; state.pitch = 0; state.vel.set(0, 0, 0); state.active = true; state.scanT = 0; orb.visible = true; };
-	state.recall = () => { state.active = false; orb.visible = false; };
+	const launch = (pos, yaw) => { orb.position.copy(pos); state.yaw = yaw; state.pitch = 0; state.vel.set(0, 0, 0); state.active = true; state.scanT = 0; orb.visible = true; };
+	const recall = () => { state.active = false; orb.visible = false; };
 	/** Fly: input.move (x strafe, y fwd), input.look, Space/jump up, run = descend. Returns nothing; caller handles gate crossing. */
-	state.update = (dt, input, camera) => {
+	const update = (dt, input, camera) => {
 		state.yaw -= input.look.x; state.pitch = THREE.MathUtils.clamp(state.pitch + input.look.y, -1.2, 1.2);
 		const fwd = new THREE.Vector3(-Math.sin(state.yaw), 0, -Math.cos(state.yaw)), right = new THREE.Vector3(-fwd.z, 0, fwd.x);
 		const want = fwd.multiplyScalar(input.move.y).addScaledVector(right, input.move.x);
@@ -28,6 +27,7 @@ export const createKino = () => {
 		const look = orb.position.clone().add(new THREE.Vector3(-Math.sin(state.yaw) * Math.cos(state.pitch), Math.sin(state.pitch), -Math.cos(state.yaw) * Math.cos(state.pitch)));
 		camera.up.set(0, 1, 0); camera.lookAt(look);
 	};
+	const state = { orb, active: false, yaw: 0, pitch: 0, vel: new THREE.Vector3(), scanT: 0, launch, recall, update };
 	orb.visible = false;
 	return state;
 };

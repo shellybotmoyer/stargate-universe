@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 
 /** Create the wormhole transit scene: energy tube geometry, animated shaders, and camera fly-through API.
- * @returns {{scene: THREE.Scene, tick: (t: number, k: number) => void}}
+ * @returns {{scene: THREE.Scene, tube: THREE.Mesh, duration: number, tick: (t: number, k: number, camera: THREE.Camera) => void}}
  */
 export const createWormhole = () => {
 	const scene = new THREE.Scene(); scene.background = new THREE.Color(0x020610);
