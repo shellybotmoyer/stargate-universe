@@ -24,27 +24,27 @@ const css = `
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 /** Create the flow-balance mini-game: coupled valves with pressure gauges. Follows the hotwire.js contract.
  * @param {{sfx?: object}} [opts] - sound effects object (optional)
- * @returns {{el: HTMLDivElement, play: () => Promise<boolean>, isOpen: () => boolean}}
+ * @returns {{play: () => Promise<boolean>, solve: () => void, isOpen: () => boolean}}
  */
 export const createFlow = ({ sfx = {} } = {}) => {
 	document.head.appendChild(Object.assign(document.createElement('style'), { textContent: css }));
 	const el = document.createElement('div'); el.id = 'flow'; el.hidden = true; document.body.appendChild(el);
 	let resolve = null, M = [], target = [], sol = [], band = 0.06, hold = 0, holdTimer = 0, N = 3;
 	const done = (ok) => { clearInterval(holdTimer); el.hidden = true; const r = resolve; resolve = null; r?.(ok); };
-	const values = () => [...el.querySelectorAll('input[type=range]')].map((i) => +i.value / 100);
+	const values = () => [...el.querySelectorAll('input[type=range]')].map((i) => +/** @type {HTMLInputElement} */ (i).value / 100);
 	const reading = (v) => M.map((row, _i) => clamp01(row.reduce((acc, m, j) => acc + m * v[j], 0) + 0.15));
 	const render = () => {
 		const r = reading(values()); let allOk = true;
 		el.querySelectorAll('.col').forEach((col, i) => {
 			const ok = Math.abs(r[i] - target[i]) <= band; allOk &&= ok; col.classList.toggle('ok', ok);
-			col.querySelector('.needle').style.top = `${(1 - r[i]) * 100}%`; col.querySelector('.fill').style.height = `${r[i] * 100}%`;
+			/** @type {HTMLElement} */ (col.querySelector('.needle')).style.top = `${(1 - r[i]) * 100}%`; /** @type {HTMLElement} */ (col.querySelector('.fill')).style.height = `${r[i] * 100}%`;
 		});
 		return allOk;
 	};
 	const status = (t, cls = '') => { const s = el.querySelector('.status'); s.textContent = t; s.className = `status ${cls}`; };
 	const tick = () => { // hold the balance for ~1.4 s (7 ticks) while the system settles
-		if (!render()) { if (hold) { hold = 0; el.querySelector('.bar i').style.width = '0%'; status('BALANCE LOST — RE-TRIM THE VALVES'); } return; }
-		hold++; el.querySelector('.bar i').style.width = `${Math.min(100, (hold / 7) * 100)}%`; if (hold === 1) sfx.pick?.();
+		if (!render()) { if (hold) { hold = 0; /** @type {HTMLElement} */ (el.querySelector('.bar i')).style.width = '0%'; status('BALANCE LOST — RE-TRIM THE VALVES'); } return; }
+		hold++; /** @type {HTMLElement} */ (el.querySelector('.bar i')).style.width = `${Math.min(100, (hold / 7) * 100)}%`; if (hold === 1) sfx.pick?.();
 		if (hold >= 7) { clearInterval(holdTimer); status('FLOW BALANCED — SYSTEM CYCLING', 'ok'); sfx.success?.(); setTimeout(() => done(true), 900); } else status(`HOLDING… ${hold}/7`);
 	};
 	/** Open the panel. `gauges` is the number of coupled lines (3 = medium, 4 = hard). */
@@ -59,11 +59,11 @@ export const createFlow = ({ sfx = {} } = {}) => {
 			<input type="range" min="0" max="100" value="${Math.round(start[i] * 100)}" data-valve="${i}"><label>${labels[i] ?? `LINE_${i + 1}`}</label></div>`).join('')}</div>
 			<div class="status">PRESSURE OUT OF BAND — TRIM THE VALVES</div><div class="bar"><i></i></div><div class="esc">ESC abandons</div></div>`;
 		el.hidden = false; el.querySelectorAll('input').forEach((i) => (i.oninput = () => { sfx.tick?.(); render(); }));
-		render(); holdTimer = setInterval(tick, 200);
+		render(); holdTimer = window.setInterval(tick, 200);
 		if (document.pointerLockElement) document.exitPointerLock();
 	});
 	window.addEventListener('keydown', (e) => { if (!el.hidden && e.code === 'Escape') { e.stopImmediatePropagation(); done(false); } }, true);
 	/** Dev/autoplay: set every valve to the generating solution. */
-	const solve = () => { el.querySelectorAll('input[type=range]').forEach((i, j) => { i.value = Math.round(sol[j] * 100); }); render(); };
+	const solve = () => { el.querySelectorAll('input[type=range]').forEach((i, j) => { /** @type {HTMLInputElement} */ (i).value = String(Math.round(sol[j] * 100)); }); render(); };
 	return { play, solve, isOpen: () => !el.hidden };
 };
