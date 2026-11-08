@@ -12,7 +12,8 @@
     "baseUrl": ".",
     "paths": {
       "three": ["./node_modules/@types/three"],
-      "three/addons/*": ["./node_modules/@types/three/examples/jsm/*"]
+      "three/addons/*": ["./node_modules/@types/three/examples/jsm/*"],
+      "punycode": ["./src/punycode.d.ts"]
     }
   },
   "include": ["src/*.js", "src/*.d.ts"],

@@ -1,6 +1,10 @@
 // Global type declarations for stargate-universe
 // Declares custom window properties used by the game's debug/autoplay/recorder systems.
 
+// Ambient declaration for punycode polyfill — prevents checkJs from type-checking
+// the third-party punycode.js (16 TS errors from legacy JS patterns in node_modules).
+declare module "punycode";
+
 interface Window {
   /** Debug API exposed at window.__dbg for console inspection and autoplay. */
   __dbg?: any;
