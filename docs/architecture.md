@@ -18,7 +18,7 @@ no bundler, no TypeScript at runtime.
 | Audio | `AudioLoader` → `ASSETS/sounds/…`; procedural synthesis (`toneBuffer()`) for alarms/heartbeat | TTS generation: `tools/tts-bake/` |
 | Assets | Repo-local `sounds/`, `models/` (Quaternius UAL), `data/` | `ASSETS` base path resolves CDN vs local |
 
-## 2. Module graph (23 source files on origin/main, 24 on local main, 26 on PR #197 branch, 3,461 LOC on local main)
+## 2. Module graph (23 source files on origin/main, 24 on local main, 26 on PR #197 branch, 3,465 LOC on local main)
 
 ```
 main.js (702 LOC) — entry point, game loop, chapter engine, FTL/countdown systems
@@ -128,7 +128,7 @@ Flow = coupled-valve matrix with guaranteed-solvable targets (40-try rejection).
 slot. Persists: chapter ID, step index, flags, deck, FTL state (window/cooldown),
 grow bed growth, countdown state, RPG state (HP/O2/XP/inventory/equipment).
 
-### Autoplay (`autoplay.js`, 160 LOC)
+### Autoplay (`autoplay.js`, 169 LOC)
 Automated smoke-test walker. Keyboard simulation with escalating unstick logic
 (back-off + sidestep). `?autoplay&reload` mode reloads at every chapter boundary
 and resumes from save, exercising save/load across chapter boundaries. Flow
@@ -157,7 +157,7 @@ stargate-universe/
 │   ├── music-bake/     — music asset baking
 │   ├── tts-bake/       — TTS voice line generation
 │   └── edit_server.py  — Level editor backend
-├── src/                — 24 ES modules (3,447 LOC on local main)
+├── src/                — 24 ES modules (3,465 LOC on local main)
 ├── data/               — 6 JSON files (chapters, layout, items, connections, knockout lines, music moods)
 ├── sounds/             — SFX + dialog voice lines (.ogg, .wav)
 ├── models/             — Quaternius UAL mannequin + environment (.glb)
