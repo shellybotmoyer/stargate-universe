@@ -37,7 +37,7 @@ export const createHotwire = ({ sfx = {} } = {}) => {
 	const draw = () => {
 		const svg = el.querySelector('svg'), fr = el.querySelector('.field').getBoundingClientRect();
 		svg.innerHTML = [...connected].map(([j, p]) => { const a = el.querySelector(`[data-jack="${j}"]`).getBoundingClientRect(), b = el.querySelector(`[data-port="${p}"]`).getBoundingClientRect(); const x1 = a.right - fr.left, y1 = a.top + a.height / 2 - fr.top, x2 = b.left - fr.left, y2 = b.top + b.height / 2 - fr.top; return `<path d="M${x1},${y1} C${x1 + 80},${y1} ${x2 - 80},${y2} ${x2},${y2}" stroke="${WIRES[j].color}" stroke-width="7" fill="none" stroke-linecap="round" style="filter:drop-shadow(0 0 6px ${WIRES[j].color})"/>`; }).join('');
-		el.querySelector('.bar i').style.width = `${(connected.size / WIRES.length) * 100}%`;
+		/** @type {HTMLElement} */ (el.querySelector('.bar i')).style.width = `${(connected.size / WIRES.length) * 100}%`;
 	};
 	const status = (t, cls = '') => { const s = el.querySelector('.status'); s.textContent = t; s.className = `status ${cls}`; };
 	const fault = () => {
@@ -45,7 +45,7 @@ export const createHotwire = ({ sfx = {} } = {}) => {
 		el.querySelectorAll('.jack').forEach((j) => j.classList.remove('sel', 'done')); el.querySelectorAll('.port').forEach((p) => p.classList.remove('on'));
 		status(`PROTOCOL FAULT — LINES RESET (${faults})`, 'bad'); draw();
 	};
-	const pick = (j) => { if (connected.has(j)) return; selected = j; el.querySelectorAll('.jack').forEach((b) => b.classList.toggle('sel', +b.dataset.jack === j)); sfx.pick?.(); status(`${WIRES[j].label} SELECTED — PATCH TO ITS PORT`); };
+	const pick = (j) => { if (connected.has(j)) return; selected = j; el.querySelectorAll('.jack').forEach((b) => { const jb = /** @type {HTMLElement} */ (b); jb.classList.toggle('sel', +jb.dataset.jack === j); }); sfx.pick?.(); status(`${WIRES[j].label} SELECTED — PATCH TO ITS PORT`); };
 	const patch = (p) => {
 		if (selected < 0) { status('SELECT A JACK FIRST'); return; }
 		const live = order[p]; if (live !== selected || [...connected.values()].includes(p)) return fault();
@@ -60,10 +60,10 @@ export const createHotwire = ({ sfx = {} } = {}) => {
 			<div class="field"><div class="jacks">${WIRES.map((w, i) => `<div class="jack" data-jack="${i}" data-label="${w.label}" style="--c:${w.color}"></div>`).join('')}</div><svg></svg>
 			<div class="ports">${order.map((w, p) => `<div class="port ${w < 0 ? 'void' : 'lit'}" data-port="${p}" data-label="${w < 0 ? 'VOID' : WIRES[w].label}" style="--c:${w < 0 ? '#333' : WIRES[w].color}"><i></i>${w < 0 ? 'VOID' : WIRES[w].label}</div>`).join('')}</div></div>
 			<div class="status">SECURITY LEVEL: ${security} — PORTS SHOW THEIR LINE FOR A MOMENT</div><div class="bar"><i></i></div><div class="esc">ESC abandons</div></div>`;
-		el.hidden = false; el.querySelectorAll('.jack').forEach((b) => (b.onclick = () => pick(+b.dataset.jack))); el.querySelectorAll('.port').forEach((b) => (b.onclick = () => patch(+b.dataset.port)));
+		el.hidden = false; el.querySelectorAll('.jack').forEach((b) => { const jb = /** @type {HTMLElement} */ (b); jb.onclick = () => pick(+jb.dataset.jack); }); el.querySelectorAll('.port').forEach((b) => { const pb = /** @type {HTMLElement} */ (b); pb.onclick = () => patch(+pb.dataset.port); });
 		setTimeout(() => { el.querySelectorAll('.port').forEach((p) => p.classList.remove('lit')); if (resolve && !connected.size) status(`SECURITY LEVEL: ${security} — PATCH FROM MEMORY`); }, 2600);
 		if (document.pointerLockElement) document.exitPointerLock();
 	});
 	window.addEventListener('keydown', (e) => { if (!el.hidden && e.code === 'Escape') { e.stopImmediatePropagation(); done(false); } }, true);
-	return { play, isOpen: () => !el.hidden, get faults() { return faults; } };
+	return { el, play, isOpen: () => !el.hidden, get faults() { return faults; } };
 };
