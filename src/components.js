@@ -315,7 +315,7 @@ export const COMPONENTS = {
 			const panel = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.7, 0.08), ctx.mats.dark); panel.position.set(1.6, 1.3, 0.19); g.add(panel); // call panel + fuse bay beside the doors
 			const ind = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 0.02), ctx.mats.red.clone()); ind.position.set(1.6, 1.6, 0.24); g.add(ind);
 			const fuses = [-0.09, 0, 0.09].map((dx, i) => { const f = new THREE.Mesh(new THREE.CylinderGeometry(i === 1 ? 0.035 : 0.025, i === 1 ? 0.035 : 0.025, 0.2, 10), new THREE.MeshStandardMaterial({ color: 0xd8b060, emissive: 0x6a4010, emissiveIntensity: 0.6, roughness: 0.35, metalness: 0.6 })); f.position.set(1.6 + dx, 1.15, 0.24); f.visible = false; g.add(f); return f; });
-			ctx.parts.elevators.push({ lamp: ind, fuses, leaves: g.children.filter((m) => m.geometry?.parameters?.width === 1.1) });
+			ctx.parts.elevators.push({ lamp: ind, fuses, leaves: g.children.filter((m) => (/** @type {THREE.BoxGeometry} */ ((/** @type {THREE.Mesh} */ (m)).geometry))?.parameters?.width === 1.1) });
 			return { anchor: f.multiplyScalar(1.2).add(new THREE.Vector3(p.x, 0, p.z)) };
 		},
 	},

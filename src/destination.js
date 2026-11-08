@@ -90,7 +90,7 @@ export const createDestination = (planetDef = {}) => {
 	const gate = createStargate();
 	gate.position.set(0, GATE.rInner + 0.3 - 0.15, GZ); scene.add(gate);
 	for (const sx of [-1, 1]) colliders.push(new THREE.Box3(new THREE.Vector3(sx * 2.9 - 0.7, 0, GZ - 0.4), new THREE.Vector3(sx * 2.9 + 0.7, 8, GZ + 0.4)));
-	gate.traverse((o) => { if (o.isMesh && o.name !== 'eventHorizon') occludable.push(o); });
+	gate.traverse((o) => { const m = /** @type {THREE.Mesh} */ (o); if (m.isMesh && m.name !== 'eventHorizon') occludable.push(m); });
 
 	// horizon: a ring of jagged ridges 130–210 m out (flat-shaded, fog-tinted) so the world has an edge instead of a fog wall
 	{
