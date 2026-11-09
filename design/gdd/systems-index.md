@@ -11,7 +11,7 @@
 
 > **Status**: Draft
 > **Created**: 2026-03-29
-> **Last Updated**: 2026-03-29
+> **Last Updated**: 2026-11-09 (heartbeat — Save/Load system status fixed: doc exists, linked, VS count corrected)
 > **Source Concept**: design/gdd/game-concept.md
 
 ---
@@ -49,7 +49,7 @@ The game pillars that constrain system design:
 | 9 | Crew Dialogue & Choice System | Narrative | MVP | Designed | design/gdd/crew-dialogue-choice.md | Event Bus, Save/Load (interface) |
 | 10 | Kino Remote (diegetic menu) | UI | MVP | Designed | design/gdd/kino-remote.md | Ship State, Resource System, Scene Mgmt |
 | 11 | Ship Atmosphere & Lighting | Audio/Visual | MVP | Designed | design/gdd/ship-atmosphere-lighting.md | Ship State, Render Pipeline |
-| 12 | Save/Load System | Persistence | Vertical Slice | Not Started | — | Event Bus |
+| 12 | Save/Load System | Persistence | Vertical Slice | Designed | design/gdd/save-load-interface.md | Event Bus |
 | 13 | Ancient Tech Puzzle System | Gameplay | Vertical Slice | Not Started | — | Player Controller, Ship State |
 | 14 | Crew AI & Schedule System | Gameplay | Vertical Slice | Not Started | — | Ship State, Event Bus, Scene Mgmt |
 | 15 | Kino Drone (first-person scout) | Gameplay | Vertical Slice | Not Started | — | Camera System, Ship State, Player Controller |
@@ -98,7 +98,7 @@ and receive `update(delta)` calls at 60 FPS.
 | Tier | Definition | Target Milestone | Systems Count |
 |------|------------|------------------|---------------|
 | **MVP** | Required for the core loop: walk Destiny, gate to planet, gather supplies, repair something, talk to crew | First playable prototype | 11 |
-| **Vertical Slice** | Complete experience: episodes, puzzles, NPC schedules, kino scouting, save/load | Vertical slice / demo | 6 |
+| **Vertical Slice** | Complete experience: episodes, puzzles, NPC schedules, kino scouting, save/load | Vertical slice / demo | 7 |
 | **Alpha** | All features rough: Icarus Base tutorial, full episode structure | Alpha milestone | 1 |
 
 ---
@@ -203,11 +203,11 @@ design phase. Implement the full Save/Load system in Vertical Slice tier.
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 19 |
-| Design docs started | 12 |
+| Design docs started | 13 |
 | Design docs reviewed | 0 |
 | Design docs approved | 0 |
 | MVP systems designed | 11/11 |
-| Vertical Slice systems designed | 0/6 |
+| Vertical Slice systems designed | 2/7 |
 
 ---
 
