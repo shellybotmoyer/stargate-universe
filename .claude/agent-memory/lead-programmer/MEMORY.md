@@ -32,7 +32,7 @@
 - Next dev plan: `production/next-development-plan.md` (NOT `production/epics/` — that dir does not exist)
 - Systems index: `design/gdd/systems-index.md`
 - Game data: `data/` (chapters.json, ship_layout.json, items.json, etc.)
-- Source modules: `src/*.js` (24 ES modules, 3,445 LOC)
+- Source modules: `src/*.js` (24 ES modules, 3,465 LOC)
 - Build: `build.sh` → `dist/sgu-destiny-html5.zip`
 - CI: `.github/workflows/ci.yml` (syntax check, JSON validation, itch.io build)
 - Learnings: `.ai/learnings/` (one lesson per file)
