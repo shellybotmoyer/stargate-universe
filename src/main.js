@@ -43,7 +43,7 @@ const envTex = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(
 // ?layout=live → the map editor's working copy (localStorage) instead of the repo data files
 const LIVE = (() => { try { return location.search.includes('layout=live') ? JSON.parse(localStorage.getItem('sgu.layout.live')) : null; } catch { return null; } })();
 const buildDestiny = async () => {
-	const [layout, connections] = LIVE ? [LIVE.layout, LIVE.connections] : await Promise.all([`${ASSETS}data/ship_layout.json`, `${ASSETS}data/room_connections.json`].map((u) => fetch(u).then((r) => r.json())));
+	const [layout, connections] = LIVE ? [LIVE.layout, LIVE.connections] : await Promise.all([`${ASSETS}data/ship_layout.json`, `${ASSETS}data/room_connections.json`].map((u) => fetch(u).then((r) => { if (!r.ok) throw new Error(`${u}: HTTP ${r.status}`); return r.json(); })));
 	const scene = new THREE.Scene();
 	scene.background = new THREE.Color(0x04060a); scene.fog = new THREE.Fog(0x05070c, 26, 70);
 	scene.environment = envTex; scene.environmentIntensity = 0.28;
