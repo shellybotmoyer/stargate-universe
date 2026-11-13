@@ -1,9 +1,9 @@
 # Technical Debt Register
 
-Last updated: 2026-11-09 (heartbeat 22:01 UTC — TD-111 resolved: removed dead icon field from items.json) · Sprint: web-era (post re-pivot)
+Last updated: 2026-11-13 (heartbeat — corrected LOC count and module attribution: flow.js is on local main, not PR-only) · Sprint: web-era (post re-pivot)
 Total open items: 2 (TD-009/010 web-era) | Estimated total effort: ~M-L
 
-Tracks **conscious** technical-debt decisions for the Stargate Universe project (historically Godot 4.6, now web/Three.js since the 2026-09-08 re-pivot). All Godot-era items (TD-001 through TD-008) are archived as historical — their code references point to removed `.gd`/`.tscn` files.
+Tracks **conscious** technical-debt decisions for the Stargate Universe project (historically Godot 4.6, now web/Three.js since the 2026-09-08 re-pivot). Module count: 23 on origin/main, 24 on local main (3,465 LOC — includes `src/flow.js`), 26 on PR #197 branch (adds `src/ftl.js` + `src/save.js`). All Godot-era items (TD-001 through TD-008) are archived as historical — their code references point to removed `.gd`/`.tscn` files.
 Maintained via the `/tech-debt` skill (`.claude/skills/tech-debt/`). Run `/tech-debt scan`
 at least once per sprint; items open for >3 sprints must be fixed or consciously re-accepted.
 
