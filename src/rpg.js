@@ -68,7 +68,7 @@ export const xpToNext = (lvl) => 100 * lvl;
  * @returns {Promise<void>}
  */
 export const loadItems = async () => {
-	try { for (const it of await (await fetch(`${ASSETS}data/items.json`)).json()) ITEMS[it.id] = it; } catch (e) { console.warn('items.json load failed, using WEB_ITEMS fallback:', e?.message ?? e); }
+	try { const r = await fetch(`${ASSETS}data/items.json`); if (!r.ok) throw new Error(`${ASSETS}data/items.json: HTTP ${r.status}`); for (const it of await r.json()) ITEMS[it.id] = it; } catch (e) { console.warn('items.json load failed, using WEB_ITEMS fallback:', e?.message ?? e); }
 	for (const it of WEB_ITEMS) ITEMS[it.id] = it;
 	if (ITEMS.field_backpack) ITEMS.field_backpack.description ??= 'Roomy canvas pack. +6 carry.';
 };
