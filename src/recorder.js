@@ -25,7 +25,7 @@ export const createRecorder = (glCanvas, hud, { fps = 30, base = '/rec', quality
 		if (s.overlay) { ctx.font = `600 ${26 * k}px monospace`; const w = ctx.measureText(s.overlay).width + 60 * k; box(W / 2 - w / 2, H * 0.42, w, 50 * k); text(s.overlay, W / 2 - w / 2 + 30 * k, H * 0.42 + 35 * k, 26 * k, '#5ff3ea', '600'); }
 		text(`REC ${(frames / fps).toFixed(1)}s`, 24 * k, H - 24 * k, 14 * k, '#e05040');
 	};
-	const post = (url, body) => fetch(url, { method: 'POST', body });
+	const post = async (url, body) => { const r = await fetch(url, { method: 'POST', body }); if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`); return r; };
 	/** Call once per simulated frame after render; resolves when the frame has been handed to the encoder (main.js waits on it). */
 	const tick = async () => {
 		if (!active) return; compose();
